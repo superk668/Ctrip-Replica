@@ -1,0 +1,306 @@
+# 前端UI接口定义
+# 携程网站复制版 - UI接口库
+
+- type: Frontend
+  id: UI-HomePage
+  description: 网站首页主组件，包含导航栏、搜索表单、推荐内容等
+  properties:
+    - name: user
+      type: object
+      description: "当前登录用户信息，未登录时为null"
+    - name: onNavigate
+      type: function
+      description: "页面导航回调函数"
+  state:
+    - isLoading
+    - hotDestinations
+    - promotionalFlights
+    - searchForm
+  dependencies:
+    - API-GET-HotDestinations
+    - API-GET-PromotionalFlights
+    - UI-Navigation
+    - UI-FlightSearchForm
+    - UI-HotDestinations
+    - UI-PromotionalFlights
+  acceptanceCriteria:
+    - 组件应渲染完整的首页布局
+    - 包含导航栏、搜索表单、热门目的地、特价机票等区域
+    - 页面加载时自动获取热门目的地和特价机票数据
+    - 响应式设计，适配不同屏幕尺寸
+  changeLog:
+    - date: "2025-01-16"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-Navigation
+  description: 网站主导航栏组件
+  properties:
+    - name: user
+      type: object
+      description: "当前登录用户信息"
+    - name: onLogin
+      type: function
+      description: "登录按钮点击回调"
+    - name: onRegister
+      type: function
+      description: "注册按钮点击回调"
+    - name: onLogout
+      type: function
+      description: "登出按钮点击回调"
+  state:
+    - isLoggedIn
+  dependencies:
+    - API-POST-Logout
+  acceptanceCriteria:
+    - 显示网站Logo和品牌标识
+    - 根据登录状态显示不同的导航项
+    - 未登录时显示"登录"和"注册"按钮
+    - 已登录时显示用户信息和"我的订单"、"登出"选项
+    - Logo点击应返回首页
+  changeLog:
+    - date: "2025-01-16"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-FlightSearchForm
+  description: 机票搜索表单组件
+  properties:
+    - name: onSearch
+      type: function
+      description: "搜索按钮点击回调函数"
+  state:
+    - originCity
+    - destinationCity
+    - departureDate
+    - returnDate
+    - passengerType
+    - cabinClass
+    - cities
+    - isLoading
+  dependencies:
+    - API-GET-Cities
+  acceptanceCriteria:
+    - 包含出发城市、到达城市选择框
+    - 包含出发日期、返程日期选择器
+    - 包含乘客类型和舱位类型选择
+    - 城市选择支持搜索和热门城市推荐
+    - 表单验证：出发城市和到达城市不能相同
+    - 出发日期不能早于当前日期
+  changeLog:
+    - date: "2025-01-16"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-HotDestinations
+  description: 热门目的地推荐组件
+  properties:
+    - name: destinations
+      type: array
+      description: "热门目的地数据列表"
+    - name: onDestinationClick
+      type: function
+      description: "目的地点击回调函数"
+  state:
+    - none
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 以卡片形式展示热门目的地
+    - 每个卡片包含目的地图片、名称、描述和参考价格
+    - 支持横向滚动浏览
+    - 点击卡片应触发回调函数
+  changeLog:
+    - date: "2025-01-16"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-PromotionalFlights
+  description: 特价机票展示组件
+  properties:
+    - name: flights
+      type: array
+      description: "特价机票数据列表"
+    - name: onFlightClick
+      type: function
+      description: "机票点击回调函数"
+  state:
+    - none
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 以列表形式展示特价机票
+    - 每项包含航线、价格、折扣、日期信息
+    - 突出显示折扣和优惠价格
+    - 点击机票应触发回调函数
+  changeLog:
+    - date: "2025-01-16"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-LoginPage
+  description: 用户登录页面组件
+  properties:
+    - name: onLoginSuccess
+      type: function
+      description: "登录成功回调函数"
+    - name: onNavigateToRegister
+      type: function
+      description: "跳转到注册页面回调"
+  state:
+    - loginType
+    - account
+    - password
+    - phoneNumber
+    - verificationCode
+    - rememberMe
+    - isLoading
+    - error
+    - codeCountdown
+  dependencies:
+    - API-POST-Login-Password
+    - API-POST-Login-SendCode
+    - API-POST-Login-VerifyCode
+  acceptanceCriteria:
+    - 支持账号密码登录和验证码登录两种方式
+    - 登录方式切换标签功能正常
+    - 账号密码登录：支持手机号/邮箱输入、密码输入、记住登录状态
+    - 验证码登录：支持手机号输入、验证码输入、获取验证码倒计时
+    - 表单验证和错误提示
+    - 第三方登录按钮（仅UI展示）
+  changeLog:
+    - date: "2025-01-16"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-RegisterPage
+  description: 用户注册页面组件
+  properties:
+    - name: onRegisterSuccess
+      type: function
+      description: "注册成功回调函数"
+    - name: onNavigateToLogin
+      type: function
+      description: "跳转到登录页面回调"
+  state:
+    - currentStep
+    - phoneNumber
+    - verificationCode
+    - password
+    - confirmPassword
+    - agreeToTerms
+    - isLoading
+    - error
+    - codeCountdown
+    - tempToken
+  dependencies:
+    - API-POST-Register-SendCode
+    - API-POST-Register-Verify
+    - API-POST-Register-Complete
+  acceptanceCriteria:
+    - 显示注册步骤指示器
+    - 第一步：手机号验证，包含手机号输入、验证码输入、用户协议勾选
+    - 第二步：密码设置，包含密码输入、确认密码、密码强度指示器
+    - 表单验证和错误处理
+    - 支持步骤间的前进和后退
+  changeLog:
+    - date: "2025-01-16"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-CitySelector
+  description: 城市选择器组件
+  properties:
+    - name: value
+      type: string
+      description: "当前选中的城市代码"
+    - name: placeholder
+      type: string
+      description: "输入框占位符文本"
+    - name: onChange
+      type: function
+      description: "城市选择变化回调函数"
+  state:
+    - isOpen
+    - searchKeyword
+    - cities
+    - filteredCities
+    - hotCities
+  dependencies:
+    - API-GET-Cities
+  acceptanceCriteria:
+    - 支持点击打开城市选择面板
+    - 支持搜索城市功能
+    - 显示热门城市快速选择
+    - 支持拼音搜索和中文搜索
+    - 选择城市后自动关闭面板并更新显示
+  changeLog:
+    - date: "2025-01-16"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-DatePicker
+  description: 日期选择器组件
+  properties:
+    - name: value
+      type: string
+      description: "当前选中的日期"
+    - name: placeholder
+      type: string
+      description: "输入框占位符文本"
+    - name: minDate
+      type: string
+      description: "最小可选日期"
+    - name: maxDate
+      type: string
+      description: "最大可选日期"
+    - name: onChange
+      type: function
+      description: "日期选择变化回调函数"
+  state:
+    - isOpen
+    - currentMonth
+    - selectedDate
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 支持点击打开日期选择面板
+    - 显示日历界面，支持月份切换
+    - 限制可选日期范围
+    - 高亮显示当前日期和选中日期
+    - 选择日期后自动关闭面板并更新显示
+  changeLog:
+    - date: "2025-01-16"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-VerificationCodeInput
+  description: 验证码输入组件
+  properties:
+    - name: phoneNumber
+      type: string
+      description: "手机号码"
+    - name: value
+      type: string
+      description: "验证码值"
+    - name: onChange
+      type: function
+      description: "验证码输入变化回调"
+    - name: onSendCode
+      type: function
+      description: "发送验证码回调函数"
+  state:
+    - countdown
+    - isSending
+    - canSend
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 验证码输入框，限制6位数字
+    - 获取验证码按钮，点击后开始倒计时
+    - 倒计时期间按钮不可点击，显示剩余时间
+    - 倒计时结束后恢复可点击状态
+    - 手机号为空时获取验证码按钮不可点击
+  changeLog:
+    - date: "2025-01-16"
+      description: "初始创建。"
