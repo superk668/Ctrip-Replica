@@ -1,31 +1,40 @@
 # 数据库操作接口定义
-# 携程网站复制版 - 数据库接口库
 
 - type: Database
   id: DB-FindUserByPhone
-  description: 根据手机号查找用户记录
+  description: 根据手机号查询用户信息
   dependencies:
     - none
   acceptanceCriteria:
-    - 根据手机号在users表中查找用户记录
-    - 如果用户存在，返回用户信息
-    - 如果用户不存在，返回null
+    - 成功执行后，返回匹配的手机号用户信息
+    - 如果手机号不存在，返回null
   changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
+    - date: "2025-11-11"
+      description: "初始创建"
 
 - type: Database
   id: DB-FindUserByEmail
-  description: 根据邮箱查找用户记录
+  description: 根据邮箱查询用户信息
   dependencies:
     - none
   acceptanceCriteria:
-    - 根据邮箱在users表中查找用户记录
-    - 如果用户存在，返回用户信息
-    - 如果用户不存在，返回null
+    - 成功执行后，返回匹配的邮箱用户信息
+    - 如果邮箱不存在，返回null
   changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
+    - date: "2025-11-11"
+      description: "初始创建"
+
+- type: Database
+  id: DB-FindUserByUsername
+  description: 根据用户名查询用户信息
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后，返回匹配的用户名信息
+    - 如果用户名不存在，返回null
+  changeLog:
+    - date: "2025-11-11"
+      description: "初始创建"
 
 - type: Database
   id: DB-CreateUser
@@ -35,11 +44,45 @@
   acceptanceCriteria:
     - 成功执行后，users表中会增加一条新记录
     - 如果手机号已存在，操作应失败并抛出唯一性约束错误
-    - 用户ID应自动生成UUID
-    - 创建时间应自动设置为当前时间
   changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
+    - date: "2025-11-11"
+      description: "初始创建"
+
+- type: Database
+  id: DB-VerifyPassword
+  description: 验证用户密码是否正确
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后，返回密码验证结果（true/false）
+    - 验证过程应使用安全的密码哈希算法
+  changeLog:
+    - date: "2025-11-11"
+      description: "初始创建"
+
+- type: Database
+  id: DB-CreateVerificationCode
+  description: 创建并存储手机验证码
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后，在验证码表中创建一条新记录
+    - 验证码应为6位数字，有效期为5分钟
+  changeLog:
+    - date: "2025-11-11"
+      description: "初始创建"
+
+- type: Database
+  id: DB-VerifyCode
+  description: 验证手机验证码是否正确
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后，返回验证码验证结果（true/false）
+    - 验证后应标记验证码为已使用
+  changeLog:
+    - date: "2025-11-11"
+      description: "初始创建"
 
 - type: Database
   id: DB-UpdateUserPassword
@@ -47,88 +90,8 @@
   dependencies:
     - none
   acceptanceCriteria:
-    - 根据用户ID更新用户密码
-    - 密码应进行哈希加密存储
-    - 更新修改时间为当前时间
+    - 成功执行后，更新users表中对应用户的密码字段
+    - 密码应使用安全的哈希算法存储
   changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Database
-  id: DB-VerifyUserPassword
-  description: 验证用户密码
-  dependencies:
-    - none
-  acceptanceCriteria:
-    - 根据用户ID和密码验证用户身份
-    - 密码验证应使用哈希比较
-    - 返回验证结果（成功/失败）
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Database
-  id: DB-CreateVerificationCode
-  description: 创建验证码记录
-  dependencies:
-    - none
-  acceptanceCriteria:
-    - 在verification_codes表中创建新的验证码记录
-    - 验证码应有过期时间（默认5分钟）
-    - 同一手机号的旧验证码应被标记为失效
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Database
-  id: DB-VerifyCode
-  description: 验证验证码
-  dependencies:
-    - none
-  acceptanceCriteria:
-    - 根据手机号和验证码验证有效性
-    - 检查验证码是否过期
-    - 验证成功后标记验证码为已使用
-    - 返回验证结果（成功/失败/过期）
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Database
-  id: DB-GetCities
-  description: 获取城市列表
-  dependencies:
-    - none
-  acceptanceCriteria:
-    - 从cities表中获取所有可用城市
-    - 返回城市代码、城市名称、拼音等信息
-    - 支持按热门程度排序
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Database
-  id: DB-GetHotDestinations
-  description: 获取热门目的地
-  dependencies:
-    - none
-  acceptanceCriteria:
-    - 从destinations表中获取热门目的地
-    - 返回目的地信息和推荐理由
-    - 按热门程度排序
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Database
-  id: DB-GetPromotionalFlights
-  description: 获取特价机票信息
-  dependencies:
-    - none
-  acceptanceCriteria:
-    - 从promotional_flights表中获取特价机票
-    - 返回航班信息、价格、折扣等
-    - 按价格优势排序
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
+    - date: "2025-11-11"
+      description: "初始创建"

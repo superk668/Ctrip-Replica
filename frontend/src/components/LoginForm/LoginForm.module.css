@@ -1,0 +1,106 @@
+.loginForm {
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 380px;
+  /* 与验证码登录框位置统一：靠右偏移 */
+  margin-left: auto;
+  margin-right: 22vw; /* 向左移动一些：增大右侧留白 */
+}
+
+/* 中小屏适配：略微减少右侧留白，避免过度偏移 */
+@media (max-width: 768px) {
+  .loginForm {
+    margin-right: 6vw; /* 移动幅度适中 */
+  }
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.inputGroup {
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.inputGroup input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.forgotPassword {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.loginButton {
+  width: 100%;
+  padding: 12px;
+  background-color: #ff9800;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.agreement {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+}
+
+.agreement input {
+  margin-right: 8px;
+}
+
+.agreement a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.links {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+}
+
+.links a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.socialLogin {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.socialLogin span {
+  font-size: 12px;
+  color: #999;
+}
+
+.socialIcons {
+  margin-top: 16px;
+}
+
+.socialIcons a {
+  margin: 0 10px;
+  font-size: 24px;
+  color: #666;
+}

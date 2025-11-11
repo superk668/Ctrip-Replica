@@ -1,0 +1,29 @@
+.pageContainer {
+  padding-top: 80px; /* Height of the header */
+  padding-bottom: 220px; /* Height of the footer */
+}
+
+.banner {
+  background-color: #fffbe8;
+  color: #c39300;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 12px;
+}
+
+.container {
+  display: flex;
+  justify-content: flex-end; /* 统一右侧对齐 */
+  align-items: center;
+  min-height: calc(100vh - 300px); /* Full height minus header and footer */
+  background-image: url('../../assets/images/bg-login.png');
+  background-size: cover;
+  background-position: center;
+  padding-left: 600px; /* Increase padding to move the box further right */
+}
+
+.container.verificationActive {
+  /* 与普通模式保持一致的位置，确保两种登录框处于同一位置 */
+  justify-content: flex-end;
+  padding-left: 600px;
+}

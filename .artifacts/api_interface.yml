@@ -1,297 +1,161 @@
 # 后端API接口定义
-# 携程网站复制版 - API接口库
 
 - type: Backend
-  id: API-POST-Register-SendCode
-  route: POST /api/auth/register/send-code
-  description: 发送注册验证码到用户手机
-  input:
-    type: JSON
-    body:
-      phoneNumber: string
-  output:
-    success:
-      statusCode: 200
-      body: { message: "验证码已发送", codeId: "uuid" }
-    error:
-      - statusCode: 400
-        body: { error: "手机号格式不正确" }
-      - statusCode: 409
-        body: { error: "该手机号已注册" }
-      - statusCode: 429
-        body: { error: "发送验证码过于频繁，请稍后再试" }
-  dependencies:
-    - DB-FindUserByPhone
-    - DB-CreateVerificationCode
-  acceptanceCriteria:
-    - 验证手机号格式的有效性
-    - 检查手机号是否已注册
-    - 生成6位数字验证码并发送到用户手机
-    - 返回验证码ID用于后续验证
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Backend
-  id: API-POST-Register-Verify
-  route: POST /api/auth/register/verify
-  description: 验证注册验证码
-  input:
-    type: JSON
-    body:
-      phoneNumber: string
-      verificationCode: string
-      codeId: string
-  output:
-    success:
-      statusCode: 200
-      body: { message: "验证成功", token: "jwt" }
-    error:
-      - statusCode: 400
-        body: { error: "验证码错误或已过期" }
-      - statusCode: 404
-        body: { error: "验证码不存在" }
-  dependencies:
-    - DB-VerifyCode
-  acceptanceCriteria:
-    - 验证验证码的正确性和有效性
-    - 验证成功后生成临时token用于密码设置
-    - 验证码使用后应标记为已使用
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Backend
-  id: API-POST-Register-Complete
-  route: POST /api/auth/register/complete
-  description: 完成用户注册，设置密码
-  input:
-    type: JSON
-    body:
-      phoneNumber: string
-      password: string
-      confirmPassword: string
-      token: string
-  output:
-    success:
-      statusCode: 201
-      body: { userId: "uuid", token: "jwt", message: "注册成功" }
-    error:
-      - statusCode: 400
-        body: { error: "密码格式不符合要求" }
-      - statusCode: 400
-        body: { error: "两次密码输入不一致" }
-      - statusCode: 401
-        body: { error: "临时token无效或已过期" }
-      - statusCode: 409
-        body: { error: "用户已存在" }
-  dependencies:
-    - DB-FindUserByPhone
-    - DB-CreateUser
-    - DB-UpdateUserPassword
-  acceptanceCriteria:
-    - 验证临时token的有效性
-    - 验证密码强度（至少8位，包含字母和数字）
-    - 确认两次密码输入一致
-    - 创建新用户并设置密码
-    - 返回用户ID和登录token
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Backend
-  id: API-POST-Login-Password
-  route: POST /api/auth/login/password
-  description: 用户密码登录
+  id: API-POST-Login
+  route: POST /api/auth/login
+  description: 处理用户账号密码登录请求
   input:
     type: JSON
     body:
       account: string
       password: string
-      rememberMe: boolean
+      agreeToTerms: boolean
   output:
     success:
       statusCode: 200
-      body: { userId: "uuid", token: "jwt", user: { phoneNumber: "string", email: "string" } }
+      body: { userId: "uuid", token: "jwt", username: "string" }
     error:
       - statusCode: 400
-        body: { error: "账号或密码不能为空" }
+        body: { error: "Invalid input format." }
       - statusCode: 401
-        body: { error: "账号或密码错误" }
+        body: { error: "Invalid username or password." }
+      - statusCode: 403
+        body: { error: "Please agree to the terms of service." }
       - statusCode: 404
-        body: { error: "用户不存在" }
+        body: { error: "User not found." }
   dependencies:
     - DB-FindUserByPhone
     - DB-FindUserByEmail
-    - DB-VerifyUserPassword
+    - DB-FindUserByUsername
+    - DB-VerifyPassword
   acceptanceCriteria:
-    - 支持手机号或邮箱登录
-    - 验证用户密码的正确性
-    - 登录成功后生成JWT token
-    - 如果选择记住登录状态，token有效期延长
+    - 当接收到合法且已注册的数据时，应返回200 OK
+    - 当账号或密码错误时，应返回401 Unauthorized
+    - 当用户未同意服务协议时，应返回403 Forbidden
+    - 当用户不存在时，应返回404 Not Found
   changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
+    - date: "2025-11-11"
+      description: "初始创建"
 
 - type: Backend
-  id: API-POST-Login-SendCode
-  route: POST /api/auth/login/send-code
-  description: 发送登录验证码
+  id: API-POST-SendVerificationCode
+  route: POST /api/auth/send-verification-code
+  description: 发送手机验证码
   input:
     type: JSON
     body:
       phoneNumber: string
+      type: string
   output:
     success:
       statusCode: 200
-      body: { message: "验证码已发送", codeId: "uuid" }
+      body: { message: "Verification code sent successfully." }
     error:
       - statusCode: 400
-        body: { error: "手机号格式不正确" }
-      - statusCode: 404
-        body: { error: "用户不存在" }
+        body: { error: "Invalid phone number format." }
       - statusCode: 429
-        body: { error: "发送验证码过于频繁，请稍后再试" }
+        body: { error: "Too many requests. Please try again later." }
   dependencies:
-    - DB-FindUserByPhone
     - DB-CreateVerificationCode
   acceptanceCriteria:
-    - 验证手机号格式
-    - 检查用户是否存在
-    - 生成并发送验证码
-    - 返回验证码ID
+    - 当接收到合法的手机号时，应返回200 OK并发送验证码
+    - 当手机号格式不正确时，应返回400 Bad Request
+    - 当请求过于频繁时，应返回429 Too Many Requests
   changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
+    - date: "2025-11-11"
+      description: "初始创建"
 
 - type: Backend
-  id: API-POST-Login-VerifyCode
-  route: POST /api/auth/login/verify-code
-  description: 验证码登录
+  id: API-POST-LoginWithCode
+  route: POST /api/auth/login-with-code
+  description: 处理用户验证码登录请求
   input:
     type: JSON
     body:
       phoneNumber: string
       verificationCode: string
-      codeId: string
+      agreeToTerms: boolean
   output:
     success:
       statusCode: 200
-      body: { userId: "uuid", token: "jwt", user: { phoneNumber: "string", email: "string" } }
+      body: { userId: "uuid", token: "jwt", username: "string" }
     error:
       - statusCode: 400
-        body: { error: "验证码错误或已过期" }
+        body: { error: "Invalid input format." }
+      - statusCode: 401
+        body: { error: "Invalid verification code." }
+      - statusCode: 403
+        body: { error: "Please agree to the terms of service." }
       - statusCode: 404
-        body: { error: "用户不存在" }
+        body: { error: "User not found." }
   dependencies:
     - DB-FindUserByPhone
     - DB-VerifyCode
   acceptanceCriteria:
-    - 验证验证码的正确性和有效性
-    - 验证成功后生成JWT token
-    - 返回用户信息
+    - 当接收到合法且已注册的数据时，应返回200 OK
+    - 当验证码错误时，应返回401 Unauthorized
+    - 当用户未同意服务协议时，应返回403 Forbidden
+    - 当用户不存在时，应返回404 Not Found
   changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
+    - date: "2025-11-11"
+      description: "初始创建"
 
 - type: Backend
-  id: API-GET-Cities
-  route: GET /api/cities
-  description: 获取城市列表
-  input:
-    type: Query
-    params:
-      keyword: string (optional)
-      limit: number (optional, default: 50)
-  output:
-    success:
-      statusCode: 200
-      body: { cities: [{ code: "string", name: "string", pinyin: "string", hot: boolean }] }
-    error:
-      - statusCode: 500
-        body: { error: "服务器内部错误" }
-  dependencies:
-    - DB-GetCities
-  acceptanceCriteria:
-    - 返回所有可用城市列表
-    - 支持关键词搜索城市
-    - 支持限制返回数量
-    - 热门城市优先显示
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Backend
-  id: API-GET-HotDestinations
-  route: GET /api/destinations/hot
-  description: 获取热门目的地推荐
-  input:
-    type: Query
-    params:
-      limit: number (optional, default: 10)
-  output:
-    success:
-      statusCode: 200
-      body: { destinations: [{ id: "string", name: "string", image: "string", description: "string", price: "number" }] }
-    error:
-      - statusCode: 500
-        body: { error: "服务器内部错误" }
-  dependencies:
-    - DB-GetHotDestinations
-  acceptanceCriteria:
-    - 返回热门目的地列表
-    - 包含目的地图片、描述和参考价格
-    - 按热门程度排序
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Backend
-  id: API-GET-PromotionalFlights
-  route: GET /api/flights/promotional
-  description: 获取特价机票信息
-  input:
-    type: Query
-    params:
-      limit: number (optional, default: 10)
-  output:
-    success:
-      statusCode: 200
-      body: { flights: [{ id: "string", origin: "string", destination: "string", price: "number", originalPrice: "number", discount: "string", date: "string" }] }
-    error:
-      - statusCode: 500
-        body: { error: "服务器内部错误" }
-  dependencies:
-    - DB-GetPromotionalFlights
-  acceptanceCriteria:
-    - 返回特价机票列表
-    - 包含原价、现价和折扣信息
-    - 按价格优势排序
-  changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
-
-- type: Backend
-  id: API-POST-Logout
-  route: POST /api/auth/logout
-  description: 用户登出
+  id: API-POST-RegisterStep1
+  route: POST /api/auth/register-step1
+  description: 处理注册第一步 - 验证手机号和验证码
   input:
     type: JSON
-    headers:
-      Authorization: "Bearer {token}"
+    body:
+      phoneNumber: string
+      verificationCode: string
   output:
     success:
       statusCode: 200
-      body: { message: "登出成功" }
+      body: { tempToken: "string", maskedPhone: "string" }
     error:
+      - statusCode: 400
+        body: { error: "Invalid phone number format." }
       - statusCode: 401
-        body: { error: "未授权访问" }
+        body: { error: "Invalid verification code." }
   dependencies:
-    - none
+    - DB-VerifyCode
   acceptanceCriteria:
-    - 验证用户token的有效性
-    - 将token加入黑名单（如果使用token黑名单机制）
-    - 返回登出成功消息
+    - 当接收到合法的手机号和正确的验证码时，应返回200 OK
+    - 当手机号格式不正确时，应返回400 Bad Request
+    - 当验证码错误时，应返回401 Unauthorized
   changeLog:
-    - date: "2025-01-16"
-      description: "初始创建。"
+    - date: "2025-11-11"
+      description: "初始创建"
+
+- type: Backend
+  id: API-POST-RegisterStep2
+  route: POST /api/auth/register-step2
+  description: 处理注册第二步 - 设置密码
+  input:
+    type: JSON
+    body:
+      tempToken: string
+      password: string
+      confirmPassword: string
+  output:
+    success:
+      statusCode: 201
+      body: { userId: "uuid", token: "jwt", message: "Registration successful." }
+    error:
+      - statusCode: 400
+        body: { error: "Password does not meet requirements." }
+      - statusCode: 409
+        body: { error: "Passwords do not match." }
+      - statusCode: 401
+        body: { error: "Invalid or expired token." }
+  dependencies:
+    - DB-CreateUser
+  acceptanceCriteria:
+    - 当接收到合法的密码且两次输入一致时，应返回201 Created
+    - 当密码不符合要求时，应返回400 Bad Request
+    - 当两次密码不一致时，应返回409 Conflict
+    - 当临时令牌无效或过期时，应返回401 Unauthorized
+  changeLog:
+    - date: "2025-11-11"
+      description: "初始创建"
