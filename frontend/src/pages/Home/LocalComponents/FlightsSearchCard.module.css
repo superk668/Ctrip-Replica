@@ -1,0 +1,149 @@
+.wrapper {
+  padding-top: 8px;
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 16px;
+  background: #f0f2f5;
+  border-radius: 12px 12px 0 0;
+}
+
+.tab {
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: #444;
+  background: #c9cdd5;
+}
+
+.active {
+  background: #333;
+  color: #fff;
+}
+
+.cabin {
+  margin-left: auto;
+  color: #666;
+}
+
+.card {
+  position: relative;
+  background: #fff;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 16px;
+}
+
+.radioRow {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 6px 8px 14px;
+}
+
+.radio {
+  color: #666;
+}
+
+.checked { color: #333; }
+
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.field {
+  background: #fff;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-width: 220px;
+  position: relative;
+}
+
+.fieldWide {
+  background: #fff;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-width: 240px;
+  position: relative;
+}
+
+.label {
+  font-size: 13px;
+  color: #8a8f99;
+  margin-bottom: 4px;
+}
+
+.value {
+  font-size: 16px;
+  color: #222;
+}
+
+.days { color: #8a8f99; }
+
+.passengerType {
+  min-width: 200px;
+}
+
+.checkboxRow { display: flex; gap: 10px; }
+.checkbox { color: #666; }
+
+.swapIcon { width: 26px; height: 26px; }
+
+.searchBtn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -22px;
+  height: 44px;
+  padding: 0 26px;
+  border: none;
+  border-radius: 22px;
+  background: linear-gradient(90deg, #ff9a1f, #ff7a1a);
+  color: #fff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 16px rgba(255,122,26,0.35);
+}
+
+.searchIcon { width: 20px; height: 20px; }
+
+.input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #222;
+}
+
+.dropdown {
+  position: absolute;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  z-index: 10;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.dropdownItem {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.dropdownItem:hover {
+  background: #f5f7fa;
+}

@@ -7,10 +7,7 @@
 .main {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
+  padding: 80px 20px 40px;
 }
 
 .title {
@@ -40,4 +37,20 @@
 .link {
   color: #0071eb;
   text-decoration: none;
+}
+.layout {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: 0;
+  margin-right: auto;
+  display: flex;
+  gap: 16px;
+}
+
+.rightPane {
+  flex: 1;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 0 0 24px;
 }

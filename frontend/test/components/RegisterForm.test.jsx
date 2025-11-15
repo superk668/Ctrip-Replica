@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import RegisterForm from '../../src/components/RegisterForm/RegisterForm';
 
@@ -11,7 +12,7 @@ describe('RegisterForm', () => {
   });
 
   test('renders step 1 of registration form correctly', () => {
-    render(<RegisterForm />);
+    render(<MemoryRouter><RegisterForm /></MemoryRouter>);
     expect(screen.getByPlaceholderText('有效手机号')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('6位数字')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '发送验证码' })).toBeInTheDocument();
@@ -19,7 +20,7 @@ describe('RegisterForm', () => {
   });
 
   test('moves to step 2 after successful step 1 submission', async () => {
-    render(<RegisterForm />);
+    render(<MemoryRouter><RegisterForm /></MemoryRouter>);
     fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ tempToken: 'test-token' }) });
 
     fireEvent.change(screen.getByPlaceholderText('有效手机号'), { target: { value: '13800138000' } });
@@ -35,7 +36,7 @@ describe('RegisterForm', () => {
   });
 
   test('shows password strength indicator', async () => {
-    render(<RegisterForm />);
+    render(<MemoryRouter><RegisterForm /></MemoryRouter>);
     // Navigate to step 2
     fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ tempToken: 'test-token' }) });
     fireEvent.change(screen.getByPlaceholderText('有效手机号'), { target: { value: '13800138000' } });

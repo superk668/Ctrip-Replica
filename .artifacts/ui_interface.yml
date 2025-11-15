@@ -28,9 +28,12 @@
     - 两种模式下都应显示服务协议复选框和免费注册链接
     - 点击登录按钮时应调用相应的API接口
     - 当isLoading状态为true时，登录按钮应被禁用
+    - 登录成功后应通过onLoginSuccess导航至机票首页（/home）
   changeLog:
     - date: "2025-11-11"
       description: "初始创建"
+    - date: "2025-11-15"
+      description: "补充登录成功后导航至机票首页"
 
 - type: Frontend
   id: UI-RegisterPage
@@ -68,6 +71,171 @@
   changeLog:
     - date: "2025-11-11"
       description: "初始创建"
+
+ 
+
+- type: Frontend
+  id: UI-FlightsSearchCard
+  description: 国内机票首页搜索卡组件（单程/往返/多程）
+  properties:
+    - name: onSearch
+      type: function
+      description: "提交搜索条件的回调"
+  state:
+    - tripType
+    - fromCity
+    - toCity
+    - departDate
+    - returnDate
+    - adults
+    - children
+    - infants
+    - cabin
+    - directOnly
+    - suggestions
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-AirportSuggest
+    - API-GET-FlightsSearch
+  acceptanceCriteria:
+    - 渲染单程/往返/多程切换与出发/目的地输入框（支持交换）
+    - 渲染日期选择器与人数/舱位选择器、直飞筛选
+    - 输入联想调用机场联想接口；点击搜索调用航班搜索接口
+    - 非法输入时显示错误提示并阻止提交
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：机票首页搜索卡UI接口"
+
+- type: Frontend
+  id: UI-HomePage
+  description: 携程首页容器（登录后默认展示机票入口）
+  properties:
+    - name: onNavigate
+      type: function
+      description: "导航回调"
+  state:
+    - none
+  dependencies:
+    - UI-FlightsSearchCard
+  acceptanceCriteria:
+    - 页面右侧展示FlightsSearchCard，左侧展示PromotionBanner与QuickLink
+    - 登录后从登录页跳转到此页
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：首页容器UI依赖FlightsSearchCard"
+
+- type: Frontend
+  id: UI-FlightsResultsPage
+  description: 航班搜索结果页组件
+  properties:
+    - name: onBook
+      type: function
+      description: "点击预订回调"
+  state:
+    - filters
+    - sortKey
+    - results
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-FlightsSearch
+    - API-GET-FlightDetails
+  acceptanceCriteria:
+    - 展示条件汇总条、快速筛选与排序
+    - 列出航班卡片，支持查看详情与选择套餐
+    - 点击预订进入订单填写页（未登录时要求登录）
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：航班搜索结果页UI接口"
+
+- type: Frontend
+  id: UI-OrderPage
+  description: 订单填写页组件（乘机人与联系人）
+  properties:
+    - name: onSubmit
+      type: function
+      description: "提交订单回调"
+  state:
+    - passengers
+    - contact
+    - invoice
+    - summary
+    - isLoading
+    - errors
+  dependencies:
+    - API-POST-CreateOrder
+    - API-GET-Order
+  acceptanceCriteria:
+    - 支持添加乘机人、联系人、发票选项，展示航班与价格摘要
+    - 提交时校验库存与价格，成功后跳转支付页
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：订单填写页UI接口"
+
+- type: Frontend
+  id: UI-PaymentPage
+  description: 支付页组件
+  properties:
+    - name: onPay
+      type: function
+      description: "触发支付回调"
+  state:
+    - methods
+    - countdown
+    - amount
+    - isLoading
+    - errors
+  dependencies:
+    - API-POST-PayOrder
+    - API-GET-OrderStatus
+  acceptanceCriteria:
+    - 展示订单号与应付金额，提供支付方式选择与倒计时
+    - 发起支付并轮询订单状态，成功后进入出票/确认页
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：支付页UI接口"
+
+- type: Frontend
+  id: UI-TicketConfirmPage
+  description: 出票与确认页组件
+  properties:
+    - name: onAfterSale
+      type: function
+      description: "售后入口回调"
+  state:
+    - ticket
+    - status
+    - itinerary
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-Ticket
+  acceptanceCriteria:
+    - 支持展示电子客票号与行程信息，提供售后入口
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：出票确认页UI接口"
+
+- type: Frontend
+  id: UI-MyOrdersPage
+  description: 我的订单列表与详情入口
+  properties:
+    - name: onView
+      type: function
+      description: "查看订单详情回调"
+  state:
+    - items
+    - pagination
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-Orders
+  acceptanceCriteria:
+    - 展示订单列表与分页，支持查看详情与再次预订
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：我的订单页UI接口"
 
 - type: Frontend
   id: UI-LoginForm

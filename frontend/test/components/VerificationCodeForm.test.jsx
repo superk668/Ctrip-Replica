@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import VerificationCodeForm from '../../src/components/VerificationCodeForm/VerificationCodeForm';
 
@@ -11,7 +12,7 @@ describe('VerificationCodeForm', () => {
   });
 
   test('renders verification code form correctly', () => {
-    render(<VerificationCodeForm />);
+    render(<MemoryRouter><VerificationCodeForm /></MemoryRouter>);
     expect(screen.getByPlaceholderText('请输入手机号')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('短信验证码')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '发送验证码' })).toBeInTheDocument();
@@ -19,7 +20,7 @@ describe('VerificationCodeForm', () => {
   });
 
   test('shows error for invalid phone number', async () => {
-    render(<VerificationCodeForm />);
+    render(<MemoryRouter><VerificationCodeForm /></MemoryRouter>);
     fetch.mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({ error: '手机号格式不正确，请重新输入' }) });
 
     fireEvent.change(screen.getByPlaceholderText('请输入手机号'), { target: { value: '123' } });
@@ -29,7 +30,7 @@ describe('VerificationCodeForm', () => {
   });
 
   test('starts countdown after sending code', async () => {
-    render(<VerificationCodeForm />);
+    render(<MemoryRouter><VerificationCodeForm /></MemoryRouter>);
     fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) });
 
     fireEvent.change(screen.getByPlaceholderText('请输入手机号'), { target: { value: '13800138000' } });

@@ -12,6 +12,167 @@
     - date: "2025-11-11"
       description: "初始创建"
 
+ 
+
+- type: Database
+  id: DB-GetAirportSuggest
+  description: 根据关键词联想城市与机场信息
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 输入关键词后返回最多20条城市/机场候选
+    - 返回项包含城市名、机场名、三字码、城市码、是否热门
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：城市/机场联想"
+
+- type: Database
+  id: DB-SearchFlights
+  description: 按条件搜索可售航班与价格套餐
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 支持单程/往返/多程查询，返回航班基础信息与套餐列表
+    - 支持直飞筛选、舱位、乘客类型与数量的过滤
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：航班搜索"
+
+- type: Database
+  id: DB-GetFlightDetails
+  description: 获取航班详情，包括行李额、餐食、票规摘要等
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 返回航段详细信息、服务信息、票规摘要、价格明细
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：航班详情"
+
+- type: Database
+  id: DB-CheckAndLockInventory
+  description: 校验并锁定所选航班套餐库存
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 库存充足时返回锁定成功并保留锁定时长（如15分钟）
+    - 库存不足时返回失败原因，不进行锁定
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：库存校验与锁定"
+
+- type: Database
+  id: DB-CheckLatestPrice
+  description: 校验所选航班套餐的最新价格
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 若价格变化返回最新价格并标记需用户确认
+    - 若价格未变化返回校验通过标识
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：价格校验"
+
+- type: Database
+  id: DB-CreateOrder
+  description: 创建机票订单记录（含乘机人与联系人）
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后orders表新增一条订单记录并生成订单号
+    - 保存乘机人、航班与套餐、应付金额、锁定信息
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：订单创建"
+
+- type: Database
+  id: DB-GetOrderById
+  description: 根据订单号查询订单详情
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 返回订单基础信息、乘机人、价格、状态、票规与附加服务
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：订单查询"
+
+- type: Database
+  id: DB-UpdateOrderStatus
+  description: 更新订单状态（待支付/已支付/出票中/已出票/失败）
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后订单状态正确变更并写入状态流水
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：订单状态更新"
+
+- type: Database
+  id: DB-CreatePaymentRecord
+  description: 创建支付记录并关联订单
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功创建支付记录，包含支付方式、金额、外部交易号（占位）
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：支付记录创建"
+
+- type: Database
+  id: DB-MarkPaymentSuccess
+  description: 标记支付成功并更新订单状态为已支付
+  dependencies:
+    - DB-UpdateOrderStatus
+  acceptanceCriteria:
+    - 成功执行后订单状态更新为已支付，支付记录标记成功
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：支付成功标记"
+
+- type: Database
+  id: DB-IssueTicket
+  description: 出票并生成电子客票号
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后订单状态更新为已出票并生成电子客票号
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：出票"
+
+- type: Database
+  id: DB-ListOrders
+  description: 根据用户ID分页查询订单列表
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 返回订单列表及分页信息，支持状态过滤
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：订单列表"
+
+- type: Database
+  id: DB-GetFareRules
+  description: 查询票规（退改签规则）信息
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 返回不同舱位套餐对应的退改签规则与费用
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：票规查询"
+
+- type: Database
+  id: DB-GetBaggagePolicy
+  description: 查询行李额政策（手提/托运）
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 返回所选航班与舱位对应的行李额度与限制
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：行李政策查询"
+
 - type: Database
   id: DB-FindUserByEmail
   description: 根据邮箱查询用户信息

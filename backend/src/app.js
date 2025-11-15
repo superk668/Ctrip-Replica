@@ -5,6 +5,10 @@ const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
+const airportRoutes = require('./routes/airports');
+const flightRoutes = require('./routes/flights');
+const orderRoutes = require('./routes/orders');
+const paymentRoutes = require('./routes/payments');
 const { initDatabase } = require('./config/database');
 
 const app = express();
@@ -40,6 +44,10 @@ app.use(express.urlencoded({ extended: true }));
 // 路由
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/airports', airportRoutes);
+app.use('/api/flights', flightRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // 健康检查
 app.get('/health', (req, res) => {

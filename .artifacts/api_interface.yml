@@ -37,6 +37,310 @@
     - date: "2025-11-11"
       description: "初始创建"
 
+ 
+
+- type: Backend
+  id: API-GET-AirportSuggest
+  route: GET /api/airports/suggest?query={keyword}
+  description: 城市/机场联想查询
+  input:
+    type: QueryString
+    params:
+      query: string
+  output:
+    success:
+      statusCode: 200
+      body:
+        suggestions:
+          - { city: "上海", cityCode: "SHA", airport: "浦东国际机场", airportCode: "PVG", hot: true }
+    error:
+      - statusCode: 400
+        body: { error: "Invalid query keyword." }
+      - statusCode: 500
+        body: { error: "Service unavailable." }
+  dependencies:
+    - DB-GetAirportSuggest
+  acceptanceCriteria:
+    - 输入合法关键词返回不超过20条联想结果
+    - 异常时返回对应错误码与信息
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：机场联想接口"
+
+- type: Backend
+  id: API-GET-FlightsSearch
+  route: GET /api/flights/search
+  description: 航班搜索（国内）
+  input:
+    type: QueryString
+    params:
+      trip: enum(oneway, round, multi)
+      from: string
+      to: string
+      departDate: date
+      returnDate: date
+      adults: number
+      children: number
+      infants: number
+      cabin: enum(economy, premium, business, first)
+      directOnly: boolean
+  output:
+    success:
+      statusCode: 200
+      body:
+        flights:
+          - {
+              id: "string",
+              carrier: "MU",
+              flightNo: "MU5101",
+              from: { airport: "虹桥", code: "SHA", terminal: "T2", time: "08:00" },
+              to: { airport: "首都", code: "BJS", terminal: "T3", time: "10:10" },
+              duration: "2h10m",
+              punctuality: 0.92,
+              meals: true,
+              packages: [
+                { id: "pkg1", name: "特价", cabin: "Y", price: 500, refundable: false, baggage: { carry: 5, checkin: 0 } },
+                { id: "pkg2", name: "可退改", cabin: "Y", price: 620, refundable: true, baggage: { carry: 5, checkin: 20 } }
+              ]
+            }
+    error:
+      - statusCode: 400
+        body: { error: "Invalid search conditions." }
+      - statusCode: 500
+        body: { error: "Service unavailable." }
+  dependencies:
+    - DB-SearchFlights
+  acceptanceCriteria:
+    - 支持单程/往返/多程搜索参数并返回航班与套餐
+    - 直飞筛选为true时仅返回直飞航班
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：航班搜索接口"
+
+- type: Backend
+  id: API-GET-FlightDetails
+  route: GET /api/flights/{flightId}/details?date={date}
+  description: 航班详情信息
+  input:
+    type: PathAndQuery
+    path:
+      flightId: string
+    query:
+      date: date
+  output:
+    success:
+      statusCode: 200
+      body:
+        details:
+          { baggage: { carry: 5, checkin: 20 }, wifi: true, meals: true, rules: [ { cabin: "Y", refundFee: 200, changeFee: 100 } ] }
+    error:
+      - statusCode: 404
+        body: { error: "Flight not found." }
+      - statusCode: 500
+        body: { error: "Service unavailable." }
+  dependencies:
+    - DB-GetFlightDetails
+    - DB-GetFareRules
+    - DB-GetBaggagePolicy
+  acceptanceCriteria:
+    - 返回航段与服务信息、票规摘要与价格明细
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：航班详情接口"
+
+- type: Backend
+  id: API-POST-CreateOrder
+  route: POST /api/orders
+  description: 创建机票订单
+  input:
+    type: JSON
+    body:
+      flightId: string
+      packageId: string
+      passengers: [ { name: string, type: enum(adult, child, infant), documentType: string, documentNo: string, birthday?: date } ]
+      contact: { phone: string, email?: string }
+      invoice?: { type: string, title?: string }
+  output:
+    success:
+      statusCode: 201
+      body: { orderId: "string", amount: number, status: "pending_payment" }
+    error:
+      - statusCode: 409
+        body: { error: "Inventory not enough." }
+      - statusCode: 412
+        body: { error: "Price changed.", latestPrice: number }
+      - statusCode: 500
+        body: { error: "Service unavailable." }
+  dependencies:
+    - DB-CheckAndLockInventory
+    - DB-CheckLatestPrice
+    - DB-CreateOrder
+  acceptanceCriteria:
+    - 当库存充足且价格未变更时返回201并生成订单
+    - 库存不足或价格变更时返回相应错误码
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：创建订单接口"
+
+- type: Backend
+  id: API-GET-Order
+  route: GET /api/orders/{orderId}
+  description: 查询订单详情
+  input:
+    type: Path
+    path:
+      orderId: string
+  output:
+    success:
+      statusCode: 200
+      body: { orderId: "string", status: "pending_payment", passengers: [], amount: 620 }
+    error:
+      - statusCode: 404
+        body: { error: "Order not found." }
+  dependencies:
+    - DB-GetOrderById
+  acceptanceCriteria:
+    - 返回订单基础信息、乘机人、价格、状态等
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：订单查询接口"
+
+- type: Backend
+  id: API-POST-PayOrder
+  route: POST /api/orders/{orderId}/pay
+  description: 创建支付并跳转第三方支付渠道（占位）
+  input:
+    type: JSONAndPath
+    path:
+      orderId: string
+    body:
+      method: enum(alipay, wechat, bank, unionpay)
+  output:
+    success:
+      statusCode: 200
+      body: { paymentId: "string", redirectUrl: "string" }
+    error:
+      - statusCode: 410
+        body: { error: "Payment timeout." }
+      - statusCode: 404
+        body: { error: "Order not found." }
+  dependencies:
+    - DB-CreatePaymentRecord
+  acceptanceCriteria:
+    - 成功返回支付记录与跳转URL（占位），失败返回合理错误码
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：订单支付接口"
+
+- type: Backend
+  id: API-GET-OrderStatus
+  route: GET /api/orders/{orderId}/status
+  description: 查询订单状态
+  input:
+    type: Path
+    path:
+      orderId: string
+  output:
+    success:
+      statusCode: 200
+      body: { status: "pending_payment" }
+  dependencies:
+    - DB-GetOrderById
+  acceptanceCriteria:
+    - 返回订单当前状态用于页面轮询或回调确认
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：订单状态接口"
+
+- type: Backend
+  id: API-GET-Ticket
+  route: GET /api/orders/{orderId}/ticket
+  description: 查询电子客票信息
+  input:
+    type: Path
+    path:
+      orderId: string
+  output:
+    success:
+      statusCode: 200
+      body: { ticketNo: "string", issuedAt: "datetime", itinerary: {} }
+    error:
+      - statusCode: 404
+        body: { error: "Ticket not found." }
+  dependencies:
+    - DB-GetOrderById
+  acceptanceCriteria:
+    - 返回电子客票号与行程详情
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：电子客票接口"
+
+- type: Backend
+  id: API-GET-Orders
+  route: GET /api/orders
+  description: 查询我的订单列表
+  input:
+    type: QueryString
+    params:
+      page: number
+      pageSize: number
+      status?: string
+  output:
+    success:
+      statusCode: 200
+      body: { items: [], page: 1, pageSize: 10, total: 0 }
+  dependencies:
+    - DB-ListOrders
+  acceptanceCriteria:
+    - 返回订单列表与分页信息，支持状态过滤
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：订单列表接口"
+
+- type: Backend
+  id: API-POST-PaymentCallback
+  route: POST /api/payments/callback
+  description: 第三方支付回调（占位）
+  input:
+    type: JSON
+    body:
+      orderId: string
+      paymentId: string
+      status: enum(success, fail)
+  output:
+    success:
+      statusCode: 200
+      body: { message: "ok" }
+  dependencies:
+    - DB-MarkPaymentSuccess
+    - DB-UpdateOrderStatus
+  acceptanceCriteria:
+    - 成功支付回调后标记订单为已支付并可进入出票流程
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：支付回调接口"
+
+- type: Backend
+  id: API-POST-IssueTicket
+  route: POST /api/orders/{orderId}/issue
+  description: 出票（占位）
+  input:
+    type: Path
+    path:
+      orderId: string
+  output:
+    success:
+      statusCode: 200
+      body: { ticketNo: "string" }
+  dependencies:
+    - DB-IssueTicket
+    - DB-UpdateOrderStatus
+  acceptanceCriteria:
+    - 出票成功后返回电子客票号并更新订单状态为已出票
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增机票模块：出票接口"
+
 - type: Backend
   id: API-POST-SendVerificationCode
   route: POST /api/auth/send-verification-code

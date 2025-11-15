@@ -1,0 +1,5 @@
+{
+  "placeholders": [
+    { "name": "航空公司LOGO占位", "type": "svg", "usage": "FlightsResultsPage.Row.logo", "size": "40x40" }
+  ]
+}

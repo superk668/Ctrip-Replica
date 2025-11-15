@@ -1,19 +1,55 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import styles from './HomePage.module.css';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import PromotionBanner from './LocalComponents/PromotionBanner';
+import HotelBookingCard from './LocalComponents/HotelBookingCard';
+import FlightsSearchCard from './LocalComponents/FlightsSearchCard';
 
 const HomePage = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  const handleSearch = (payload) => {
+    const fromCode = payload?.from?.cityCode || payload?.from?.airportCode || 'SHA'
+    const toCode = payload?.to?.cityCode || payload?.to?.airportCode || 'BJS'
+    const params = new URLSearchParams({
+      trip: payload.tripType || 'oneway',
+      from: fromCode,
+      to: toCode,
+      departDate: payload.departDate || todayString(),
+      adults: '1',
+      children: '0',
+      infants: '0',
+      cabin: 'economy',
+      directOnly: 'false',
+      returnDate: payload.returnDate || ''
+    });
+    navigate(`/flights/results?${params.toString()}`);
+  };
+
+  function todayString() {
+    const d = new Date();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    return `${d.getFullYear()}-${m}-${dd}`
+  }
   return (
     <div className={styles.container}>
       <Header />
       <main className={styles.main}>
-        <h1 className={styles.title}>携程首页（占位）</h1>
-        <p className={styles.desc}>这是一个用于演示页面跳转逻辑的占位首页。</p>
-        <div className={styles.actions}>
-          <Link to="/login" className={styles.button}>登录</Link>
-          <Link to="/register" className={styles.link}>免费注册</Link>
+        <div className={styles.layout}>
+          <PromotionBanner />
+          <div className={styles.rightPane}>
+            <FlightsSearchCard onSearch={handleSearch} />
+          </div>
         </div>
       </main>
       <Footer />

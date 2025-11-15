@@ -17,7 +17,8 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "jest": "^29.5.0",

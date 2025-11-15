@@ -83,7 +83,10 @@ const VerificationCodeForm = ({ onSwitchMode }) => {
 
       if (response.ok) {
         console.log('登录成功:', data);
-        localStorage.setItem('token', data.token);
+        const token = data?.data?.token || data?.token;
+        if (token) {
+          localStorage.setItem('token', token);
+        }
         navigate('/home');
       } else {
         const errMsg = data.error || data.message || '登录失败';

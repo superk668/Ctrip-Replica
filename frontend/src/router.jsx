@@ -5,6 +5,7 @@ import RegisterPage from './pages/Register/RegisterPage'; // 导入注册页面
 import SetPasswordPage from './pages/SetPassword/SetPasswordPage'; // 导入设置密码页面
 import HomePage from './pages/Home/HomePage';
 import ForgotPasswordPage from './pages/ForgotPassword/ForgotPasswordPage';
+import FlightsResultsPage from './pages/Flights/FlightsResultsPage';
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
   {
     path: '/home',
     element: <HomePage />,
+  },
+  {
+    path: '/flights/results',
+    element: <FlightsResultsPage />,
   },
   {
     path: '/register',

@@ -1,0 +1,244 @@
+@import '../../styles/tokens.css';
+
+.container {
+  padding: 16px 0 40px;
+  background: #f5f7fa;
+}
+
+.headerBar {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 12px 16px 16px;
+  overflow: visible;
+}
+
+.radioRow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 4px 0 10px;
+}
+.radio { color: #666; }
+.checked { color: #333; font-weight: 600; }
+.cabin { margin-left: auto; color: #666; }
+
+.formRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.field {
+  background: #fff;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-width: 240px;
+  flex: 1 1 260px;
+  position: relative;
+}
+
+.fieldWide {
+  background: #fff;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-width: 260px;
+  flex: 1 1 280px;
+  position: relative;
+}
+.fieldSmall {
+  background: #fff;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  padding: 10px 12px;
+  min-width: 220px;
+  flex: 1 1 240px;
+  position: relative;
+}
+
+.label { font-size: 13px; color: #8a8f99; margin-bottom: 4px; }
+.value { font-size: 16px; color: #222; }
+.valueBold { font-size: 16px; color: #222; font-weight: 700; }
+.labelMuted { font-size: 13px; color: #8a8f99; }
+
+.checkboxRow { display: flex; gap: 10px; }
+.checkbox { color: #666; }
+.swapIcon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; flex: 0 0 26px; }
+.dateMore { margin-left: auto; color: var(--color-primary); flex: 0 0 auto; }
+
+.input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #222;
+}
+
+.dateInput {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #222;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: auto;
+  width: min(100%, 360px);
+  background: #fff;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  z-index: 10;
+  max-height: 220px;
+  overflow: auto;
+  padding: 6px 0;
+}
+
+.dropdownItem {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdownItem:hover { background: #f5f7fa; }
+
+.dateTabs {
+  max-width: var(--container-width);
+  margin: 12px auto 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+}
+.arrow { color: #888; padding: 0 8px; }
+.dateCell {
+  padding: 10px 12px;
+  background: #f0f2f5;
+  color: #333;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.dateActive { background: #0071eb; color: #fff; }
+
+.segmentBar {
+  max-width: var(--container-width);
+  margin: 12px auto 0;
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+  box-shadow: var(--shadow-md);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.stepActive, .stepDisabled {
+  display: flex; align-items: center; gap: 8px;
+  background: #eef5ff; border-radius: 8px; padding: 8px 12px;
+}
+.stepDisabled { opacity: 0.5; }
+.stepNum { width: 22px; height: 22px; background: var(--color-primary); color: #fff; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+.stepText { color: #333; }
+.updateAt { margin-left: auto; color: #666; font-size: 12px; }
+
+.filterBar {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  background: #fff;
+  border-top: 1px solid #e6e9ef;
+  border-radius: 0 0 12px 12px;
+  box-shadow: var(--shadow-md);
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.leftFilters { display: flex; align-items: center; gap: 12px; }
+.check { color: #666; }
+.filter { color: #333; cursor: pointer; }
+.filterWrap { position: relative; }
+.filterDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 240px;
+  background: #fff;
+  border: 1px solid #e6e9ef;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  z-index: 20;
+  max-height: 260px;
+  overflow: auto;
+  padding: 6px 0;
+}
+.filterDropdownWide { composes: filterDropdown; width: 420px; }
+.filterItem {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+.filterItem:hover { background: #f5f7fa; }
+.filterItemActive { background: #eef5ff; color: var(--color-primary); font-weight: 600; }
+.rightSorts { display: flex; align-items: center; gap: 16px; }
+.sort { color: #666; }
+.active { color: var(--color-primary); font-weight: 600; }
+
+.list {
+  max-width: var(--container-width);
+  margin: 12px auto 0;
+}
+.row {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 160px;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.leftCol { display: flex; align-items: center; gap: 12px; }
+.logo { width: 40px; height: 40px; }
+.airlineInfo { display: flex; align-items: center; gap: 8px; color: #333; }
+.airline { font-weight: 600; }
+.flightNo { color: #1f8ef1; }
+.model { color: #6b6f76; }
+.share { color: #6b6f76; }
+
+.middleCol { display: flex; align-items: center; gap: 18px; justify-content: center; }
+.timeBlock { text-align: center; }
+.time { font-size: 24px; font-weight: 700; color: #222; }
+.airport { color: #6b6f76; }
+.arrowMid { color: #6b6f76; }
+
+.rightCol { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.price { color: #ff7a1a; font-size: 18px; font-weight: 700; }
+.chooseBtn {
+  height: 36px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #ff9a1f, #ff7a1a);
+  color: #fff;
+  font-size: 14px;
+}
+
+.loading { max-width: var(--container-width); margin: 0 auto; color: #666; }
+.error { max-width: var(--container-width); margin: 0 auto; color: red; }
