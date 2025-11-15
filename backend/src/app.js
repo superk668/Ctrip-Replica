@@ -5,7 +5,8 @@ const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
-const { initDatabase } = require('./config/database');
+const orderRoutes = require('./routes/orders');
+const { initDatabase } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,7 @@ app.use(express.urlencoded({ extended: true }));
 // 路由
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/orders', orderRoutes);
 
 // 健康检查
 app.get('/health', (req, res) => {

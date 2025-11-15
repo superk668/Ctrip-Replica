@@ -1,10 +1,17 @@
 import React from 'react';
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, useParams } from 'react-router-dom';
 import LoginPage from './pages/Login/LoginPage';
 import RegisterPage from './pages/Register/RegisterPage'; // 导入注册页面
 import SetPasswordPage from './pages/SetPassword/SetPasswordPage'; // 导入设置密码页面
 import HomePage from './pages/Home/HomePage';
 import ForgotPasswordPage from './pages/ForgotPassword/ForgotPasswordPage';
+import OrderListPage from './components/orders/OrderListPage';
+import OrderDetailPage from './components/orders/OrderDetailPage';
+
+const OrderDetailWrapper = () => {
+  const { orderId } = useParams();
+  return <OrderDetailPage orderId={orderId} />;
+};
 
 const router = createBrowserRouter([
   {
@@ -18,6 +25,14 @@ const router = createBrowserRouter([
   {
     path: '/home',
     element: <HomePage />,
+  },
+  {
+    path: '/orders',
+    element: <OrderListPage />,
+  },
+  {
+    path: '/orders/:orderId',
+    element: <OrderDetailWrapper />,
   },
   {
     path: '/register',

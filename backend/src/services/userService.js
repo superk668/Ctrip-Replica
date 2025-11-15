@@ -1,4 +1,4 @@
-const { db } = require('../config/database');
+const { db } = require('../db');
 const bcrypt = require('bcrypt');
 
 class UserService {
@@ -54,6 +54,38 @@ class UserService {
       db.get(
         'SELECT * FROM users WHERE username = ?',
         [username],
+        (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row || null);
+          }
+        }
+      );
+    });
+  }
+
+  static async findUserById(id) {
+    return new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM users WHERE id = ?',
+        [id],
+        (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row || null);
+          }
+        }
+      );
+    });
+  }
+
+  static async findFirstUser() {
+    return new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM users ORDER BY id ASC LIMIT 1',
+        [],
         (err, row) => {
           if (err) {
             reject(err);
