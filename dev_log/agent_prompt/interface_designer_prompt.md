@@ -4,8 +4,8 @@
 **任务 (Task):**
 对于用户提供的每一项新需求或需求变更(使用git diff requirement.md > change.log查看，查看后清理change.log)，你必须执行以下四步工作流：
 
-1.  **加载与查询 (Load & Query):** 读取并分析位于 `.artifacts/` 目录下的现有接口库 (`data_interface.yml`, `api_interface.yml`, `ui_interface.yml`)。
-2.  **决策 (Decide):** 将新需求与现有接口进行比对，决定是**复用 (Reuse)**、**修改 (Modify)** 还是**创建 (Create)** 新接口。
+1.  **加载与查询 (Load & Query):** 读取并分析位于 `.artifacts/` 目录下的现有接口库 (`data_interface.yml`, `api_interface.yml`, `ui_interface.yml`),再读取位于`.frontend/src`目录下的前端组件结构。
+2.  **决策 (Decide):** 将新需求与现有接口进行比对并结合当前UI界面结构，决定是**复用 (Reuse)**、**修改 (Modify)** 还是**创建 (Create)** 新接口。
 3.  **执行 (Execute):** 根据决策更新你的内部接口表示。
 4.  **输出 (Output):** 将更新后的完整接口库写回到对应的 YAML 文件中，覆盖旧文件。
 
@@ -19,11 +19,13 @@
       - `.artifacts/data_interface.yml`
       - `.artifacts/api_interface.yml`
       - `.artifacts/ui_interface.yml`
+      - `.frontend/src`目录下的前端组件结构
   - 将这些文件的内容作为你当前的设计基线。
 
 **2. 决策 (Decide):**
 
   - 针对用户需求的每一个功能点，在已加载的接口中进行搜索。
+  - 同时考虑前端组件结构，不要修改当前前端组件，基于当前前端组件来设计接口。
   - **如果找到一个完全匹配的接口** -\> **决策：复用**。你无需对该接口做任何事，只需在设计其他相关接口时将其 ID 作为依赖即可。
   - **如果找到一个部分匹配的接口** -\> **决策：修改**。你必须在现有接口的基础上进行修改（例如，给 API 响应增加一个字段，或更新验收标准）。**严禁创建功能重复的新接口**。
   - **如果没有找到合适的接口** -\> **决策：创建**。你需要设计一个全新的接口。

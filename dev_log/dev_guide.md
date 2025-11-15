@@ -56,3 +56,8 @@ After the trial and error process, you may manually modify the code to ensure th
 ## Step 7: Assemble the pages
 **TODO**: design a agent to assemble the pages. This is not implemented for now, as there are not many finished pages yet.
 
+问题及建议：
+    1. 不建议ai使用gemini，他的性能比较差，容易生成大量报错，而且会进入思考死循环
+    2. 我大概能明白当前工作流的意思，但是在实际操作中存在很多问题，先生成的UI界面，在后续的工作流中，agent基本都不会考虑，比如我遇到了这样的情况，UI界面生成的十分完美，后续工作流一切正常，测试样例也全通过，但是在实际的页面中，UI界面仍然是静态的，要求ai解决这个问题发现，原来ai是设计了另一套完全不一样的前端接口，完全没有考虑目前UI界面的情况。所以后来我试着改了下agent的prompt，让他结合UI生成接口这些什么的（但这只是个尝试，因为我不清楚全都改动是否会对之前生成的代码产生影响，但是只改一个agent还是没什么用，后续如果要改进建议在每个agent中提及一下），不过目前这个想法我是支持的，先生成UI界面，这样避免了之前会出现的很多抽象问题
+    3. 所以我目前的建议是，想出一套可行的方法，围绕UI集成，比如根据最先的UI生成需求、接口、测试等等，因为这些是实实在在可控的，而且最容易得到反馈，所以后续的建议就是考虑改进prompt，让ai加强UI意识；或者可以进一步规范化，比如对UI界面的代码进行规范化，让需求文档和接口描述贴近规范化的UI进行生成，后端也可以为UI服务。
+    4. gpt5功能确实强，基本不会生成什么带有报错的东西，所以test_runner我还没用过，但是指令遵循确实是一个毛病，我估计前面我改prompt效果不明显跟这个可能有关，因为 我并没有大刀阔斧很规范的在prompt中提及UI意识，所以以gpt的惯性，它大概率是遗忘了的。
