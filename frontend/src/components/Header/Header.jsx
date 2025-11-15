@@ -15,6 +15,18 @@ const Header = () => {
       if (name) setUserName(String(name));
     } catch (_) {}
   }, []);
+  const handleLogout = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    } catch (_) {}
+    setUserName('');
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  };
   return (
     <header className={styles.header}>
       <div className={styles.logo}>
@@ -24,7 +36,10 @@ const Header = () => {
         <NavLink to="/home">首页</NavLink>
         <NavLink to="/orders">我的订单</NavLink>
         {userName ? (
-          <NavLink to="/home">{userName}</NavLink>
+          <>
+            <NavLink to="/home">{userName}</NavLink>
+            <button type="button" onClick={handleLogout}>退出登录</button>
+          </>
         ) : (
           <NavLink to="/login"><i className="fa fa-user-o"></i></NavLink>
         )}

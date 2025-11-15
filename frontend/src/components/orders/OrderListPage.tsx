@@ -60,6 +60,12 @@ const OrderListPage = () => {
       const headers: Record<string, string> = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
       if (phone) headers['x-user-phone'] = String(phone);
+      if (!token && !phone) {
+        setOrders([]);
+        setError('请登录后查看订单');
+        setIsLoading(false);
+        return;
+      }
       const res = await fetch(`/api/orders?${queryParams}`, { headers });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

@@ -13,6 +13,10 @@ const DownloadButton = ({ orderId }) => {
       const headers: Record<string, string> = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
       if (phone) headers['x-user-phone'] = phone;
+      if (!token && !phone) {
+        alert('请先登录');
+        return;
+      }
       const res = await fetch(`/api/orders/${orderId}/download`, { headers });
       if (!res.ok) throw new Error('生成失败，请稍后重试');
       const blob = await res.blob();

@@ -95,3 +95,39 @@
   changeLog:
     - date: "2025-11-11"
       description: "初始创建"
+
+- type: Database
+  id: DB-FindOrdersByUserId
+  description: 根据用户ID和筛选条件查询订单列表。
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后，返回指定用户的订单记录列表。
+    - 如果用户不存在或没有订单，返回空列表。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建，用于订单管理列表。"
+
+- type: Database
+  id: DB-FindOrderById
+  description: 根据订单ID查询单个订单的完整信息。
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后，返回唯一的订单记录。
+    - 如果订单ID不存在，返回null。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建，用于订单详情页。"
+
+- type: Database
+  id: DB-UpdateOrderStatus
+  description: 更新指定订单的状态。
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后，目标订单的状态被更新。
+    - 如果订单ID不存在，操作失败。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建，用于取消订单等操作。"
