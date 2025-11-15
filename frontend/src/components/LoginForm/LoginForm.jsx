@@ -40,19 +40,13 @@ const LoginForm = ({ onSwitchMode }) => {
       });
 
       const data = await response.json();
+
       if (response.ok) {
-<<<<<<< HEAD
         console.log('登录成功:', data);
         const token = data?.data?.token || data?.token;
         if (token) {
           localStorage.setItem('token', token);
         }
-=======
-        const token = (data && data.token) || (data && data.data && data.data.token) || '';
-        const user = (data && data.user) || (data && data.data && data.data.user) || null;
-        if (token) localStorage.setItem('token', token);
-        if (user) localStorage.setItem('user', JSON.stringify(user));
->>>>>>> 9eca3d52f2b796cafa8676a1e4b5b2950bae0e4f
         navigate('/home');
       } else {
         const errMsg = data.error || data.message || '登录失败';

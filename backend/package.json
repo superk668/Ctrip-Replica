@@ -29,10 +29,6 @@
     "testEnvironment": "node",
     "testMatch": [
       "**/test/**/*.test.js"
-    ],
-    "reporters": [
-      "default",
-      "<rootDir>/jest-order-reporter.js"
     ]
   }
 }

@@ -5,16 +5,11 @@ const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
-<<<<<<< HEAD
 const airportRoutes = require('./routes/airports');
 const flightRoutes = require('./routes/flights');
 const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
 const { initDatabase } = require('./config/database');
-=======
-const orderRoutes = require('./routes/orders');
-const { initDatabase } = require('./db');
->>>>>>> 9eca3d52f2b796cafa8676a1e4b5b2950bae0e4f
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -49,14 +44,10 @@ app.use(express.urlencoded({ extended: true }));
 // 路由
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
-<<<<<<< HEAD
 app.use('/api/airports', airportRoutes);
 app.use('/api/flights', flightRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
-=======
-app.use('/api/orders', orderRoutes);
->>>>>>> 9eca3d52f2b796cafa8676a1e4b5b2950bae0e4f
 
 // 健康检查
 app.get('/health', (req, res) => {

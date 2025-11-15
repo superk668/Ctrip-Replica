@@ -1,10 +1,12 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-const DB_PATH = process.env.NODE_ENV === 'test'
-  ? ':memory:'
-  : path.join(__dirname, '../database.sqlite');
+// 数据库文件路径
+const DB_PATH = process.env.NODE_ENV === 'test' 
+  ? ':memory:' 
+  : path.join(__dirname, '../../database.sqlite');
 
+// 创建数据库连接
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
     console.error('数据库连接失败:', err.message);
@@ -13,11 +15,11 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
   }
 });
 
-let initPromise = null;
+// 初始化数据库表
 const initDatabase = () => {
-  if (initPromise) return initPromise;
-  initPromise = new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     db.serialize(() => {
+      // 用户表
       db.run(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,31 +32,16 @@ const initDatabase = () => {
         )
       `);
 
+      // 验证码表
       db.run(`
         CREATE TABLE IF NOT EXISTS verification_codes (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           phone TEXT NOT NULL,
           code TEXT NOT NULL,
-          type TEXT NOT NULL,
+          type TEXT NOT NULL, -- 'login' or 'register'
           expires_at DATETIME NOT NULL,
           used BOOLEAN DEFAULT FALSE,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-      `);
-
-      db.run(`
-        CREATE TABLE IF NOT EXISTS orders (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          order_id TEXT UNIQUE,
-          user_id INTEGER NOT NULL,
-          product_type TEXT,
-          product_title TEXT,
-          order_date DATETIME,
-          total_amount REAL,
-          status TEXT,
-          details TEXT,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `);
 
@@ -62,7 +49,9 @@ const initDatabase = () => {
       resolve();
     });
   });
-  return initPromise;
 };
 
-module.exports = { db, initDatabase };
+module.exports = {
+  db,
+  initDatabase
+};

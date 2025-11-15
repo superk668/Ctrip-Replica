@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../../src/app');
-const { db } = require('../../src/db');
+const { db } = require('../../src/config/database');
 
 // 测试数据
 const testUser = {
