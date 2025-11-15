@@ -24,6 +24,11 @@ const OrderDetailPage = ({ orderId }: Props) => {
         const headers: Record<string, string> = {};
         if (token) headers['Authorization'] = `Bearer ${token}`;
         if (phone) headers['x-user-phone'] = String(phone);
+        if (!token && !phone) {
+          setError('请登录后查看订单详情');
+          setIsLoading(false);
+          return;
+        }
         const res = await fetch(`/api/orders/${orderId}`, { headers });
         if (!res.ok) {
           const j = await res.json().catch(() => ({}));
