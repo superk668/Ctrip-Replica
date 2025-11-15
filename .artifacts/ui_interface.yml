@@ -353,3 +353,108 @@
   changeLog:
     - date: "2025-11-11"
       description: "初始创建"
+
+- type: Frontend
+  id: UI-OrderListPage
+  description: 个人订单管理列表页面，展示不同状态的订单。
+  properties:
+    - name: onSelectOrder
+      type: function
+      description: "选中一个订单后的回调，通常用于跳转详情页。"
+  state:
+    - orders
+    - currentTab
+    - pagination
+    - isLoading
+    - error
+  dependencies:
+    - API-GET-Orders
+  acceptanceCriteria:
+    - 组件应渲染导航标签栏（全部、待出行等）。
+    - 组件应能根据当前标签调用API-GET-Orders获取数据。
+    - 列表区域应能渲染订单卡片（UI-OrderCard）。
+    - 应处理加载、空状态和错误状态的显示。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-OrderDetailPage
+  description: 订单详情页面，展示订单的完整信息和可执行操作。
+  properties:
+    - name: orderId
+      type: string
+      description: "要展示的订单ID。"
+  state:
+    - orderDetails
+    - isLoading
+    - error
+  dependencies:
+    - API-GET-OrderById
+    - API-POST-CancelOrder
+    - UI-CancelOrderModal
+    - UI-ReorderButton
+    - UI-DownloadButton
+  acceptanceCriteria:
+    - 组件应根据orderId调用API-GET-OrderById获取数据。
+    - 应能正确渲染产品、旅客、价格等所有信息。
+    - 根据订单状态动态显示“取消订单”、“重新下单”等操作按钮。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-CancelOrderModal
+  description: 取消订单的确认弹窗。
+  properties:
+    - name: onConfirm
+      type: function
+      description: "确认取消的回调。"
+    - name: onCancel
+      type: function
+      description: "关闭弹窗的回调。"
+  state:
+    - isVisible
+    - isLoading
+  dependencies:
+    - API-POST-CancelOrder
+  acceptanceCriteria:
+    - 弹窗应包含明确的提示信息和操作按钮。
+    - 点击确认后，应调用onConfirm并显示加载状态。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-ReorderButton
+  description: “重新下单”按钮，用于从已取消订单跳转到预订流程。
+  properties:
+    - name: orderInfo
+      type: object
+      description: "旧订单信息，用于预填。"
+  state:
+    - none
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 点击后，应能携带旧订单信息跳转到搜索或预订页面。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-DownloadButton
+  description: 用于下载订单相关文档（如PDF行程单）的按钮。
+  properties:
+    - name: orderId
+      type: string
+      description: "要下载的订单ID。"
+  state:
+    - isLoading
+  dependencies:
+    - API-GET-OrderAsPdf
+  acceptanceCriteria:
+    - 点击后，应调用API-GET-OrderAsPdf并触发浏览器下载。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建。"

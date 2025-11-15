@@ -463,3 +463,147 @@
   changeLog:
     - date: "2025-11-11"
       description: "初始创建"
+
+- type: Backend
+  id: API-GET-Orders
+  route: GET /api/orders
+  description: 获取当前用户的订单列表，支持按状态筛选和分页。
+  input:
+    type: QueryParams
+    params:
+      - name: status
+        type: string
+        description: "订单状态筛选 (all, pending_travel, pending_payment, pending_review)"
+      - name: page
+        type: integer
+        description: "页码"
+      - name: pageSize
+        type: integer
+        description: "每页数量"
+  output:
+    success:
+      statusCode: 200
+      body: {
+        orders: [
+          {
+            orderId: "uuid",
+            productType: "string",
+            productTitle: "string",
+            orderDate: "date",
+            totalAmount: "float",
+            orderStatus: "string"
+          }
+        ],
+        pagination: {
+          currentPage: "integer",
+          totalPages: "integer",
+          totalCount: "integer"
+        }
+      }
+    error:
+      - statusCode: 401
+        body: { error: "Unauthorized. Please login." }
+  dependencies:
+    - DB-FindOrdersByUserId
+  acceptanceCriteria:
+    - 成功请求后应返回200 OK及订单列表和分页信息。
+    - 未登录用户请求应返回401 Unauthorized。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建。"
+
+- type: Backend
+  id: API-GET-OrderById
+  route: GET /api/orders/:orderId
+  description: 获取指定ID的订单详情。
+  input:
+    type: PathParams
+    params:
+      - name: orderId
+        type: string
+        description: "订单的唯一标识符"
+  output:
+    success:
+      statusCode: 200
+      body: {
+        orderId: "uuid",
+        orderStatus: "string",
+        productInfo: {},
+        travelerInfo: [],
+        contactInfo: {},
+        priceDetails: {},
+        actions: ["cancel", "invoice"]
+      }
+    error:
+      - statusCode: 401
+        body: { error: "Unauthorized." }
+      - statusCode: 403
+        body: { error: "Forbidden. You do not have permission to view this order." }
+      - statusCode: 404
+        body: { error: "Order not found." }
+  dependencies:
+    - DB-FindOrderById
+  acceptanceCriteria:
+    - 成功请求后应返回200 OK及完整的订单详情。
+    - 如果订单不属于当前用户，应返回403 Forbidden。
+    - 如果订单ID不存在，应返回404 Not Found。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建。"
+
+- type: Backend
+  id: API-POST-CancelOrder
+  route: POST /api/orders/:orderId/cancel
+  description: 取消一个指定的订单。
+  input:
+    type: PathParams
+    params:
+      - name: orderId
+        type: string
+        description: "订单的唯一标识符"
+  output:
+    success:
+      statusCode: 200
+      body: { message: "Order cancelled successfully." }
+    error:
+      - statusCode: 400
+        body: { error: "Order cannot be cancelled in its current state." }
+      - statusCode: 403
+        body: { error: "Forbidden." }
+      - statusCode: 404
+        body: { error: "Order not found." }
+  dependencies:
+    - DB-FindOrderById
+    - DB-UpdateOrderStatus
+  acceptanceCriteria:
+    - 成功取消后应返回200 OK。
+    - 如果订单状态不允许取消，应返回400 Bad Request。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建。"
+
+- type: Backend
+  id: API-GET-OrderAsPdf
+  route: GET /api/orders/:orderId/download
+  description: 下载指定订单的PDF版本。
+  input:
+    type: PathParams
+    params:
+      - name: orderId
+        type: string
+        description: "订单的唯一标识符"
+  output:
+    success:
+      statusCode: 200
+      headers: { "Content-Type": "application/pdf" }
+      body: "PDF file stream"
+    error:
+      - statusCode: 404
+        body: { error: "Order not found or PDF generation failed." }
+  dependencies:
+    - DB-FindOrderById
+  acceptanceCriteria:
+    - 成功请求后应返回200 OK及PDF文件流。
+  changeLog:
+    - date: "2025-11-15"
+      description: "初始创建。"
