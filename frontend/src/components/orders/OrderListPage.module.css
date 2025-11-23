@@ -1,0 +1,301 @@
+.pageContainer {
+  padding-top: 80px;
+  padding-bottom: 160px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 18px;
+}
+
+.sidebar {
+  border: 1px solid #bfd7ff;
+  background: #f5faff;
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.sideTitle {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.sideGroup {
+  color: #0071eb;
+  margin-bottom: 8px;
+}
+
+.sideItem,
+.sideItemActive {
+  padding: 8px 10px;
+  border-radius: 4px;
+}
+
+.sideItemActive {
+  background: #eaf4ff;
+  color: #0071eb;
+  border-left: 3px solid #0071eb;
+}
+
+.main {
+  min-width: 0;
+}
+
+.headerBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.noticeBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #eaecef;
+  background: #fff;
+  padding: 10px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.hint {
+  color: #666;
+  font-size: 12px;
+  flex: 1;
+}
+
+.actionsRight a {
+  color: #0071eb;
+  text-decoration: none;
+  font-size: 12px;
+}
+
+.tabBar {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid #eaecef;
+  padding-bottom: 10px;
+}
+
+.tab {
+  border: 1px solid #eaecef;
+  background: #f7f7f7;
+  padding: 10px 26px;
+  cursor: pointer;
+  color: #333;
+  border-radius: 2px;
+  min-width: 120px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.active {
+  background: #fff;
+  color: #0071eb;
+  border: 1px solid #bfd7ff;
+}
+
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #eaecef;
+  padding: 10px 12px;
+  margin: 10px 0 12px;
+}
+
+.filterLabel {
+  color: #333;
+  font-size: 14px;
+}
+
+.select {
+  padding: 6px 8px;
+  font-size: 12px;
+  min-width: 160px;
+}
+
+.moreFilter {
+  border: 1px solid #eaecef;
+  background: #fff;
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+.loading {
+  padding: 20px;
+}
+
+.error {
+  background: #fff3f3;
+  color: #d00;
+  padding: 10px;
+  border: 1px solid #ffd0d0;
+}
+
+.retry {
+  margin-left: 8px;
+  color: #0071eb;
+}
+
+.empty {
+  padding: 20px;
+  color: #666;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  border: 1px solid #eaecef;
+  background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cardClickable {
+  cursor: pointer;
+}
+
+.cardHeader {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: #f9fafb;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eaecef;
+}
+
+.rowSelectArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.orderNo a {
+  color: #0071eb;
+  text-decoration: none;
+}
+
+.orderDate {
+  color: #666;
+  font-size: 12px;
+}
+
+.status {
+  margin-left: auto;
+  color: #0071eb;
+}
+
+.cardBody {
+  padding: 12px;
+}
+
+.productTitle {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+.meta {
+  color: #666;
+  font-size: 12px;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-top: 1px solid #eaecef;
+}
+
+.leftOps {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #333;
+}
+
+.priceArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.priceLabel {
+  color: #0071eb;
+}
+
+.price {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.pgBtn {
+  padding: 4px 10px;
+  border: 1px solid #eaecef;
+  background: #fff;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 2px;
+}
+
+.pgInfo {
+  min-width: 28px;
+  height: 28px;
+  line-height: 28px;
+  text-align: center;
+  border: 1px solid #eaecef;
+  background: #fff;
+  border-radius: 2px;
+}
+.opsBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 12px 0;
+}
+
+.rowCheck {
+  margin-right: 6px;
+}
+
+.bulkBtn {
+  border: 1px solid #eaecef;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 2px;
+  color: #0071eb;
+  cursor: pointer;
+}
+

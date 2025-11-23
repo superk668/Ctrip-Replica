@@ -15,11 +15,12 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
   }
 });
 
-// 初始化数据库表
+// 初始化数据库表（幂等）
+let initPromise = null;
 const initDatabase = () => {
-  return new Promise((resolve, reject) => {
+  if (initPromise) return initPromise;
+  initPromise = new Promise((resolve, reject) => {
     db.serialize(() => {
-      // 用户表
       db.run(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,16 +33,31 @@ const initDatabase = () => {
         )
       `);
 
-      // 验证码表
       db.run(`
         CREATE TABLE IF NOT EXISTS verification_codes (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           phone TEXT NOT NULL,
           code TEXT NOT NULL,
-          type TEXT NOT NULL, -- 'login' or 'register'
+          type TEXT NOT NULL,
           expires_at DATETIME NOT NULL,
           used BOOLEAN DEFAULT FALSE,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      db.run(`
+        CREATE TABLE IF NOT EXISTS orders (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          order_id TEXT UNIQUE,
+          user_id INTEGER NOT NULL,
+          product_type TEXT,
+          product_title TEXT,
+          order_date DATETIME,
+          total_amount REAL,
+          status TEXT,
+          details TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
       `);
 
@@ -49,6 +65,7 @@ const initDatabase = () => {
       resolve();
     });
   });
+  return initPromise;
 };
 
 module.exports = {

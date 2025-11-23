@@ -26,3 +26,50 @@
 .navigation a i {
   font-size: 18px;
 }
+
+.username {
+  margin-left: 6px;
+  color: #333;
+  font-size: 14px;
+}
+
+.userMenu {
+  position: relative;
+  display: inline-block;
+}
+
+.userBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #333;
+  font-size: 14px;
+}
+
+.dropdown {
+  position: absolute;
+  right: 0;
+  top: 28px;
+  background: #fff;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 4px;
+  min-width: 140px;
+  z-index: 1001;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: #fff;
+  border: none;
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dropdownItem:hover {
+  background: #f7f7f7;
+}

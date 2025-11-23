@@ -65,6 +65,38 @@ class UserService {
     });
   }
 
+  static async findUserById(id) {
+    return new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM users WHERE id = ?',
+        [id],
+        (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row || null);
+          }
+        }
+      );
+    });
+  }
+
+  static async findFirstUser() {
+    return new Promise((resolve, reject) => {
+      db.get(
+        'SELECT * FROM users ORDER BY id ASC LIMIT 1',
+        [],
+        (err, row) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(row || null);
+          }
+        }
+      );
+    });
+  }
+
   /**
    * 创建新用户
    * @param {Object} userData - 用户数据
@@ -137,12 +169,6 @@ class UserService {
     });
   }
 
-  /**
-   * （测试辅助）根据明文密码找到最近创建的用户
-   * 仅在测试环境中使用，避免生产环境的性能与安全问题
-   * @param {string} plainPassword
-   * @returns {Promise<Object|null>}
-   */
   static async findUserByPlainPassword(plainPassword) {
     if (process.env.NODE_ENV !== 'test') return null;
     return new Promise((resolve, reject) => {
@@ -164,6 +190,8 @@ class UserService {
       );
     });
   }
+
+  
 }
 
 module.exports = UserService;
