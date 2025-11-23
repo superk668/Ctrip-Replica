@@ -26,6 +26,83 @@ const getCurrentUser = async (req) => {
   return user;
 };
 
+const buildProductInfo = (order) => {
+  const d = order.details || {};
+  let p = {};
+  const raw = d.productInfo;
+  if (typeof raw === 'string') {
+    try { p = JSON.parse(raw); } catch (_) { p = {}; }
+  } else if (raw && typeof raw === 'object') {
+    p = { ...raw };
+  }
+  const type = (order.productType || p.type || '').toLowerCase();
+  const title = p.title || order.productTitle || '';
+  let number = p.number || '';
+  let seatType = p.seatType || '';
+  let departCity = p.departCity || '';
+  let arriveCity = p.arriveCity || '';
+  let departTime = p.departTime || '';
+  let arriveTime = p.arriveTime || '';
+  let hotelName = p.hotelName || '';
+  let roomType = p.roomType || '';
+  let checkInDate = p.checkInDate || '';
+  let checkOutDate = p.checkOutDate || '';
+  let nights = p.nights || (typeof p.nights === 'number' ? p.nights : '');
+
+  if (type === 'train') {
+    if (!number) {
+      const m = (title || '').match(/\b([GDKTZ]\d{1,4})\b/i);
+      number = m ? m[1] : number;
+    }
+    if (!seatType) {
+      const m = (title || '').match(/(商务座|一等座|二等座|软卧|硬卧|硬座)/);
+      seatType = m ? m[1] : seatType;
+    }
+    if (!departCity || !arriveCity) {
+      const m = (title || '').match(/([^\s\-–—]+)\s*[\-–—]\s*([^\s]+)/);
+      if (m) { departCity = departCity || m[1]; arriveCity = arriveCity || m[2]; }
+    }
+  } else if (type === 'flight') {
+    if (!number) {
+      const m = (title || '').match(/\b([A-Z]{2}\d{3,5})\b/);
+      number = m ? m[1] : number;
+    }
+    if (!seatType) {
+      const m = (title || '').match(/(经济舱|超经|商务舱|头等舱)/);
+      seatType = m ? m[1] : seatType;
+    }
+    if (!departCity || !arriveCity) {
+      const m = (title || '').match(/([^\s\-–—]+)\s*[\-–—]\s*([^\s]+)/);
+      if (m) { departCity = departCity || m[1]; arriveCity = arriveCity || m[2]; }
+    }
+  } else if (type === 'hotel') {
+    if (!hotelName) hotelName = title || hotelName;
+    if (!roomType) {
+      const m = (title || '').match(/(大床房|双床房|家庭房|豪华房|标准间|商务房)/);
+      roomType = m ? m[1] : roomType;
+    }
+    if (!nights) {
+      const m = (title || '').match(/(\d+)晚/);
+      nights = m ? Number(m[1]) : nights;
+    }
+  }
+
+  return {
+    title,
+    number,
+    seatType,
+    departCity,
+    arriveCity,
+    departTime,
+    arriveTime,
+    hotelName,
+    roomType,
+    checkInDate,
+    checkOutDate,
+    nights
+  };
+};
+
 // GET /api/orders - 获取订单列表
 router.get('/', async (req, res) => {
   const { status, page, pageSize } = req.query;
@@ -40,7 +117,12 @@ router.get('/', async (req, res) => {
     }
     const productType = String(req.query.productType || 'all');
     const data = await OrderService.findOrdersByUserId(user.id, String(status), Number(page), Number(pageSize), productType);
-    return res.status(200).json(data);
+    const orders = Array.isArray(data.orders) ? data.orders.map((o) => ({
+      ...o,
+      productInfo: buildProductInfo(o),
+      travelerInfo: (o.details && o.details.travelerInfo) || []
+    })) : [];
+    return res.status(200).json({ orders, pagination: data.pagination });
   } catch (e) {
     return res.status(500).json({ error: 'Failed to load orders.' });
   }
@@ -60,7 +142,7 @@ router.get('/:orderId', async (req, res) => {
     return res.status(200).json({
       orderId: order.orderId,
       orderStatus: order.orderStatus,
-      productInfo: details.productInfo || {},
+      productInfo: buildProductInfo(order),
       travelerInfo: details.travelerInfo || [],
       contactInfo: details.contactInfo || {},
       priceDetails: details.priceDetails || { total: order.totalAmount },

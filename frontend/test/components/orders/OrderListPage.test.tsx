@@ -8,12 +8,12 @@ import OrderListPage from '../../../src/components/orders/OrderListPage';
 // }));
 
 describe('UI-OrderListPage', () => {
-  it('组件应渲染导航标签栏（全部、待出行等）', () => {
+  it('组件应渲染导航标签栏（全部订单、未出行等）', () => {
     render(<OrderListPage />);
-    // 由于是骨架，我们只测试标题是否存在，实际应测试Tab
-    expect(screen.getAllByText('我的订单').length).toBeGreaterThan(0);
-    // expect(screen.getByText('全部')).toBeInTheDocument();
-    // expect(screen.getByText('待出行')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '全部订单' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '未出行' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '待支付' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '待点评' })).toBeInTheDocument();
   });
 
   it('列表区域应能渲染订单卡片（UI-OrderCard）', () => {

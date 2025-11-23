@@ -1,20 +1,21 @@
 .pageContainer {
   padding-top: 80px;
-  padding-bottom: 220px;
-  max-width: 1100px;
+  padding-bottom: 160px;
+  max-width: 1080px;
   margin: 0 auto;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 20px;
+  grid-template-columns: 200px 1fr;
+  gap: 18px;
 }
 
 .sidebar {
-  border: 1px solid #e5e5e5;
-  background: #fff;
+  border: 1px solid #bfd7ff;
+  background: #f5faff;
   padding: 12px;
+  border-radius: 4px;
 }
 
 .sideTitle {
@@ -36,6 +37,7 @@
 .sideItemActive {
   background: #eaf4ff;
   color: #0071eb;
+  border-left: 3px solid #0071eb;
 }
 
 .main {
@@ -46,11 +48,22 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+}
+
+.noticeBar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #eaecef;
+  background: #fff;
+  padding: 10px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
 }
 
 .title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
 }
 
@@ -63,34 +76,42 @@
 .actionsRight a {
   color: #0071eb;
   text-decoration: none;
+  font-size: 12px;
 }
 
 .tabBar {
   display: flex;
   gap: 10px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #eaecef;
   padding-bottom: 10px;
 }
 
 .tab {
-  border: 1px solid #e5e5e5;
+  border: 1px solid #eaecef;
   background: #f7f7f7;
-  padding: 8px 14px;
+  padding: 10px 26px;
   cursor: pointer;
+  color: #333;
+  border-radius: 2px;
+  min-width: 120px;
+  text-align: center;
+  font-size: 14px;
 }
 
 .active {
   background: #fff;
-  border-bottom: 2px solid #0071eb;
+  color: #0071eb;
+  border: 1px solid #bfd7ff;
 }
 
 .filterBar {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #f7f7f7;
-  padding: 12px;
-  margin: 12px 0;
+  background: #fff;
+  border: 1px solid #eaecef;
+  padding: 10px 12px;
+  margin: 10px 0 12px;
 }
 
 .filterLabel {
@@ -100,12 +121,16 @@
 
 .select {
   padding: 6px 8px;
+  font-size: 12px;
+  min-width: 160px;
 }
 
 .moreFilter {
-  border: 1px solid #e5e5e5;
+  border: 1px solid #eaecef;
   background: #fff;
   padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 2px;
 }
 
 .loading {
@@ -132,20 +157,34 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .card {
-  border: 1px solid #e5e5e5;
+  border: 1px solid #eaecef;
   background: #fff;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cardClickable {
+  cursor: pointer;
 }
 
 .cardHeader {
   display: flex;
   gap: 16px;
   align-items: center;
-  background: #f7f7f7;
+  background: #f9fafb;
   padding: 10px 12px;
+  border-bottom: 1px solid #eaecef;
+}
+
+.rowSelectArea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
 }
 
 .orderNo a {
@@ -160,7 +199,7 @@
 
 .status {
   margin-left: auto;
-  color: #28a745;
+  color: #0071eb;
 }
 
 .cardBody {
@@ -168,8 +207,9 @@
 }
 
 .productTitle {
-  font-weight: 600;
-  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 8px;
 }
 
 .meta {
@@ -182,7 +222,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 12px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #eaecef;
 }
 
 .leftOps {
@@ -216,16 +256,45 @@
 .pagination {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   justify-content: flex-end;
   margin-top: 12px;
 }
 
 .pgBtn {
   padding: 4px 10px;
+  border: 1px solid #eaecef;
+  background: #fff;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 2px;
 }
 
 .pgInfo {
-  min-width: 24px;
+  min-width: 28px;
+  height: 28px;
+  line-height: 28px;
   text-align: center;
+  border: 1px solid #eaecef;
+  background: #fff;
+  border-radius: 2px;
+}
+.opsBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 12px 0;
+}
+
+.rowCheck {
+  margin-right: 6px;
+}
+
+.bulkBtn {
+  border: 1px solid #eaecef;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 2px;
+  color: #0071eb;
+  cursor: pointer;
 }

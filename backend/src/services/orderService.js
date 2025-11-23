@@ -21,10 +21,18 @@ class OrderService {
     const offset = (Number(page) - 1) * Number(pageSize);
     const data = await new Promise((resolve, reject) => {
       db.all(
-        `SELECT order_id AS orderId, product_type AS productType, product_title AS productTitle, order_date AS orderDate, total_amount AS totalAmount, status AS orderStatus
+        `SELECT order_id AS orderId, product_type AS productType, product_title AS productTitle, order_date AS orderDate, total_amount AS totalAmount, status AS orderStatus, details
          FROM orders WHERE user_id = ? ${whereStatus} ${whereProduct} ORDER BY datetime(order_date) DESC LIMIT ? OFFSET ?`,
         [...filterParams, Number(pageSize), offset],
-        (err, rows) => err ? reject(err) : resolve(rows || [])
+        (err, rows) => {
+          if (err) return reject(err);
+          const parsed = (rows || []).map((r) => {
+            let details = {};
+            try { details = r.details ? JSON.parse(r.details) : {}; } catch (_) {}
+            return { ...r, details };
+          });
+          resolve(parsed);
+        }
       );
     });
     const totalPages = Math.max(1, Math.ceil(Number(count) / Number(pageSize)) || 1);
