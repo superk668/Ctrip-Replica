@@ -41,7 +41,7 @@ const validationRules = {
   // 发送验证码验证
   sendCode: [
     body('phone').custom(validatePhone).withMessage('手机号格式不正确'),
-    body('type').isIn(['login', 'register']).withMessage('验证码类型不正确')
+    body('type').isIn(['login', 'register', 'reset']).withMessage('验证码类型不正确')
   ],
   
   // 注册第一步验证
@@ -52,6 +52,23 @@ const validationRules = {
   
   // 注册第二步验证
   registerStep2: [
+    body('phone').custom(validatePhone).withMessage('手机号格式不正确'),
+    body('password').custom(validatePassword).withMessage('密码必须至少8位且包含字母和数字')
+  ],
+  
+  // 密码重置第一步验证（验证手机号）
+  resetPasswordStep1: [
+    body('phone').custom(validatePhone).withMessage('手机号格式不正确')
+  ],
+  
+  // 密码重置第二步验证（验证验证码）
+  resetPasswordStep2: [
+    body('phone').custom(validatePhone).withMessage('手机号格式不正确'),
+    body('code').custom(validateVerificationCode).withMessage('验证码格式不正确')
+  ],
+  
+  // 密码重置第三步验证（设置新密码）
+  resetPasswordStep3: [
     body('phone').custom(validatePhone).withMessage('手机号格式不正确'),
     body('password').custom(validatePassword).withMessage('密码必须至少8位且包含字母和数字')
   ]
