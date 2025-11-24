@@ -241,4 +241,41 @@ router.post('/:orderId/issue', (req, res) => {
   return res.status(200).json({ ticketNo: 'ETKT-' + Math.random().toString(36).slice(2,8) });
 });
 
+router.post('/create', async (req, res) => {
+  try {
+    await OrderService.init();
+    const user = await getCurrentUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized. Please login.' });
+    const {
+      productType = 'flight',
+      productTitle = '',
+      totalAmount,
+      productInfo = {},
+      travelerInfo = [],
+      contactInfo = {},
+      priceDetails = {}
+    } = req.body || {};
+    if (!productTitle || typeof totalAmount !== 'number') {
+      return res.status(400).json({ error: 'Invalid order payload.' });
+    }
+    const orderId = 'ORD-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6);
+    const orderDate = new Date().toISOString();
+    const status = 'pending_travel';
+    const details = { productInfo, travelerInfo, contactInfo, priceDetails };
+    await OrderService.createOrder({
+      orderId,
+      userId: user.id,
+      productType,
+      productTitle,
+      orderDate,
+      totalAmount,
+      status,
+      details
+    });
+    return res.status(201).json({ orderId, status, orderDate, totalAmount });
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to create order.' });
+  }
+});
+
 module.exports = router;

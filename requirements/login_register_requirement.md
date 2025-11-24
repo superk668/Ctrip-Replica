@@ -342,11 +342,12 @@
 
 #### **场景描述 (Gherkin)**
 
-**Scenario: 3.2.3 正常选择并进入预订**
+**Scenario: 3.2.3 正常选择并进入订票**
     Given 结果页展示至少一条可售航班
-    And 用户选择某航班的“可退改”经济舱套餐
-    When 用户点击“预订”按钮
-    Then 系统跳转至订单填写页并携带所选航班与票规信息
+    And 用户选择某航班
+    When 用户点击“订票”按钮
+    Then 系统出现下拉栏，并提供经济舱和头等舱两种大类选择，每种大类提供不同服务的机票选择，具体参考frontend\src\screen_shoot\flight_ticket_search\main_item\ticket_pulldown_slection.png
+    frontend frontend\src\screen_shoot\flight_ticket_search\main_item\ticket_pulldown_slection.png
 
 **Scenario: 3.2.4 输入异常：筛选条件导致无结果**
     Given 用户勾选“直飞”

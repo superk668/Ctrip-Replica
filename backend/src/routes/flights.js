@@ -81,15 +81,25 @@ router.get('/search', (req, res) => {
     const toAirport = airportMap[to]?.name || to
     const fromTerminal = (airportMap[from]?.terminals || ['T2'])[Math.floor(rand()*((airportMap[from]?.terminals||['T2']).length))]
     const toTerminal = (airportMap[to]?.terminals || ['T3'])[Math.floor(rand()*((airportMap[to]?.terminals||['T3']).length))]
-    const basePrice = 500 + Math.floor(rand() * 900)
-    const p1 = basePrice
-    const p2 = basePrice + 120
-    const p3 = basePrice + 260
-    const pkgs = [
-      { id: `pkg-${i}-a`, name: '特价', cabin: 'Y', price: p1, refundable: false, baggage: { carry: 5, checkin: 0 } },
-      { id: `pkg-${i}-b`, name: '可退改', cabin: 'Y', price: p2, refundable: true, baggage: { carry: 5, checkin: 20 } },
-      { id: `pkg-${i}-c`, name: '灵活', cabin: 'Y', price: p3, refundable: true, baggage: { carry: 7, checkin: 23 } }
+    const basePrice = 400 + Math.floor(rand() * 900)
+    const econPrices = [0, 80, 150, 220, 300].map(delta => basePrice + delta)
+    const firstBase = basePrice + 900
+    const firstPrices = [0, 120, 250, 380, 500].map(delta => firstBase + delta)
+    const econPkgs = [
+      { id: `pkg-${i}-y1`, name: '经济舱·特价', cabin: 'Y', price: econPrices[0], refundable: false, baggage: { carry: 5, checkin: 0 } },
+      { id: `pkg-${i}-y2`, name: '经济舱·省心', cabin: 'Y', price: econPrices[1], refundable: true, baggage: { carry: 5, checkin: 15 } },
+      { id: `pkg-${i}-y3`, name: '经济舱·可退改', cabin: 'Y', price: econPrices[2], refundable: true, baggage: { carry: 5, checkin: 20 } },
+      { id: `pkg-${i}-y4`, name: '经济舱·行李升级', cabin: 'Y', price: econPrices[3], refundable: true, baggage: { carry: 7, checkin: 23 } },
+      { id: `pkg-${i}-y5`, name: '经济舱·灵活', cabin: 'Y', price: econPrices[4], refundable: true, baggage: { carry: 7, checkin: 28 } },
     ]
+    const firstPkgs = [
+      { id: `pkg-${i}-f1`, name: '头等舱·基础', cabin: 'F', price: firstPrices[0], refundable: true, baggage: { carry: 10, checkin: 30 } },
+      { id: `pkg-${i}-f2`, name: '头等舱·尊享', cabin: 'F', price: firstPrices[1], refundable: true, baggage: { carry: 12, checkin: 32 } },
+      { id: `pkg-${i}-f3`, name: '头等舱·可退改', cabin: 'F', price: firstPrices[2], refundable: true, baggage: { carry: 12, checkin: 35 } },
+      { id: `pkg-${i}-f4`, name: '头等舱·行李升级', cabin: 'F', price: firstPrices[3], refundable: true, baggage: { carry: 15, checkin: 40 } },
+      { id: `pkg-${i}-f5`, name: '头等舱·灵活', cabin: 'F', price: firstPrices[4], refundable: true, baggage: { carry: 15, checkin: 45 } },
+    ]
+    const pkgs = [...econPkgs, ...firstPkgs]
     const flight = {
       id: `${c.code}-${String(1000 + Math.floor(rand() * 9000))}`,
       carrier: c.code,

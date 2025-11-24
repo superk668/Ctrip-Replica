@@ -66,7 +66,27 @@ class OrderService {
       );
     });
   }
+
+  static async createOrder(order) {
+    const {
+      orderId,
+      userId,
+      productType,
+      productTitle,
+      orderDate,
+      totalAmount,
+      status,
+      details
+    } = order;
+    return new Promise((resolve, reject) => {
+      db.run(
+        `INSERT INTO orders (order_id, user_id, product_type, product_title, order_date, total_amount, status, details)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [orderId, userId, productType, productTitle, orderDate, totalAmount, status, JSON.stringify(details || {})],
+        (err) => err ? reject(err) : resolve()
+      );
+    });
+  }
 }
 
 module.exports = OrderService;
-

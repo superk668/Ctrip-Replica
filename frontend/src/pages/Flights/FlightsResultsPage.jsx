@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import styles from './FlightsResultsPage.module.css'
+import GlobalHeader from '../../components/Header/Header'
 
 const FlightsResultsPage = () => {
   const location = useLocation()
@@ -393,44 +394,116 @@ const FlightsResultsPage = () => {
     </svg>
   )
 
-  const Row = ({ airline, flightNo, model, share, depTime, depAirport, depTerminal, arrTime, arrAirport, arrTerminal, price }) => (
-    <div className={styles.row}>
-      <div className={styles.leftCol}>
-        <Logo text="LOGO占位" />
-        <div className={styles.airlineInfo}><span className={styles.airline}>{airline}</span><span className={styles.flightNo}>{flightNo}</span><span className={styles.model}>{model}</span>{share && <span className={styles.share}>{share}</span>}</div>
-      </div>
-      <div className={styles.middleCol}>
-        <div className={styles.timeBlock}>
-          <div className={styles.time}>{depTime}</div>
-          <div className={styles.airport}>{depAirport} {depTerminal}</div>
+  const Row = ({ airline, flightNo, model, share, depTime, depAirport, depTerminal, arrTime, arrAirport, arrTerminal, packages, flight }) => {
+    const [open, setOpen] = useState(false)
+    const minPrice = Array.isArray(packages) && packages.length > 0 ? Math.min(...packages.map(p => p.price)) : 0
+    const econ = (packages||[]).filter(p => p.cabin === 'Y').slice(0,5)
+    const first = (packages||[]).filter(p => p.cabin === 'F').slice(0,5)
+    const nav = useNavigate()
+    return (
+      <div className={styles.row}>
+        <div className={styles.leftCol}>
+          <Logo text="LOGO占位" />
+          <div className={styles.airlineInfo}><span className={styles.airline}>{airline}</span><span className={styles.flightNo}>{flightNo}</span><span className={styles.model}>{model}</span>{share && <span className={styles.share}>{share}</span>}</div>
         </div>
-        <div className={styles.arrowMid}>→</div>
-        <div className={styles.timeBlock}>
-          <div className={styles.time}>{arrTime}</div>
-          <div className={styles.airport}>{arrAirport} {arrTerminal}</div>
+        <div className={styles.middleCol}>
+          <div className={styles.timeBlock}>
+            <div className={styles.time}>{depTime}</div>
+            <div className={styles.airport}>{depAirport} {depTerminal}</div>
+          </div>
+          <div className={styles.arrowMid}>→</div>
+          <div className={styles.timeBlock}>
+            <div className={styles.time}>{arrTime}</div>
+            <div className={styles.airport}>{arrAirport} {arrTerminal}</div>
+          </div>
         </div>
+        <div className={styles.rightCol}>
+          <div className={styles.price}>¥{minPrice}</div>
+          <button className={styles.chooseBtn} onClick={()=>setOpen(!open)}>
+            {trip === 'oneway' ? '订票' : '选为去程'}
+            <span className={styles.chevron}>{open ? '▴' : '▾'}</span>
+          </button>
+        </div>
+        {open && (
+          <div className={styles.packagePanel}>
+            <div className={styles.packageHeaderRow}>
+              <div className={styles.panelTitle}>可选套餐</div>
+              <div className={styles.collapse} onClick={()=>setOpen(false)}>收起 ▴</div>
+            </div>
+            {!!econ.length && (
+              <div className={styles.group}>
+                <div className={styles.groupTitle}>经济舱（共{econ.length}个选项）</div>
+                <div className={styles.items}>
+                  {econ.map(p => (
+                    <div key={p.id} className={styles.itemRow}>
+                      <div>
+                        <div className={styles.pkgName}>{p.name}</div>
+                        <div className={styles.pkgTips}>可退改：{p.refundable?'是':'否'} · 手提{p.baggage?.carry||0}kg · 托运{p.baggage?.checkin||0}kg</div>
+                      </div>
+                      <div className={styles.pkgPrice}>¥{p.price}</div>
+                      <button className={styles.bookBtn} onClick={()=>{
+                        try { sessionStorage.setItem('bookingSelection', JSON.stringify({ flight, package: p })) } catch {}
+                        nav(`/booking?flight=${encodeURIComponent(flight?.id||'')}&pkg=${encodeURIComponent(p.id)}`)
+                      }}>预订</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!!first.length && (
+              <div className={styles.group}>
+                <div className={styles.groupTitle}>头等舱（共{first.length}个选项）</div>
+                <div className={styles.items}>
+                  {first.map(p => (
+                    <div key={p.id} className={styles.itemRow}>
+                      <div>
+                        <div className={styles.pkgName}>{p.name}</div>
+                        <div className={styles.pkgTips}>可退改：{p.refundable?'是':'否'} · 手提{p.baggage?.carry||0}kg · 托运{p.baggage?.checkin||0}kg</div>
+                      </div>
+                      <div className={styles.pkgPrice}>¥{p.price}</div>
+                      <button className={styles.bookBtn} onClick={()=>{
+                        try { sessionStorage.setItem('bookingSelection', JSON.stringify({ flight, package: p })) } catch {}
+                        nav(`/booking?flight=${encodeURIComponent(flight?.id||'')}&pkg=${encodeURIComponent(p.id)}`)
+                      }}>预订</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      <div className={styles.rightCol}>
-        <div className={styles.price}>¥{price}</div>
-        <button className={styles.chooseBtn}>{trip === 'oneway' ? '订票' : '选为去程'}</button>
-      </div>
-    </div>
-  )
+    )
+  }
 
   const List = () => (
     <div className={styles.list}>
       {results.map(f => {
-        const price = Array.isArray(f.packages) && f.packages.length>0 ? f.packages[0].price : 0
         const airlineName = f.carrier
         return (
-          <Row key={f.id} airline={airlineName} flightNo={f.flightNo} model={f.model} depTime={f.from.time} depAirport={`${f.from.airport}国际机场`} depTerminal={f.from.terminal} arrTime={f.to.time} arrAirport={`${f.to.airport}国际机场`} arrTerminal={f.to.terminal} price={price} />
+          <Row
+            key={f.id}
+            airline={airlineName}
+            flightNo={f.flightNo}
+            model={f.model}
+            depTime={f.from.time}
+            depAirport={`${f.from.airport}国际机场`}
+            depTerminal={f.from.terminal}
+            arrTime={f.to.time}
+            arrAirport={`${f.to.airport}国际机场`}
+            arrTerminal={f.to.terminal}
+            packages={f.packages}
+            flight={f}
+          />
         )
       })}
     </div>
   )
 
   return (
-    <main className={styles.container}>
+    <div>
+      <GlobalHeader />
+      <main className={styles.container}>
       {loading && <div className={styles.loading}>加载中…</div>}
       {error && <div className={styles.error}>{error}</div>}
       {!error && (
@@ -442,7 +515,8 @@ const FlightsResultsPage = () => {
           <List />
         </>
       )}
-    </main>
+      </main>
+    </div>
   )
 }
 

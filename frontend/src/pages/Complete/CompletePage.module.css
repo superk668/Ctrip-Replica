@@ -1,0 +1,26 @@
+@import '../../styles/tokens.css';
+
+.container { padding: 96px 0 40px; background: #f5f7fa; }
+.main { }
+.centerWrap { max-width: 720px; margin: 0 auto; text-align: center; }
+.orderCard { background: #fff; border-radius: 12px; box-shadow: var(--shadow-md); padding: 20px; }
+.title { color: #333; font-weight: 700; font-size: 18px; }
+.amount { color: #ff7a1a; font-size: 26px; font-weight: 700; margin-top: 6px; }
+.route { color: #333; margin-top: 6px; }
+.timeRow { display: flex; align-items: center; justify-content: center; gap: 16px; color: #333; padding-top: 10px; }
+.bigTime { font-size: 28px; font-weight: 700; }
+.airport { color: #6b6f76; }
+.axis { color: #9aa3af; }
+.infoRow { color: #6b6f76; margin-top: 8px; }
+.summaryList { margin-top: 10px; }
+.sumRow { display: grid; grid-template-columns: 1fr 60px 24px; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px dashed #e6e9ef; }
+.sumName { color: #333; }
+.sumPrice { color: #333; text-align: right; }
+.sumCount { color: #666; text-align: right; }
+.giftRow { color: #2a8f3a; font-size: 13px; padding: 6px 0; }
+.giftItem { color: #6b6f76; font-size: 13px; padding: 4px 0; }
+.free { color: #2a8f3a; margin-left: 8px; }
+.successText { margin: 16px 0; color: #2a8f3a; font-size: 20px; font-weight: 700; }
+.homeBtn { display: inline-block; height: 40px; line-height: 40px; padding: 0 22px; background: linear-gradient(90deg, #3b82f6, #2563eb); color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; }
+
+.empty { max-width: var(--container-width); margin: 120px auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: var(--shadow-md); text-align: center; color: #6b6f76; }

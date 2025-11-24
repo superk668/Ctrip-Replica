@@ -1,7 +1,8 @@
 @import '../../styles/tokens.css';
 
 .container {
-  padding: 16px 0 40px;
+  /* 顶部固定 Header 需要预留空间，避免内容被遮挡 */
+  padding: 96px 0 40px;
   background: #f5f7fa;
 }
 
@@ -238,6 +239,67 @@
   background: linear-gradient(90deg, #ff9a1f, #ff7a1a);
   color: #fff;
   font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.chevron {
+  display: inline-block;
+  font-size: 14px;
+  line-height: 1;
+  color: #fff;
+}
+
+/* 新增：订票右侧下拉开关 */
+.toggleBtn {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e6e9ef;
+  border-radius: 6px;
+  background: #fff;
+  color: #333;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* 新增：展开后的套餐面板，要求类似图三 */
+.packagePanel {
+  grid-column: 1 / span 3;
+  margin-top: 8px;
+  background: #fff;
+  border-top: 1px solid #e6e9ef;
+  padding: 12px 12px 6px;
+}
+.packageHeaderRow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.panelTitle { color: #333; font-weight: 600; }
+.collapse { color: #666; font-size: 12px; cursor: pointer; }
+.group {
+  margin-bottom: 6px;
+}
+.groupTitle { color: #666; margin-bottom: 6px; }
+.items { display: flex; flex-direction: column; gap: 8px; }
+.itemRow {
+  display: grid;
+  grid-template-columns: 1fr 120px 90px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+.pkgName { color: #333; }
+.pkgTips { color: #6b6f76; font-size: 12px; }
+.pkgPrice { color: #ff7a1a; font-weight: 700; }
+.bookBtn {
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #ff9a1f, #ff7a1a);
+  color: #fff;
+  font-size: 12px;
 }
 
 .loading { max-width: var(--container-width); margin: 0 auto; color: #666; }

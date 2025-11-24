@@ -1,0 +1,48 @@
+@import '../../styles/tokens.css';
+
+.container { padding: 96px 0 40px; background: linear-gradient(#eef3f9, #f5f7fa); }
+.main {}
+.wrap { max-width: var(--container-width); margin: 0 auto; }
+
+.pageTitle { color: #1f8ef1; font-size: 26px; font-weight: 700; margin-bottom: 12px; }
+
+.summaryCard { background: #fff; border-radius: 12px; box-shadow: var(--shadow-md); padding: 16px; }
+.amountRow { display: flex; align-items: baseline; justify-content: space-between; color: #333; }
+.amount { color: #ff7a1a; font-size: 22px; font-weight: 700; }
+.countdown { color: #6b6f76; }
+.countdownNum { color: #ef4444; font-weight: 600; }
+.orderText { color: #333; margin-top: 8px; }
+.orderSub { color: #6b6f76; margin-top: 4px; }
+.warnBar { margin-top: 10px; background: #fff5e6; border: 1px solid #f6e7c9; color: #8a7430; border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+
+.methodCard { margin-top: 12px; background: #fff; border-radius: 12px; box-shadow: var(--shadow-md); padding: 12px; }
+.optionRow { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border: 1px solid transparent; border-radius: 8px; }
+.optionActive { border-color: #bfdbfe; background: #f4f8ff; }
+.radio { width: 16px; height: 16px; border-radius: 8px; border: 2px solid #9aa3af; }
+.radioActive { width: 16px; height: 16px; border-radius: 8px; background: #3b82f6; box-shadow: 0 0 0 3px #bfdbfe inset; }
+.bankIcon { width: 24px; height: 24px; background: #eef5ff; color: #1f8ef1; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 10px; }
+.optionText { color: #333; }
+.payBtn { margin-top: 12px; height: 40px; padding: 0 18px; border: none; border-radius: 8px; background: #ff8a1a; color: #fff; font-size: 14px; }
+
+.alipayCard { margin-top: 12px; background: #fff; border-radius: 12px; box-shadow: var(--shadow-md); padding: 12px; }
+.alipayHead { display: flex; align-items: center; gap: 12px; }
+.alipayIcon { width: 24px; height: 24px; background: #eef5ff; color: #1f8ef1; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 10px; }
+.alipayLabel { color: #333; font-weight: 600; }
+.moreLink { margin-left: auto; color: #6b6f76; }
+
+.pciWrap { display: flex; align-items: center; justify-content: center; gap: 8px; color: #6b6f76; padding: 20px 0; }
+.pciIcon { width: 28px; height: 28px; background: #eef5ff; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; color: #1f8ef1; font-size: 10px; }
+
+.empty { max-width: var(--container-width); margin: 120px auto; background: #fff; padding: 24px; border-radius: 12px; box-shadow: var(--shadow-md); text-align: center; color: #6b6f76; }
+
+.newCardForm { margin-top: 8px; padding-top: 8px; border-top: 1px solid #e6e9ef; }
+.formGridFirst { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.formGrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
+.input { width: 100%; height: 36px; padding: 0 12px; border: 1px solid #e6e9ef; border-radius: 8px; font-size: 14px; color: #333; background: #fff; }
+
+.modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: calc(var(--z-base) + 100); }
+.modalCard { width: 360px; background: #fff; border-radius: 12px; box-shadow: var(--shadow-md); padding: 16px; }
+.modalTitle { color: #ef4444; font-weight: 700; font-size: 18px; }
+.modalMessage { color: #333; margin-top: 8px; }
+.modalActions { display: flex; justify-content: center; margin-top: 12px; }
+.primaryBtn { display: inline-block; height: 36px; line-height: 36px; padding: 0 18px; background: linear-gradient(90deg, #3b82f6, #2563eb); color: #fff; border-radius: 8px; text-decoration: none; font-size: 14px; }

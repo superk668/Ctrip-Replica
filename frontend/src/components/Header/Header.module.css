@@ -1,8 +1,7 @@
 .header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 40px;
+  flex-direction: column;
+  padding: 16px 40px 12px;
   background-color: #fff;
   border-bottom: 1px solid #eee;
   position: fixed;
@@ -12,14 +11,33 @@
   z-index: 1000;
 }
 
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.progressCenter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
 .logo img {
   height: 40px;
 }
 
+.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+}
 .navigation a {
-  margin-left: 20px;
   text-decoration: none;
-  color: #333;
+  color: #666;
   font-size: 14px;
 }
 
@@ -29,7 +47,7 @@
 
 .username {
   margin-left: 6px;
-  color: #333;
+  color: #666;
   font-size: 14px;
 }
 
@@ -42,7 +60,7 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  color: #333;
+  color: #666;
   font-size: 14px;
 }
 
@@ -73,3 +91,29 @@
 .dropdownItem:hover {
   background: #f7f7f7;
 }
+
+/* 购票进度条（仅在 /booking 等购票流程页面显示） */
+.progressBar {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+}
+.progressItem { display: inline-flex; align-items: center; gap: 8px; }
+.badgeIdle,
+.badgeActive,
+.badgeDone {
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.badgeIdle { background: #e9edf3; color: #9aa3af; }
+.badgeActive { background: #ff8a1a; color: #fff; }
+.badgeDone { background: #3b82f6; color: #fff; }
+.progressTextIdle { color: #9aa3af; }
+.progressTextActive { color: #ff8a1a; font-weight: 600; }
+.progressTextDone { color: #2563eb; font-weight: 600; }
+.divider { width: 120px; height: 1px; background: #e6e9ef; margin: 0 4px; }

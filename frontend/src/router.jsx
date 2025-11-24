@@ -6,6 +6,10 @@ import SetPasswordPage from './pages/SetPassword/SetPasswordPage'; // 导入设�
 import HomePage from './pages/Home/HomePage';
 import ForgotPasswordPage from './pages/ForgotPassword/ForgotPasswordPage';
 import FlightsResultsPage from './pages/Flights/FlightsResultsPage';
+import BookingPage from './pages/Booking/BookingPage';
+import ServicesPage from './pages/Services/ServicesPage';
+import PaymentPage from './pages/Payment/PaymentPage';
+import CompletePage from './pages/Complete/CompletePage';
 import OrderListPage from './components/orders/OrderListPage';
 import OrderDetailPage from './components/orders/OrderDetailPage';
 
@@ -31,6 +35,22 @@ const router = createBrowserRouter([
   {
     path: '/flights/results',
     element: <FlightsResultsPage />,
+  },
+  {
+    path: '/booking',
+    element: <BookingPage />,
+  },
+  {
+    path: '/booking/services',
+    element: <ServicesPage />,
+  },
+  {
+    path: '/booking/payment',
+    element: <PaymentPage />,
+  },
+  {
+    path: '/booking/complete',
+    element: <CompletePage />,
   },
   {
     path: '/register',
