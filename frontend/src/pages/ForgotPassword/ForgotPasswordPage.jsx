@@ -9,7 +9,6 @@ const ForgotPasswordPage = () => {
     <div className={styles.container}>
       <Header />
       <main className={styles.main}>
-        <h1 className={styles.title}>忘记密码</h1>
         <ForgotPasswordForm />
       </main>
       <Footer />

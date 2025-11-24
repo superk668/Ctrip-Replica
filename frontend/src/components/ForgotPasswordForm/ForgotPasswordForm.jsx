@@ -207,30 +207,35 @@ const ForgotPasswordForm = () => {
   const steps = ['填写账号', '验证', '重置密码'];
 
   return (
-    <div className={styles.formContainer}>
-      <ProgressIndicator currentStep={step} steps={steps} />
+    <>
+      <div className={styles.progressContainer}>
+        <ProgressIndicator currentStep={step} steps={steps} />
+      </div>
       
-      {error && <ErrorMessage message={error} />}
+      <div className={styles.formContainer}>
+        {error && <ErrorMessage message={error} />}
 
       {/* Step 1: 填写账号 */}
       {step === 1 && (
         <div className={styles.formGroup}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="phone" className={styles.label}>
-              账号
-            </label>
-            <input
-              type="text"
-              id="phone"
-              className={styles.input}
-              placeholder="手机号/用户名/邮箱/卡号"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-            />
-          </div>
-          
-          <div className={styles.hint}>
-            境外手机请输入国家码-手机号，如852-18616666666
+          <div className={styles.inputBox}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="phone" className={styles.label}>
+                账号
+              </label>
+              <input
+                type="text"
+                id="phone"
+                className={styles.input}
+                placeholder="手机号/用户名/邮箱/卡号"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
+            </div>
+            
+            <div className={styles.hint}>
+              境外手机请输入国家码-手机号，如852-18616666666
+            </div>
           </div>
 
           <button
@@ -295,26 +300,42 @@ const ForgotPasswordForm = () => {
       {/* Step 3: 重置密码 */}
       {step === 3 && (
         <div className={styles.formGroup}>
-          <div className={styles.inputGroup}>
-            <label htmlFor="password" className={styles.label}>
-              新密码
-            </label>
-            <div className={styles.passwordWrapper}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                className={styles.input}
-                placeholder="请设置新密码"
-                value={password}
-                onChange={handlePasswordChange}
-              />
-              <span
-                className={styles.eyeIcon}
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
-              </span>
+          <div className={styles.passwordRowContainer}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="password" className={styles.label}>
+                新密码
+              </label>
+              <div className={styles.passwordWrapper}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  className={styles.input}
+                  placeholder="请设置新密码"
+                  value={password}
+                  onChange={handlePasswordChange}
+                />
+                <span
+                  className={styles.eyeIcon}
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </span>
+              </div>
             </div>
+
+            {password && (
+              <div className={styles.strengthIndicator}>
+                <div className={`${styles.strengthBox} ${passwordStrength >= 1 ? styles.weak : ''}`}>
+                  弱
+                </div>
+                <div className={`${styles.strengthBox} ${passwordStrength >= 2 ? styles.medium : ''}`}>
+                  中
+                </div>
+                <div className={`${styles.strengthBox} ${passwordStrength >= 3 ? styles.strong : ''}`}>
+                  强
+                </div>
+              </div>
+            )}
           </div>
 
           <div className={styles.inputGroup}>
@@ -338,20 +359,6 @@ const ForgotPasswordForm = () => {
               </span>
             </div>
           </div>
-
-          {password && (
-            <div className={styles.strengthIndicator}>
-              <div className={`${styles.strengthBox} ${passwordStrength >= 1 ? styles.weak : ''}`}>
-                弱
-              </div>
-              <div className={`${styles.strengthBox} ${passwordStrength >= 2 ? styles.medium : ''}`}>
-                中
-              </div>
-              <div className={`${styles.strengthBox} ${passwordStrength >= 3 ? styles.strong : ''}`}>
-                强
-              </div>
-            </div>
-          )}
 
           <div className={styles.hint}>
             密码需为8-20位字母、数字和符号的组合，不含空格
@@ -378,7 +385,8 @@ const ForgotPasswordForm = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
