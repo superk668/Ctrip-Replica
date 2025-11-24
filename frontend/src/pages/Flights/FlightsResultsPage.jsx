@@ -95,6 +95,19 @@ const FlightsResultsPage = () => {
   const [filterModel, setFilterModel] = useState('')
   const [filterCabin, setFilterCabin] = useState('')
 
+  // 初始化时清除 URL 中的筛选参数，保留搜索参数
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const hasFilters = params.has('airline') || params.has('timeSlot') || params.has('model') || params.has('cabin')
+    if (hasFilters) {
+      params.delete('airline')
+      params.delete('timeSlot')
+      params.delete('model')
+      params.delete('cabin')
+      navigate(`/flights/results?${params.toString()}`, { replace: true })
+    }
+  }, []) // 只在组件挂载时执行一次
+
   useEffect(() => {
     const t = setTimeout(async () => {
       const q = fromInput.trim()
