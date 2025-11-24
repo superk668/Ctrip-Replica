@@ -126,18 +126,25 @@ const FlightsResultsPage = () => {
     return m ? m[1] : ''
   }
 
-  const applyParams = () => {
+  const applyParams = (overrides = {}) => {
     const s = new URLSearchParams(location.search)
-    const fCode = selectedFrom?.cityCode || selectedFrom?.airportCode || parseCode(fromInput) || fromCity
-    const tCode = selectedTo?.cityCode || selectedTo?.airportCode || parseCode(toInput) || toCity
+    const fCode = overrides.from !== undefined ? overrides.from : (selectedFrom?.cityCode || selectedFrom?.airportCode || parseCode(fromInput) || fromCity)
+    const tCode = overrides.to !== undefined ? overrides.to : (selectedTo?.cityCode || selectedTo?.airportCode || parseCode(toInput) || toCity)
+    const departDateValue = overrides.departDate !== undefined ? overrides.departDate : (depart || todayStr)
+    const returnDateValue = overrides.returnDate !== undefined ? overrides.returnDate : ret
+    const airlineValue = overrides.airline !== undefined ? overrides.airline : filterAirline
+    const timeValue = overrides.timeSlot !== undefined ? overrides.timeSlot : filterTime
+    const modelValue = overrides.model !== undefined ? overrides.model : filterModel
+    const cabinValue = overrides.cabin !== undefined ? overrides.cabin : filterCabin
+    
     s.set('from', fCode)
     s.set('to', tCode)
-    s.set('departDate', depart || todayStr)
-    if (ret) s.set('returnDate', ret); else s.delete('returnDate')
-    if (filterAirline) s.set('airline', filterAirline); else s.delete('airline')
-    if (filterTime) s.set('timeSlot', filterTime); else s.delete('timeSlot')
-    if (filterModel) s.set('model', filterModel); else s.delete('model')
-    if (filterCabin) s.set('cabin', filterCabin); else s.delete('cabin')
+    s.set('departDate', departDateValue)
+    if (returnDateValue) s.set('returnDate', returnDateValue); else s.delete('returnDate')
+    if (airlineValue) s.set('airline', airlineValue); else s.delete('airline')
+    if (timeValue) s.set('timeSlot', timeValue); else s.delete('timeSlot')
+    if (modelValue) s.set('model', modelValue); else s.delete('model')
+    if (cabinValue) s.set('cabin', cabinValue); else s.delete('cabin')
     navigate(`/flights/results?${s.toString()}`)
   }
 
@@ -274,11 +281,11 @@ const FlightsResultsPage = () => {
           {showAirline && (
             <div className={styles.filterDropdown} onMouseLeave={()=>setShowAirline(false)}>
               {airlines.map(a => (
-                <div key={a.code} className={`${styles.filterItem} ${filterAirline===a.code?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterAirline(a.code); setShowAirline(false); setTimeout(applyParams,0)}}>
+                <div key={a.code} className={`${styles.filterItem} ${filterAirline===a.code?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterAirline(a.code); setShowAirline(false); applyParams({ airline: a.code })}}>
                   {a.name}
                 </div>
               ))}
-              <div className={styles.filterItem} onMouseDown={()=>{setFilterAirline(''); setShowAirline(false); setTimeout(applyParams,0)}}>不限</div>
+              <div className={styles.filterItem} onMouseDown={()=>{setFilterAirline(''); setShowAirline(false); applyParams({ airline: '' })}}>不限</div>
             </div>
           )}
         </div>
@@ -287,11 +294,11 @@ const FlightsResultsPage = () => {
           {showTime && (
             <div className={styles.filterDropdownWide} onMouseLeave={()=>setShowTime(false)}>
               {timeSlots.map(ts => (
-                <div key={ts} className={`${styles.filterItem} ${filterTime===ts?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterTime(ts); setShowTime(false); setTimeout(applyParams,0)}}>
+                <div key={ts} className={`${styles.filterItem} ${filterTime===ts?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterTime(ts); setShowTime(false); applyParams({ timeSlot: ts })}}>
                   {ts}
                 </div>
               ))}
-              <div className={styles.filterItem} onMouseDown={()=>{setFilterTime(''); setShowTime(false); setTimeout(applyParams,0)}}>不限</div>
+              <div className={styles.filterItem} onMouseDown={()=>{setFilterTime(''); setShowTime(false); applyParams({ timeSlot: '' })}}>不限</div>
             </div>
           )}
         </div>
@@ -300,11 +307,11 @@ const FlightsResultsPage = () => {
           {showModel && (
             <div className={styles.filterDropdown} onMouseLeave={()=>setShowModel(false)}>
               {modelOptions.map(mo => (
-                <div key={mo} className={`${styles.filterItem} ${filterModel===mo?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterModel(mo); setShowModel(false); setTimeout(applyParams,0)}}>
+                <div key={mo} className={`${styles.filterItem} ${filterModel===mo?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterModel(mo); setShowModel(false); applyParams({ model: mo })}}>
                   {mo}
                 </div>
               ))}
-              <div className={styles.filterItem} onMouseDown={()=>{setFilterModel(''); setShowModel(false); setTimeout(applyParams,0)}}>不限</div>
+              <div className={styles.filterItem} onMouseDown={()=>{setFilterModel(''); setShowModel(false); applyParams({ model: '' })}}>不限</div>
             </div>
           )}
         </div>
@@ -313,11 +320,11 @@ const FlightsResultsPage = () => {
           {showCabin && (
             <div className={styles.filterDropdown} onMouseLeave={()=>setShowCabin(false)}>
               {cabinOptions.map(cb => (
-                <div key={cb.code} className={`${styles.filterItem} ${filterCabin===cb.code?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterCabin(cb.code); setShowCabin(false); setTimeout(applyParams,0)}}>
+                <div key={cb.code} className={`${styles.filterItem} ${filterCabin===cb.code?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterCabin(cb.code); setShowCabin(false); applyParams({ cabin: cb.code })}}>
                   {cb.name}
                 </div>
               ))}
-              <div className={styles.filterItem} onMouseDown={()=>{setFilterCabin(''); setShowCabin(false); setTimeout(applyParams,0)}}>不限</div>
+              <div className={styles.filterItem} onMouseDown={()=>{setFilterCabin(''); setShowCabin(false); applyParams({ cabin: '' })}}>不限</div>
             </div>
           )}
         </div>
