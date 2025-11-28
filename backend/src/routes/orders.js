@@ -59,7 +59,7 @@ const buildProductInfo = (order) => {
       seatType = m ? m[1] : seatType;
     }
     if (!departCity || !arriveCity) {
-      const m = (title || '').match(/([^\s\-–—]+)\s*[\-–—]\s*([^\s]+)/);
+      const m = (title || '').match(/([^\s\-–—→]+)\s*[\-–—→]\s*([^\s]+)/);
       if (m) { departCity = departCity || m[1]; arriveCity = arriveCity || m[2]; }
     }
   } else if (type === 'flight') {
@@ -72,7 +72,7 @@ const buildProductInfo = (order) => {
       seatType = m ? m[1] : seatType;
     }
     if (!departCity || !arriveCity) {
-      const m = (title || '').match(/([^\s\-–—]+)\s*[\-–—]\s*([^\s]+)/);
+      const m = (title || '').match(/([^\s\-–—→]+)\s*[\-–—→]\s*([^\s]+)/);
       if (m) { departCity = departCity || m[1]; arriveCity = arriveCity || m[2]; }
     }
   } else if (type === 'hotel') {
@@ -159,7 +159,7 @@ router.post('/:orderId/cancel', async (req, res) => {
     if (!user) return res.status(401).json({ error: 'Unauthorized.' });
     const order = await OrderService.findOrderById(orderId);
     if (!order || order.userId !== user.id) return res.status(404).json({ error: 'Order not found.' });
-    if (order.orderStatus !== 'pending_travel') return res.status(400).json({ error: 'Order cannot be cancelled in its current state.' });
+    if (order.orderStatus !== 'pending_travel' && order.orderStatus !== 'pending_payment') return res.status(400).json({ error: 'Order cannot be cancelled in its current state.' });
     await OrderService.updateOrderStatus(orderId, 'cancelled');
     return res.status(200).json({ message: 'Order cancelled successfully.' });
   } catch (e) {
@@ -216,11 +216,30 @@ router.post('/', (req, res) => {
   return res.status(201).json({ orderId, amount, status: 'pending_payment' });
 });
 
-router.post('/:orderId/pay', (req, res) => {
+router.post('/:orderId/pay', async (req, res) => {
   const { orderId } = req.params;
   const { method } = req.body || {};
-  if (!orderId || !method) return res.status(400).json({ error: 'Invalid payment info.' });
-  return res.status(200).json({ paymentId: 'PAY-' + Math.random().toString(36).slice(2,8), redirectUrl: 'https://example.com/pay' });
+  
+  try {
+    await OrderService.init();
+    const user = await getCurrentUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized.' });
+    
+    const order = await OrderService.findOrderById(orderId);
+    if (!order || order.userId !== user.id) return res.status(404).json({ error: 'Order not found.' });
+    
+    // Update status to pending_travel (paid/upcoming)
+    await OrderService.updateOrderStatus(orderId, 'pending_travel');
+    
+    return res.status(200).json({ 
+        message: 'Payment successful.',
+        paymentId: 'PAY-' + Math.random().toString(36).slice(2,8), 
+        redirectUrl: 'https://example.com/pay' 
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Payment failed.' });
+  }
 });
 
 router.get('/:orderId/status', (req, res) => {
@@ -253,14 +272,16 @@ router.post('/create', async (req, res) => {
       productInfo = {},
       travelerInfo = [],
       contactInfo = {},
-      priceDetails = {}
+      priceDetails = {},
+      status: reqStatus // Capture status from request
     } = req.body || {};
     if (!productTitle || typeof totalAmount !== 'number') {
       return res.status(400).json({ error: 'Invalid order payload.' });
     }
     const orderId = 'ORD-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6);
     const orderDate = new Date().toISOString();
-    const status = 'pending_travel';
+    // Use provided status or default to pending_travel (for backward compatibility if needed, though pending_payment is better for new flow)
+    const status = reqStatus || 'pending_travel'; 
     const details = { productInfo, travelerInfo, contactInfo, priceDetails };
     await OrderService.createOrder({
       orderId,

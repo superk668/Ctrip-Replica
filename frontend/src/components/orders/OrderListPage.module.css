@@ -16,9 +16,15 @@
   background: #f5faff;
   padding: 12px;
   border-radius: 4px;
+  display: flex;
+  flex-direction: column;
 }
 
-.sideTitle {
+.sidebar a {
+  text-decoration: none !important;
+}
+
+.sectionTitle {
   font-weight: 600;
   margin-bottom: 10px;
 }
@@ -32,6 +38,15 @@
 .sideItemActive {
   padding: 8px 10px;
   border-radius: 4px;
+  display: block !important;
+  text-decoration: none !important;
+  color: #333;
+  cursor: pointer;
+  margin-bottom: 2px;
+}
+
+.sideItem:hover {
+  background-color: #f0f0f0;
 }
 
 .sideItemActive {

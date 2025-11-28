@@ -5,10 +5,42 @@ import Header from '../../components/Header/Header'
 import Footer from '../../components/Footer/Footer'
 
 const PaymentPage = () => {
+  const navigate = useNavigate()
   const [data, setData] = useState(() => {
     try { const cached = sessionStorage.getItem('bookingSelection'); return cached ? JSON.parse(cached) : null } catch { return null }
   })
-  useEffect(() => { try { sessionStorage.setItem('bookingStage', '3') } catch(_) {} }, [])
+  const [orderData, setOrderData] = useState(null)
+  const [loadingOrder, setLoadingOrder] = useState(true)
+
+  useEffect(() => { 
+    try { sessionStorage.setItem('bookingStage', '3') } catch(_) {} 
+    
+    // Fetch order details
+    const fetchOrder = async () => {
+      const oid = sessionStorage.getItem('createdOrderId')
+      if (!oid) { setLoadingOrder(false); return }
+      try {
+        const token = localStorage.getItem('token')
+        const headers = {}
+        if (token) headers['Authorization'] = `Bearer ${token}`
+        let phone
+        try { const u = localStorage.getItem('user'); phone = u ? JSON.parse(u)?.phone : undefined } catch(_) {}
+        if (phone) headers['x-user-phone'] = String(phone)
+        
+        const res = await fetch(`/api/orders/${oid}`, { headers })
+        if (res.ok) {
+          const j = await res.json()
+          setOrderData(j)
+        }
+      } catch (e) {
+        console.error(e)
+      } finally {
+        setLoadingOrder(false)
+      }
+    }
+    fetchOrder()
+  }, [])
+
   const [remainMs, setRemainMs] = useState(() => {
     try {
       const key = 'paymentCountdownStartAt'
@@ -70,17 +102,73 @@ const PaymentPage = () => {
   useEffect(() => {
     if (remainMs <= 0 && !expired) setExpired(true)
   }, [remainMs])
-  if (!data) return (
+
+  if (!data && !orderData) return (
     <div className={styles.container}><Header /><main className={styles.main}><div className={styles.empty}>暂无支付数据</div></main><Footer /></div>
   )
-  const { flight, package: pkg } = data
-  const surcharges = { service: 48, build: 50, fuel: 20 }
-  const total = (pkg?.price || 0) + surcharges.service + surcharges.build + surcharges.fuel
+  
+  // Calculate total and get passenger info
+  let total = 0
+  let passengerList = []
+  
+  if (orderData) {
+    total = Number(orderData.priceDetails?.total || orderData.totalAmount || 0)
+    passengerList = orderData.travelerInfo || []
+  } else {
+    // Fallback if order fetch fails or pending
+    const { package: pkg } = data || {}
+    const surcharges = { service: 48, build: 50, fuel: 20 }
+    let count = 1
+    try {
+        const passengerInfo = JSON.parse(sessionStorage.getItem('passengerInfo'))
+        if (passengerInfo?.passengerList) count = passengerInfo.passengerList.length
+    } catch(e) {}
+    total = ((pkg?.price || 0) + surcharges.service + surcharges.build + surcharges.fuel) * count
+    
+    // Try to get passenger names for fallback display
+    try {
+        const passengerInfo = JSON.parse(sessionStorage.getItem('passengerInfo'))
+        passengerList = passengerInfo?.passengerList || (passengerInfo ? [passengerInfo] : [])
+    } catch(e) {}
+  }
+  
+  const { flight } = data || {}
+  const displayFlight = orderData?.productInfo ? {
+    from: { city: orderData.productInfo.departCity, time: orderData.productInfo.departTime?.slice(11,16) },
+    to: { city: orderData.productInfo.arriveCity },
+    model: '机型',
+    flightNo: orderData.productInfo.number
+  } : flight
 
-  const navigate = useNavigate()
+
   const [method, setMethod] = useState('saved')
   const [newCard, setNewCard] = useState({ number: '', name: '', expiry: '', cvv: '' })
   const payLabel = method === 'new' ? '新卡支付' : '银行卡支付'
+  
+  const handlePay = async () => {
+      const oid = sessionStorage.getItem('createdOrderId')
+      if (oid) {
+          try {
+              const token = localStorage.getItem('token')
+              const headers = { 'Content-Type': 'application/json' }
+              if (token) headers['Authorization'] = `Bearer ${token}`
+              let phone
+              try { const u = localStorage.getItem('user'); phone = u ? JSON.parse(u)?.phone : undefined } catch(_) {}
+              if (phone) headers['x-user-phone'] = String(phone)
+              
+              await fetch(`/api/orders/${oid}/pay`, { 
+                  method: 'POST', 
+                  headers,
+                  body: JSON.stringify({ method })
+              })
+          } catch(e) {
+              console.error(e)
+          }
+      }
+      try { sessionStorage.setItem('bookingStage','4') } catch(_) {}
+      navigate('/booking/complete')
+  }
+
   return (
     <div className={styles.container}>
       <Header />
@@ -94,10 +182,16 @@ const PaymentPage = () => {
               <div className={styles.countdown}>剩余时间: <span className={styles.countdownNum}>{fmt(remainMs)}</span>，超时订单可能会被取消</div>
             </div>
             <div className={styles.orderText}>
-              单程机票 {flight?.from?.city} → {flight?.to?.city}
+              单程机票 {displayFlight?.from?.city} → {displayFlight?.to?.city}
             </div>
-            <div className={styles.orderSub}>飞机 {flight?.model || '波音737'} · 出发时间: {new Date().toISOString().slice(0,10)} {flight?.from?.time}</div>
-            <div className={styles.orderSub}>乘机人: 刘旭航 乘机证件: 身份证360924200509010812</div>
+            <div className={styles.orderSub}>飞机 {displayFlight?.model || '波音737'} · 出发时间: {new Date().toISOString().slice(0,10)} {displayFlight?.from?.time}</div>
+            
+            {passengerList.map((p, i) => (
+                <div key={i} className={styles.orderSub}>
+                    乘机人: {p.name} 乘机证件: {p.idMasked || (p.idNumber||'').replace(/.(?=.{2})/g,'*')}
+                </div>
+            ))}
+            
             <div className={styles.warnBar}>机票价格按动态报价，请在{deadlineLabel}前完成付款</div>
           </section>
 
@@ -123,7 +217,7 @@ const PaymentPage = () => {
                 </div>
               </div>
             )}
-            <button className={styles.payBtn} onClick={() => { try { sessionStorage.setItem('bookingStage','4') } catch(_) {}; navigate('/booking/complete') }}>{payLabel} ¥{total.toFixed(0)}</button>
+            <button className={styles.payBtn} onClick={handlePay}>{payLabel} ¥{total.toFixed(0)}</button>
           </section>
 
           <section className={styles.alipayCard}>

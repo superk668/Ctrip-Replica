@@ -256,3 +256,88 @@
   changeLog:
     - date: "2025-11-11"
       description: "初始创建"
+
+# 常用旅客与个人信息模块（新增）
+
+- type: Database
+  id: DB-ListTravelers
+  description: 分页查询当前用户的常用旅客列表
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 支持姓名关键字筛选与分页返回
+    - 返回字段包含姓名、证件类型与号码（脱敏）、国籍、性别、常旅客卡
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增常用旅客：列表查询"
+
+- type: Database
+  id: DB-GetTravelerById
+  description: 根据旅客ID查询旅客详情
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 返回旅客信息（中文/英文名、国籍、性别、生日、联系方式）与证件信息
+    - 当记录不存在时返回null
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增常用旅客：详情查询"
+
+- type: Database
+  id: DB-CreateTraveler
+  description: 创建常用旅客记录
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后新增一条旅客记录并返回ID
+    - 对证件类型+证件号做唯一性校验，重复时失败
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增常用旅客：新增"
+
+- type: Database
+  id: DB-UpdateTraveler
+  description: 更新常用旅客记录
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 成功执行后变更旅客信息与证件信息
+    - 当证件重复或记录不存在时失败
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增常用旅客：编辑"
+
+- type: Database
+  id: DB-DeleteTravelersBatch
+  description: 批量删除旅客记录
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 支持一次删除多条记录；包含不可删除条目时返回失败并标注原因
+    - “本人”标识的旅客不可删除
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增常用旅客：批量删除"
+
+- type: Database
+  id: DB-GetUserProfile
+  description: 查询用户个人信息资料
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 返回手机号（脱敏）、邮箱状态、昵称、姓名、性别、生日
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增我的信息：资料查询"
+
+- type: Database
+  id: DB-UpdateUserProfile
+  description: 更新用户个人信息（昵称、姓名、性别、生日）
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 校验昵称长度≤20、姓名≤30且不含数字特殊字符、生日格式为yyyy-MM-dd且不得为未来日期
+    - 成功执行后写入变更记录并返回最新资料
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增我的信息：资料更新"

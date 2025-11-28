@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import styles from './OrderListPage.module.css';
 import DownloadButton from './DownloadButton';
-import { Link, useInRouterContext } from 'react-router-dom';
+import { Link, NavLink, useInRouterContext } from 'react-router-dom';
 import Header from '../../components/Header/Header';
 
 type OrderItem = {
@@ -169,8 +169,89 @@ const OrderListPage = () => {
 
   const filenameSanitize = (name: string) => name.replace(/[\/:*?"<>|]/g, '-');
 
+  const handleCancel = async (orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('确认取消该订单吗？')) return;
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+      const res = await fetch(`/api/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        alert('订单取消成功');
+        fetchOrders(); // Refresh list
+      } else {
+        const data = await res.json();
+        alert(data.error || '取消失败');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('取消失败');
+    }
+  };
+
   const goToDetail = (id: string) => {
     window.location.href = `/orders/${id}`;
+  };
+
+  const goToPay = (o: OrderItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      // Reconstruct bookingSelection for Booking/Payment pages
+      // Basic flight info reconstruction
+      const p = o.productInfo || {};
+      const flight = {
+        from: {
+          city: p.departCity || '',
+          airport: p.departCity ? `${p.departCity}机场` : '',
+          time: p.departTime ? new Date(p.departTime).toTimeString().slice(0,5) : '00:00',
+          terminal: 'T1',
+          code: p.departCity || 'SHA'
+        },
+        to: {
+          city: p.arriveCity || '',
+          airport: p.arriveCity ? `${p.arriveCity}机场` : '',
+          time: p.arriveTime ? new Date(p.arriveTime).toTimeString().slice(0,5) : '00:00',
+          terminal: 'T2',
+          code: p.arriveCity || 'BJS'
+        },
+        flightNo: p.number || '',
+        model: '机型'
+      };
+      // Price reconstruction: total - surcharges
+      // Assuming standard surcharges if details missing
+      const surcharges = { service: 48, build: 50, fuel: 20 };
+      const totalSurcharges = surcharges.service + surcharges.build + surcharges.fuel;
+      const basePrice = Math.max(0, o.totalAmount - totalSurcharges);
+      
+      const pkg = { price: basePrice };
+      
+      const bookingSelection = { flight, package: pkg };
+      sessionStorage.setItem('bookingSelection', JSON.stringify(bookingSelection));
+      
+      // Passenger info
+      const t = (o.travelerInfo && o.travelerInfo[0]) || {};
+      const passengerInfo = {
+        name: t.name || '',
+        idType: '身份证', // Default or need to infer
+        idNumber: t.idMasked || '', // Masked ID might be an issue for re-verification but OK for display
+        passengerPhone: '', // Often not stored in top level
+        contactCountryCode: '中国 86',
+        contactPhone: '' // We might not have this easily
+      };
+      sessionStorage.setItem('passengerInfo', JSON.stringify(passengerInfo));
+      
+      sessionStorage.setItem('createdOrderId', o.orderId);
+      sessionStorage.setItem('bookingStage', '3'); // Jump to payment
+      
+      window.location.href = '/booking/payment';
+    } catch (err) {
+      console.error(err);
+      alert('跳转支付失败，请重试');
+    }
   };
 
   return (
@@ -179,16 +260,21 @@ const OrderListPage = () => {
     <div className={styles.pageContainer}>
       <div className={styles.layout}>
         <aside className={styles.sidebar}>
-          <div className={styles.sideItem}>我的携程首页</div>
-          <div className={styles.sideItemActive}>订单</div>
-          <div className={styles.sideItem}>我的消息</div>
-          <div className={styles.sideItem}>钱包</div>
-          <div className={styles.sideItem}>礼品卡</div>
-          <div className={styles.sideItem}>优惠券</div>
-          <div className={styles.sideItem}>积分</div>
-          <div className={styles.sideItem}>我的收藏</div>
-          <div className={styles.sideItem}>常用信息</div>
-          <div className={styles.sideItem}>个人中心</div>
+          <div className={styles.sectionTitle}>我的携程首页</div>
+          <div className={styles.sideGroup}>快捷入口</div>
+          <NavLink to="/orders" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>订单</NavLink>
+          <NavLink to="#" className={styles.sideItem}>我的消息</NavLink>
+          <div className={styles.sectionTitle}>常用信息</div>
+          <NavLink to="/user-center/common-info" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>常用信息</NavLink>
+          <NavLink to="/user-center/common-info/travelers" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>常用旅客信息</NavLink>
+          <NavLink to="/user-center/common-info/contacts" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>常用联系人</NavLink>
+          <NavLink to="/user-center/common-info/invoices" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>常用报销凭证</NavLink>
+          <NavLink to="/user-center/common-info/addresses" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>常用地址</NavLink>
+          <div className={styles.sectionTitle}>个人中心</div>
+          <NavLink to="/user-center/my-info" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>我的信息</NavLink>
+          <NavLink to="/user-center/bind-link" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>绑定和关联</NavLink>
+          <NavLink to="/user-center/security" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>账户安全</NavLink>
+          <NavLink to="/user-center/community" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>我的社区主页</NavLink>
         </aside>
       <div className={styles.main}>
       <div className={styles.noticeBar}>
@@ -276,10 +362,46 @@ const OrderListPage = () => {
                   </span>
                 </div>
                 <span className={styles.orderDate}>下单时间：{new Date(o.orderDate).toLocaleDateString()}</span>
-                <span className={styles.status}>{o.orderStatus === 'pending_travel' ? '支付成功' : o.orderStatus === 'pending_payment' ? '待支付' : o.orderStatus === 'pending_review' ? '待点评' : '状态'}</span>
+                <span className={styles.status}>
+                  {o.orderStatus === 'pending_travel' ? '支付成功' : o.orderStatus === 'pending_payment' ? '待支付' : o.orderStatus === 'pending_review' ? '待点评' : o.orderStatus === 'cancelled' ? '已取消' : '状态'}
+                  {o.orderStatus === 'pending_payment' && (
+                      <button 
+                        onClick={(e) => goToPay(o, e)}
+                        style={{
+                          marginLeft: '10px',
+                          padding: '2px 8px',
+                          background: '#ff9500',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        去支付
+                      </button>
+                  )}
+                  {(o.orderStatus === 'pending_payment' || o.orderStatus === 'pending_travel') && (
+                      <button 
+                        onClick={(e) => handleCancel(o.orderId, e)}
+                        style={{
+                          marginLeft: '5px',
+                          padding: '2px 8px',
+                          background: '#ccc',
+                          color: '#333',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        取消
+                      </button>
+                  )}
+                </span>
               </div>
               <div className={styles.cardBody}>
-                <div className={styles.productTitle}>{o.productTitle}</div>
+                <div className={styles.productTitle}>{(o.productInfo?.departCity && o.productInfo?.arriveCity) ? `${o.productInfo.departCity} → ${o.productInfo.arriveCity}` : o.productTitle}</div>
                 <div className={styles.meta}>出发日期：{formatRange(o.productInfo?.departTime, o.productInfo?.arriveTime)} {o.productInfo?.number || ''}</div>
                 <div className={styles.meta}>出行人：{(Array.isArray(o.travelerInfo) ? o.travelerInfo : []).map((t: any) => t?.name).filter(Boolean).join('、') || ''}</div>
               </div>

@@ -32,6 +32,141 @@
   changeLog:
     - date: "2025-11-11"
       description: "初始创建"
+
+# 常用旅客与我的信息模块（新增）
+
+- type: Frontend
+  id: UI-CommonInfoIndex
+  description: 常用信息索引页，包含四个入口按钮
+  properties:
+    - name: onNavigate
+      type: function
+      description: "入口点击后的导航回调"
+  state:
+    - none
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 渲染“常用旅客信息/常用联系人/常用报销凭证/常用地址”四个入口
+    - 点击“常用旅客信息”跳转至`/user-center/common-info/travelers`
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：常用信息索引UI接口"
+
+- type: Frontend
+  id: UI-TravelersManagement
+  description: 常用旅客信息列表页，含搜索/新增/表格/底部操作
+  properties:
+    - name: onSearch
+      type: function
+      description: "点击查询时回调"
+    - name: onAdd
+      type: function
+      description: "点击新增时回调"
+  state:
+    - keyword
+    - list
+    - pagination
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-Travelers
+  acceptanceCriteria:
+    - 渲染搜索输入、查询按钮与“新增”链接
+    - 表格列包含选择框、本人徽标、姓名、手机/电话、证件类型、证件号码、国籍(国家/地区)、性别、常旅客卡、操作
+    - 操作包含“查看/编辑/删除”，查看链接至`/user-center/common-info/travelers/view`，编辑链接至`/user-center/common-info/travelers/edit`
+    - 表格下方渲染“全选”复选框与“删除”链接
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：常用旅客列表UI接口"
+
+- type: Frontend
+  id: UI-TravelerView
+  description: 常用旅客信息查看页（只读）
+  properties:
+    - name: travelerId
+      type: string
+      description: "旅客ID"
+  state:
+    - traveler
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-Traveler
+  acceptanceCriteria:
+    - 渲染分段标题“旅客信息/证件信息/常旅客卡”与只读字段
+    - 顶部显示“查看所有旅客信息”，底部显示“返回”，均跳转列表页
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：旅客查看UI接口"
+
+- type: Frontend
+  id: UI-TravelerEdit
+  description: 常用旅客信息编辑页
+  properties:
+    - name: travelerId
+      type: string
+      description: "旅客ID"
+    - name: onSave
+      type: function
+      description: "保存回调"
+  state:
+    - form
+    - isLoading
+    - errors
+  dependencies:
+    - API-PUT-Traveler
+  acceptanceCriteria:
+    - 表单包含中文名/英文名、是否本人、国籍、性别、生日、出生地、联系方式与证件信息
+    - 保存成功后提示成功并返回列表或停留当前页
+    - 日期格式校验失败应阻止保存并提示
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：旅客编辑UI接口"
+
+- type: Frontend
+  id: UI-TravelerAdd
+  description: 常用旅客信息新增页
+  properties:
+    - name: onCreate
+      type: function
+      description: "新增回调"
+  state:
+    - form
+    - isLoading
+    - errors
+  dependencies:
+    - API-POST-Traveler
+  acceptanceCriteria:
+    - 表单包含中文/英文名（至少填写一项）、是否本人、国籍、性别、生日、出生地、联系方式与证件信息
+    - 保存成功后返回列表页；必填项缺失或本人重复设置时阻止保存
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：旅客新增UI接口"
+
+- type: Frontend
+  id: UI-MyInfoPage
+  description: 我的信息页，含只读与编辑态切换
+  properties:
+    - name: onSave
+      type: function
+      description: "保存回调"
+  state:
+    - profile
+    - isEditing
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-UserProfile
+    - API-PATCH-UserProfile
+  acceptanceCriteria:
+    - 只读态显示手机（脱敏）/邮箱状态/昵称/姓名/性别/生日与“编辑”入口
+    - 编辑态显示昵称/姓名/性别/生日输入控件与“保存”按钮及“新昵称将在审核后生效”提示
+    - 校验规则：昵称≤20、姓名≤30不含数字、生日yyyy-MM-dd且不得为未来日期；非法输入阻止保存并显示提示
+    - 顶部“收起”切换回只读态
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：我的信息UI接口"
     - date: "2025-11-15"
       description: "补充登录成功后导航至机票首页"
 

@@ -398,6 +398,204 @@
   acceptanceCriteria:
     - 当接收到合法且已注册的数据时，应返回200 OK
     - 当验证码错误时，应返回401 Unauthorized
+
+# 常用旅客与个人信息模块（新增）
+
+- type: Backend
+  id: API-GET-Travelers
+  route: GET /api/users/me/travelers
+  description: 查询当前用户的常用旅客列表
+  input:
+    type: QueryString
+    params:
+      keyword?: string
+      page?: number
+      pageSize?: number
+  output:
+    success:
+      statusCode: 200
+      body:
+        items:
+          - { id: "string", name: "string", phone?: "string", documentType: "string", documentNo: "mask", nationality: "string", gender: "string", ffCard?: "string", isSelf?: boolean }
+        page: number
+        pageSize: number
+        total: number
+    error:
+      - statusCode: 500
+        body: { error: "Service unavailable." }
+  dependencies:
+    - DB-ListTravelers
+  acceptanceCriteria:
+    - 支持姓名关键字筛选与分页返回
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增常用旅客：列表查询API"
+
+- type: Backend
+  id: API-GET-Traveler
+  route: GET /api/users/me/travelers/{id}
+  description: 查询旅客详情
+  input:
+    type: Path
+    path:
+      id: string
+  output:
+    success:
+      statusCode: 200
+      body:
+        traveler:
+          { id: "string", cnName: "string", enLast?: "string", enFirst?: "string", nationality: "string", gender: "string", birthday?: "date", birthplace?: "string", phone?: "string", fax?: "string", email?: "string", document: { type: "string", no: "string", validTill?: "date" }, ffCards?: ["string"] }
+    error:
+      - statusCode: 404
+        body: { error: "Traveler not found." }
+  dependencies:
+    - DB-GetTravelerById
+  acceptanceCriteria:
+    - 返回旅客与证件详情；不存在时404
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增常用旅客：详情查询API"
+
+- type: Backend
+  id: API-POST-Traveler
+  route: POST /api/users/me/travelers
+  description: 新增常用旅客
+  input:
+    type: JSON
+    body:
+      cnName: string
+      enLast?: string
+      enFirst?: string
+      isSelf?: boolean
+      nationality: string
+      gender: enum(男, 女, 未知)
+      birthday?: date
+      birthplace?: string
+      phone?: string
+      fax?: string
+      email?: string
+      document: { type: string, no: string, validTill?: date, longTerm?: boolean }
+  output:
+    success:
+      statusCode: 201
+      body: { id: "string" }
+    error:
+      - statusCode: 409
+        body: { error: "Document already exists." }
+  dependencies:
+    - DB-CreateTraveler
+  acceptanceCriteria:
+    - 成功返回201与新ID；证件重复409
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增常用旅客：新增API"
+
+- type: Backend
+  id: API-PUT-Traveler
+  route: PUT /api/users/me/travelers/{id}
+  description: 编辑常用旅客
+  input:
+    type: JSONAndPath
+    path:
+      id: string
+    body:
+      cnName?: string
+      enLast?: string
+      enFirst?: string
+      isSelf?: boolean
+      nationality?: string
+      gender?: enum(男, 女, 未知)
+      birthday?: date
+      birthplace?: string
+      phone?: string
+      fax?: string
+      email?: string
+      document?: { type: string, no: string, validTill?: date, longTerm?: boolean }
+  output:
+    success:
+      statusCode: 200
+      body: { id: "string" }
+    error:
+      - statusCode: 404
+        body: { error: "Traveler not found." }
+      - statusCode: 409
+        body: { error: "Document already exists." }
+  dependencies:
+    - DB-UpdateTraveler
+  acceptanceCriteria:
+    - 成功返回200；不存在404；证件重复409
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增常用旅客：编辑API"
+
+- type: Backend
+  id: API-DELETE-Travelers
+  route: DELETE /api/users/me/travelers
+  description: 批量删除常用旅客
+  input:
+    type: JSON
+    body:
+      ids: [string]
+  output:
+    success:
+      statusCode: 200
+      body: { deleted: number }
+    error:
+      - statusCode: 400
+        body: { error: "Please select records first." }
+      - statusCode: 409
+        body: { error: "Contains non-deletable travelers." }
+  dependencies:
+    - DB-DeleteTravelersBatch
+  acceptanceCriteria:
+    - 未选择返回400；包含不可删除条目返回409并阻止删除
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增常用旅客：批量删除API"
+
+- type: Backend
+  id: API-GET-UserProfile
+  route: GET /api/users/me/profile
+  description: 查询“我的信息”资料
+  input:
+    type: None
+  output:
+    success:
+      statusCode: 200
+      body: { phoneMasked: "string", emailStatus: "string", nickname: "string", name: "string", gender: "string", birthday: "date" }
+  dependencies:
+    - DB-GetUserProfile
+  acceptanceCriteria:
+    - 返回所需字段，手机号脱敏
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增我的信息：资料查询API"
+
+- type: Backend
+  id: API-PATCH-UserProfile
+  route: PATCH /api/users/me/profile
+  description: 更新“我的信息”资料（昵称、姓名、性别、生日）
+  input:
+    type: JSON
+    body:
+      nickname?: string
+      name?: string
+      gender?: enum(男, 女)
+      birthday?: date
+  output:
+    success:
+      statusCode: 200
+      body: { nickname: "string", name: "string", gender: "string", birthday: "date" }
+    error:
+      - statusCode: 400
+        body: { error: "Invalid input: nickname<=20, name<=30 no digits, birthday yyyy-MM-dd and not future." }
+  dependencies:
+    - DB-UpdateUserProfile
+  acceptanceCriteria:
+    - 校验通过后返回最新资料；非法输入400
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增我的信息：资料更新API"
     - 当用户未同意服务协议时，应返回403 Forbidden
     - 当用户不存在时，应返回404 Not Found
   changeLog:

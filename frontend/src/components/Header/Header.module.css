@@ -64,6 +64,20 @@
   font-size: 14px;
 }
 
+.loginBtn {
+  background: #0086F6;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+}
+.loginBtn:hover {
+  background: #0076d6;
+}
+
 .dropdown {
   position: absolute;
   right: 0;

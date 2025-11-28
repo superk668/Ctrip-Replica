@@ -10,13 +10,6 @@ import FlightsSearchCard from './LocalComponents/FlightsSearchCard';
 const HomePage = () => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-    }
-  }, [navigate]);
-
   const handleSearch = (payload) => {
     const fromCode = payload?.from?.cityCode || payload?.from?.airportCode || 'SHA'
     const toCode = payload?.to?.cityCode || payload?.to?.airportCode || 'BJS'

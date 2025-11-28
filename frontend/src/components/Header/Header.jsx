@@ -25,6 +25,29 @@ const Header = () => {
         }
       }
     } catch (_) {}
+
+    // 验证 Token 有效性（例如后端重启后 User ID 变更导致 Token 失效）
+    const validateSession = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (!token) return;
+
+      try {
+        // 使用 profile 接口验证 Token 对应的用户是否存在
+        const res = await fetch('/api/users/me/profile', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) {
+          // 401 Unauthorized 或 404 User Not Found
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          setUsername('');
+        }
+      } catch (_) {
+        // 网络错误暂不处理，以免误登出
+      }
+    };
+    validateSession();
   }, []);
   useEffect(() => {
     const handler = (e) => {
@@ -91,17 +114,21 @@ const Header = () => {
           <a href="/home">首页</a>
           <a href="/orders">我的订单</a>
           <a href="#"><i className="fa fa-heart-o"></i></a>
-          <div className={styles.userMenu} ref={menuRef}>
-            <button className={styles.userBtn} onClick={() => setMenuOpen((v) => !v)}>
-              <i className="fa fa-lock"></i><span className={styles.username}>{username || ''}</span>
-            </button>
-            {menuOpen && (
-              <div className={styles.dropdown}>
-                <a href="/home" className={styles.dropdownItem}>个人中心</a>
-                <button className={styles.dropdownItem} onClick={handleLogout}>退出登录</button>
-              </div>
-            )}
-          </div>
+          {!username ? (
+            <button className={styles.loginBtn} onClick={() => window.location.href = '/login'}>请登录</button>
+          ) : (
+            <div className={styles.userMenu} ref={menuRef}>
+              <button className={styles.userBtn} onClick={() => setMenuOpen((v) => !v)}>
+                <i className="fa fa-lock"></i><span className={styles.username}>{username || ''}</span>
+              </button>
+              {menuOpen && (
+                <div className={styles.dropdown}>
+                  <a href="/user-center/my-info" className={styles.dropdownItem}>个人中心</a>
+                  <button className={styles.dropdownItem} onClick={handleLogout}>退出登录</button>
+                </div>
+              )}
+            </div>
+          )}
         </nav>
       </div>
     </header>

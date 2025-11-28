@@ -37,21 +37,21 @@ router.get('/search', (req, res) => {
   ]
   const models = ['空客A320','空客A321','空客A330-300','波音737-800','波音777-300ER','波音787-9']
   const airportMap = {
-    SHA: { name: '虹桥', terminals: ['T1','T2'] },
-    PVG: { name: '浦东', terminals: ['T1','T2'] },
-    BJS: { name: '首都', terminals: ['T2','T3'] },
-    PEK: { name: '首都', terminals: ['T2','T3'] },
-    TSN: { name: '滨海', terminals: ['T1','T2'] },
-    CKG: { name: '江北', terminals: ['T2','T3'] },
-    NKG: { name: '禄口', terminals: ['T1','T2'] },
-    HGH: { name: '萧山', terminals: ['T1','T2'] },
-    CGO: { name: '新郑', terminals: ['T2'] },
-    WUH: { name: '天河', terminals: ['T2'] },
-    CAN: { name: '白云', terminals: ['T1','T2'] },
-    CTU: { name: '双流', terminals: ['T1','T2'] },
-    KMG: { name: '长水', terminals: ['T1'] },
-    XIY: { name: '咸阳', terminals: ['T2','T3'] },
-    URC: { name: '地窝堡', terminals: ['T2','T3'] }
+    SHA: { city: '上海', name: '虹桥', terminals: ['T1','T2'] },
+    PVG: { city: '上海', name: '浦东', terminals: ['T1','T2'] },
+    BJS: { city: '北京', name: '首都', terminals: ['T2','T3'] },
+    PEK: { city: '北京', name: '首都', terminals: ['T2','T3'] },
+    TSN: { city: '天津', name: '滨海', terminals: ['T1','T2'] },
+    CKG: { city: '重庆', name: '江北', terminals: ['T2','T3'] },
+    NKG: { city: '南京', name: '禄口', terminals: ['T1','T2'] },
+    HGH: { city: '杭州', name: '萧山', terminals: ['T1','T2'] },
+    CGO: { city: '郑州', name: '新郑', terminals: ['T2'] },
+    WUH: { city: '武汉', name: '天河', terminals: ['T2'] },
+    CAN: { city: '广州', name: '白云', terminals: ['T1','T2'] },
+    CTU: { city: '成都', name: '双流', terminals: ['T1','T2'] },
+    KMG: { city: '昆明', name: '长水', terminals: ['T1'] },
+    XIY: { city: '西安', name: '咸阳', terminals: ['T2','T3'] },
+    URC: { city: '乌鲁木齐', name: '地窝堡', terminals: ['T2','T3'] }
   }
   const formatTime = (m) => {
     const hh = String(Math.floor(m / 60)).padStart(2, '0')
@@ -79,6 +79,8 @@ router.get('/search', (req, res) => {
     const model = models[Math.floor(rand() * models.length)]
     const fromAirport = airportMap[from]?.name || from
     const toAirport = airportMap[to]?.name || to
+    const fromCity = airportMap[from]?.city || from
+    const toCity = airportMap[to]?.city || to
     const fromTerminal = (airportMap[from]?.terminals || ['T2'])[Math.floor(rand()*((airportMap[from]?.terminals||['T2']).length))]
     const toTerminal = (airportMap[to]?.terminals || ['T3'])[Math.floor(rand()*((airportMap[to]?.terminals||['T3']).length))]
     const basePrice = 400 + Math.floor(rand() * 900)
@@ -104,8 +106,8 @@ router.get('/search', (req, res) => {
       id: `${c.code}-${String(1000 + Math.floor(rand() * 9000))}`,
       carrier: c.code,
       flightNo: `${c.code}${String(1000 + Math.floor(rand() * 9000))}`,
-      from: { airport: fromAirport, code: from, terminal: fromTerminal, time: depTime },
-      to: { airport: toAirport, code: to, terminal: toTerminal, time: arrTime },
+      from: { city: fromCity, airport: fromAirport, code: from, terminal: fromTerminal, time: depTime },
+      to: { city: toCity, airport: toAirport, code: to, terminal: toTerminal, time: arrTime },
       duration: `${Math.floor(dur/60)}h${dur%60}m`,
       punctuality: 0.85 + rand() * 0.13,
       meals: true,

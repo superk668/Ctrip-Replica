@@ -12,6 +12,15 @@ import PaymentPage from './pages/Payment/PaymentPage';
 import CompletePage from './pages/Complete/CompletePage';
 import OrderListPage from './components/orders/OrderListPage';
 import OrderDetailPage from './components/orders/OrderDetailPage';
+import MyInfo from './pages/UserCenter/MyInfo';
+import BindLink from './pages/UserCenter/BindLink';
+import AccountSecurity from './pages/UserCenter/AccountSecurity';
+import CommunityHome from './pages/UserCenter/CommunityHome';
+import CommonInfoIndex from './pages/UserCenter/CommonInfoIndex';
+import TravelersManagement from './pages/UserCenter/TravelersManagement';
+import TravelerEdit from './pages/UserCenter/TravelerEdit';
+import TravelerAdd from './pages/UserCenter/TravelerAdd';
+import TravelerView from './pages/UserCenter/TravelerView';
 
 const OrderDetailRoute = () => {
   const params = useParams();
@@ -22,7 +31,7 @@ const OrderDetailRoute = () => {
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <LoginPage />,
+    element: <HomePage />,
   },
   {
     path: '/login',
@@ -71,6 +80,42 @@ const router = createBrowserRouter([
   {
     path: '/orders/:orderId',
     element: <OrderDetailRoute />,
+  },
+  {
+    path: '/user-center/my-info',
+    element: <MyInfo />,
+  },
+  {
+    path: '/user-center/common-info',
+    element: <CommonInfoIndex />,
+  },
+  {
+    path: '/user-center/common-info/travelers',
+    element: <TravelersManagement />,
+  },
+  {
+    path: '/user-center/common-info/travelers/edit',
+    element: <TravelerEdit />,
+  },
+  {
+    path: '/user-center/common-info/travelers/add',
+    element: <TravelerAdd />,
+  },
+  {
+    path: '/user-center/common-info/travelers/view',
+    element: <TravelerView />,
+  },
+  {
+    path: '/user-center/bind-link',
+    element: <BindLink />,
+  },
+  {
+    path: '/user-center/security',
+    element: <AccountSecurity />,
+  },
+  {
+    path: '/user-center/community',
+    element: <CommunityHome />,
   },
 ]);
 

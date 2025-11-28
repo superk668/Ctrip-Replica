@@ -25,8 +25,12 @@ const ServicesPage = () => {
     <div className={styles.container}><Header /><main className={styles.main}><div className={styles.empty}>暂无数据</div></main><Footer /></div>
   )
   const { flight, package: pkg } = data
+  
+  const passengerList = passenger?.passengerList || (passenger ? [passenger] : [])
+  const passengerCount = passengerList.length || 1
+  
   const surcharges = { service: 48, build: 50, fuel: 20 }
-  const total = (pkg?.price || 0) + surcharges.service + surcharges.build + surcharges.fuel
+  const total = ((pkg?.price || 0) + surcharges.service + surcharges.build + surcharges.fuel) * passengerCount
 
   const SummaryCard = () => (
     <div className={styles.sideCard}>
@@ -46,10 +50,10 @@ const ServicesPage = () => {
         </div>
       </div>
       <div className={styles.listBlock}>
-        <div className={styles.sumRow}><span className={styles.link}>成人套餐</span><span className={styles.price}>¥{pkg?.price}</span><span className={styles.count}>x 1</span></div>
-        <div className={styles.sumRow}><span className={styles.link}>金牌服务包</span><span className={styles.price}>¥{surcharges.service}</span><span className={styles.count}>x 1</span></div>
-        <div className={styles.sumRow}><span>机建</span><span className={styles.price}>¥{surcharges.build}</span><span className={styles.count}>x 1</span></div>
-        <div className={styles.sumRow}><span>燃油税</span><span className={styles.price}>¥{surcharges.fuel}</span><span className={styles.count}>x 1</span></div>
+        <div className={styles.sumRow}><span className={styles.link}>成人套餐</span><span className={styles.price}>¥{pkg?.price}</span><span className={styles.count}>x {passengerCount}</span></div>
+        <div className={styles.sumRow}><span className={styles.link}>金牌服务包</span><span className={styles.price}>¥{surcharges.service}</span><span className={styles.count}>x {passengerCount}</span></div>
+        <div className={styles.sumRow}><span>机建</span><span className={styles.price}>¥{surcharges.build}</span><span className={styles.count}>x {passengerCount}</span></div>
+        <div className={styles.sumRow}><span>燃油税</span><span className={styles.price}>¥{surcharges.fuel}</span><span className={styles.count}>x {passengerCount}</span></div>
       </div>
       <div className={styles.giftLabel}>赠品 订票即享</div>
       <div className={styles.giftItem}>租车92折优惠券 <span className={styles.free}>免费</span></div>
@@ -85,6 +89,10 @@ const ServicesPage = () => {
             <div className={styles.topBar}>
               <div className={styles.userBadge}>
                 {(() => {
+                  if (passengerList.length > 0) {
+                      const names = passengerList.map(p => p.name).join(', ')
+                      return `${passengerList.length} 成人  ${names}`
+                  }
                   const name = passenger?.name || '乘机人'
                   const idt = passenger?.idType || '身份证'
                   const idn = String(passenger?.idNumber || '').replace(/\s+/g,'')

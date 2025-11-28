@@ -1,6 +1,7 @@
 const express = require('express');
 const { validationRules, handleValidationErrors } = require('../utils/validator');
 const { successResponse, errorResponse } = require('../utils/response');
+const { clearUserData } = require('../config/database');
 const UserService = require('../services/userService');
 const VerificationService = require('../services/verificationService');
 
@@ -57,6 +58,8 @@ router.post('/register/step2', validationRules.registerStep2, handleValidationEr
     if (!user) {
       return res.status(500).json(errorResponse('注册失败'));
     }
+
+    await clearUserData(user.id);
 
     // 生成JWT token
     const jwt = require('jsonwebtoken');
@@ -129,6 +132,8 @@ router.post('/register-step2', [
     if (!user) {
       return res.status(500).json(errorResponse('注册失败'));
     }
+
+    await clearUserData(user.id);
 
     const jwt = require('jsonwebtoken');
     const token = jwt.sign(

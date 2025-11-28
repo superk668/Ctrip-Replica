@@ -103,3 +103,97 @@
 .step { display: inline-flex; align-items: center; gap: 8px; background: #eef5ff; border-radius: 8px; padding: 8px 12px; }
 .stepNum { width: 22px; height: 22px; background: var(--color-primary); color: #fff; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
 .stepText { color: #333; }
+
+/* Passenger List Styles */
+.frequentTravelerBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.ftCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ftCheckbox:hover {
+  background: #eef5ff;
+  border-color: #bad6ff;
+}
+
+.ftCheckbox input {
+  cursor: pointer;
+}
+
+.passengerCard {
+  border: 1px solid #e6e9ef;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+  display: flex;
+  gap: 16px;
+}
+
+.passengerIndex {
+  font-size: 24px;
+  font-weight: 700;
+  color: #c4c8d0;
+  min-width: 30px;
+  padding-top: 4px;
+}
+
+.passengerForm {
+  flex: 1;
+}
+
+.formHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.deleteBtn {
+  color: #0086f6;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+}
+.deleteBtn:hover { text-decoration: underline; }
+
+.addPassengerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 12px;
+  color: #0086f6;
+  font-weight: 500;
+  background: #f2f8fe;
+  border: 1px dashed #bad6ff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.addPassengerBtn:hover {
+  background: #e6f2ff;
+}
+

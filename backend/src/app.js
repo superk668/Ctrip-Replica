@@ -9,7 +9,8 @@ const airportRoutes = require('./routes/airports');
 const flightRoutes = require('./routes/flights');
 const orderRoutes = require('./routes/orders');
 const paymentRoutes = require('./routes/payments');
-const { initDatabase } = require('./config/database');
+const userProfileRoutes = require('./routes/userProfile');
+const { initDatabase, clearPersonalCenterData, seedDeveloperAccount } = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,6 +49,7 @@ app.use('/api/airports', airportRoutes);
 app.use('/api/flights', flightRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/users/me', userProfileRoutes);
 
 // 健康检查
 app.get('/health', (req, res) => {
@@ -67,9 +69,18 @@ app.use((err, req, res, next) => {
 
 // 启动服务器
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`服务器运行在端口 ${PORT}`);
-  });
+  (async () => {
+    try {
+      await initDatabase();
+      await clearPersonalCenterData();
+      await seedDeveloperAccount();
+    } catch (e) {
+      console.error('初始化清理失败:', e);
+    }
+    app.listen(PORT, () => {
+      console.log(`服务器运行在端口 ${PORT}`);
+    });
+  })();
 }
 
 module.exports = app;
