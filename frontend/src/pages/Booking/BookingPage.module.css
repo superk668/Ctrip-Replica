@@ -1,0 +1,199 @@
+@import '../../styles/tokens.css';
+
+.container {
+  /* 预留顶部固定 Header 的空间，避免内容被遮挡 */
+  padding: 96px 0 40px;
+  background: #f5f7fa;
+}
+
+.grid {
+  max-width: var(--container-width);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 16px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 16px;
+}
+
+.sectionTitle {
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.hint {
+  background: #f8f3e6;
+  border: 1px solid #f0e2bd;
+  color: #8a7430;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.passengerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.fullRow { grid-column: 1 / -1; }
+
+.input,
+.select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid #e6e9ef;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+}
+
+.checkboxRow { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+
+.errorText { color: #ef4444; font-size: 12px; margin-top: 6px; }
+.invalid { border-color: #ef4444; box-shadow: 0 0 0 1px rgba(239,68,68,0.2) inset; }
+
+.nextBtn {
+  height: 40px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  color: #fff;
+  font-size: 14px;
+}
+.nextBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.summaryHeader {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.flightTitle { color: #333; font-weight: 600; }
+.timeBlock { display: flex; align-items: center; gap: 12px; color: #333; }
+.airport { color: #6b6f76; }
+
+.summaryList { margin-top: 8px; }
+.sumRow { display: grid; grid-template-columns: 1fr 60px 24px; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px dashed #e6e9ef; }
+.sumName { color: #333; }
+.sumPrice { color: #333; text-align: right; }
+.sumCount { color: #666; text-align: right; }
+
+.giftRow { color: #2a8f3a; font-size: 13px; padding: 6px 0; }
+
+.totalRow { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; padding-top: 10px; }
+.totalText { color: #6b6f76; }
+.totalPrice { color: #ff7a1a; font-size: 22px; font-weight: 700; }
+
+.headerBar {
+  max-width: var(--container-width);
+  margin: 0 auto 12px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 10px 16px;
+}
+.stepRow { display: flex; align-items: center; gap: 12px; }
+.step { display: inline-flex; align-items: center; gap: 8px; background: #eef5ff; border-radius: 8px; padding: 8px 12px; }
+.stepNum { width: 22px; height: 22px; background: var(--color-primary); color: #fff; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
+.stepText { color: #333; }
+
+/* Passenger List Styles */
+.frequentTravelerBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.ftCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ftCheckbox:hover {
+  background: #eef5ff;
+  border-color: #bad6ff;
+}
+
+.ftCheckbox input {
+  cursor: pointer;
+}
+
+.passengerCard {
+  border: 1px solid #e6e9ef;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  position: relative;
+  display: flex;
+  gap: 16px;
+}
+
+.passengerIndex {
+  font-size: 24px;
+  font-weight: 700;
+  color: #c4c8d0;
+  min-width: 30px;
+  padding-top: 4px;
+}
+
+.passengerForm {
+  flex: 1;
+}
+
+.formHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.deleteBtn {
+  color: #0086f6;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+}
+.deleteBtn:hover { text-decoration: underline; }
+
+.addPassengerBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 12px;
+  color: #0086f6;
+  font-weight: 500;
+  background: #f2f8fe;
+  border: 1px dashed #bad6ff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.addPassengerBtn:hover {
+  background: #e6f2ff;
+}
+

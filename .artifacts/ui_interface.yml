@@ -28,9 +28,147 @@
     - 两种模式下都应显示服务协议复选框和免费注册链接
     - 点击登录按钮时应调用相应的API接口
     - 当isLoading状态为true时，登录按钮应被禁用
+    - 登录成功后应通过onLoginSuccess导航至机票首页（/home）
   changeLog:
     - date: "2025-11-11"
       description: "初始创建"
+
+# 常用旅客与我的信息模块（新增）
+
+- type: Frontend
+  id: UI-CommonInfoIndex
+  description: 常用信息索引页，包含四个入口按钮
+  properties:
+    - name: onNavigate
+      type: function
+      description: "入口点击后的导航回调"
+  state:
+    - none
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 渲染“常用旅客信息/常用联系人/常用报销凭证/常用地址”四个入口
+    - 点击“常用旅客信息”跳转至`/user-center/common-info/travelers`
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：常用信息索引UI接口"
+
+- type: Frontend
+  id: UI-TravelersManagement
+  description: 常用旅客信息列表页，含搜索/新增/表格/底部操作
+  properties:
+    - name: onSearch
+      type: function
+      description: "点击查询时回调"
+    - name: onAdd
+      type: function
+      description: "点击新增时回调"
+  state:
+    - keyword
+    - list
+    - pagination
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-Travelers
+  acceptanceCriteria:
+    - 渲染搜索输入、查询按钮与“新增”链接
+    - 表格列包含选择框、本人徽标、姓名、手机/电话、证件类型、证件号码、国籍(国家/地区)、性别、常旅客卡、操作
+    - 操作包含“查看/编辑/删除”，查看链接至`/user-center/common-info/travelers/view`，编辑链接至`/user-center/common-info/travelers/edit`
+    - 表格下方渲染“全选”复选框与“删除”链接
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：常用旅客列表UI接口"
+
+- type: Frontend
+  id: UI-TravelerView
+  description: 常用旅客信息查看页（只读）
+  properties:
+    - name: travelerId
+      type: string
+      description: "旅客ID"
+  state:
+    - traveler
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-Traveler
+  acceptanceCriteria:
+    - 渲染分段标题“旅客信息/证件信息/常旅客卡”与只读字段
+    - 顶部显示“查看所有旅客信息”，底部显示“返回”，均跳转列表页
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：旅客查看UI接口"
+
+- type: Frontend
+  id: UI-TravelerEdit
+  description: 常用旅客信息编辑页
+  properties:
+    - name: travelerId
+      type: string
+      description: "旅客ID"
+    - name: onSave
+      type: function
+      description: "保存回调"
+  state:
+    - form
+    - isLoading
+    - errors
+  dependencies:
+    - API-PUT-Traveler
+  acceptanceCriteria:
+    - 表单包含中文名/英文名、是否本人、国籍、性别、生日、出生地、联系方式与证件信息
+    - 保存成功后提示成功并返回列表或停留当前页
+    - 日期格式校验失败应阻止保存并提示
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：旅客编辑UI接口"
+
+- type: Frontend
+  id: UI-TravelerAdd
+  description: 常用旅客信息新增页
+  properties:
+    - name: onCreate
+      type: function
+      description: "新增回调"
+  state:
+    - form
+    - isLoading
+    - errors
+  dependencies:
+    - API-POST-Traveler
+  acceptanceCriteria:
+    - 表单包含中文/英文名（至少填写一项）、是否本人、国籍、性别、生日、出生地、联系方式与证件信息
+    - 保存成功后返回列表页；必填项缺失或本人重复设置时阻止保存
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：旅客新增UI接口"
+
+- type: Frontend
+  id: UI-MyInfoPage
+  description: 我的信息页，含只读与编辑态切换
+  properties:
+    - name: onSave
+      type: function
+      description: "保存回调"
+  state:
+    - profile
+    - isEditing
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-UserProfile
+    - API-PATCH-UserProfile
+  acceptanceCriteria:
+    - 只读态显示手机（脱敏）/邮箱状态/昵称/姓名/性别/生日与“编辑”入口
+    - 编辑态显示昵称/姓名/性别/生日输入控件与“保存”按钮及“新昵称将在审核后生效”提示
+    - 校验规则：昵称≤20、姓名≤30不含数字、生日yyyy-MM-dd且不得为未来日期；非法输入阻止保存并显示提示
+    - 顶部“收起”切换回只读态
+  changeLog:
+    - date: "2025-11-26"
+      description: "新增：我的信息UI接口"
+    - date: "2025-11-15"
+      description: "补充登录成功后导航至机票首页"
 
 - type: Frontend
   id: UI-RegisterPage
@@ -68,6 +206,171 @@
   changeLog:
     - date: "2025-11-11"
       description: "初始创建"
+
+ 
+
+- type: Frontend
+  id: UI-FlightsSearchCard
+  description: 国内机票首页搜索卡组件（单程/往返/多程）
+  properties:
+    - name: onSearch
+      type: function
+      description: "提交搜索条件的回调"
+  state:
+    - tripType
+    - fromCity
+    - toCity
+    - departDate
+    - returnDate
+    - adults
+    - children
+    - infants
+    - cabin
+    - directOnly
+    - suggestions
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-AirportSuggest
+    - API-GET-FlightsSearch
+  acceptanceCriteria:
+    - 渲染单程/往返/多程切换与出发/目的地输入框（支持交换）
+    - 渲染日期选择器与人数/舱位选择器、直飞筛选
+    - 输入联想调用机场联想接口；点击搜索调用航班搜索接口
+    - 非法输入时显示错误提示并阻止提交
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：机票首页搜索卡UI接口"
+
+- type: Frontend
+  id: UI-HomePage
+  description: 携程首页容器（登录后默认展示机票入口）
+  properties:
+    - name: onNavigate
+      type: function
+      description: "导航回调"
+  state:
+    - none
+  dependencies:
+    - UI-FlightsSearchCard
+  acceptanceCriteria:
+    - 页面右侧展示FlightsSearchCard，左侧展示PromotionBanner与QuickLink
+    - 登录后从登录页跳转到此页
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：首页容器UI依赖FlightsSearchCard"
+
+- type: Frontend
+  id: UI-FlightsResultsPage
+  description: 航班搜索结果页组件
+  properties:
+    - name: onBook
+      type: function
+      description: "点击预订回调"
+  state:
+    - filters
+    - sortKey
+    - results
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-FlightsSearch
+    - API-GET-FlightDetails
+  acceptanceCriteria:
+    - 展示条件汇总条、快速筛选与排序
+    - 列出航班卡片，支持查看详情与选择套餐
+    - 点击预订进入订单填写页（未登录时要求登录）
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：航班搜索结果页UI接口"
+
+- type: Frontend
+  id: UI-OrderPage
+  description: 订单填写页组件（乘机人与联系人）
+  properties:
+    - name: onSubmit
+      type: function
+      description: "提交订单回调"
+  state:
+    - passengers
+    - contact
+    - invoice
+    - summary
+    - isLoading
+    - errors
+  dependencies:
+    - API-POST-CreateOrder
+    - API-GET-Order
+  acceptanceCriteria:
+    - 支持添加乘机人、联系人、发票选项，展示航班与价格摘要
+    - 提交时校验库存与价格，成功后跳转支付页
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：订单填写页UI接口"
+
+- type: Frontend
+  id: UI-PaymentPage
+  description: 支付页组件
+  properties:
+    - name: onPay
+      type: function
+      description: "触发支付回调"
+  state:
+    - methods
+    - countdown
+    - amount
+    - isLoading
+    - errors
+  dependencies:
+    - API-POST-PayOrder
+    - API-GET-OrderStatus
+  acceptanceCriteria:
+    - 展示订单号与应付金额，提供支付方式选择与倒计时
+    - 发起支付并轮询订单状态，成功后进入出票/确认页
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：支付页UI接口"
+
+- type: Frontend
+  id: UI-TicketConfirmPage
+  description: 出票与确认页组件
+  properties:
+    - name: onAfterSale
+      type: function
+      description: "售后入口回调"
+  state:
+    - ticket
+    - status
+    - itinerary
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-Ticket
+  acceptanceCriteria:
+    - 支持展示电子客票号与行程信息，提供售后入口
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：出票确认页UI接口"
+
+- type: Frontend
+  id: UI-MyOrdersPage
+  description: 我的订单列表与详情入口
+  properties:
+    - name: onView
+      type: function
+      description: "查看订单详情回调"
+  state:
+    - items
+    - pagination
+    - isLoading
+    - errors
+  dependencies:
+    - API-GET-Orders
+  acceptanceCriteria:
+    - 展示订单列表与分页，支持查看详情与再次预订
+  changeLog:
+    - date: "2025-11-15"
+      description: "新增：我的订单页UI接口"
 
 - type: Frontend
   id: UI-LoginForm
@@ -185,108 +488,3 @@
   changeLog:
     - date: "2025-11-11"
       description: "初始创建"
-
-- type: Frontend
-  id: UI-OrderListPage
-  description: 个人订单管理列表页面，展示不同状态的订单。
-  properties:
-    - name: onSelectOrder
-      type: function
-      description: "选中一个订单后的回调，通常用于跳转详情页。"
-  state:
-    - orders
-    - currentTab
-    - pagination
-    - isLoading
-    - error
-  dependencies:
-    - API-GET-Orders
-  acceptanceCriteria:
-    - 组件应渲染导航标签栏（全部、待出行等）。
-    - 组件应能根据当前标签调用API-GET-Orders获取数据。
-    - 列表区域应能渲染订单卡片（UI-OrderCard）。
-    - 应处理加载、空状态和错误状态的显示。
-  changeLog:
-    - date: "2025-11-15"
-      description: "初始创建。"
-
-- type: Frontend
-  id: UI-OrderDetailPage
-  description: 订单详情页面，展示订单的完整信息和可执行操作。
-  properties:
-    - name: orderId
-      type: string
-      description: "要展示的订单ID。"
-  state:
-    - orderDetails
-    - isLoading
-    - error
-  dependencies:
-    - API-GET-OrderById
-    - API-POST-CancelOrder
-    - UI-CancelOrderModal
-    - UI-ReorderButton
-    - UI-DownloadButton
-  acceptanceCriteria:
-    - 组件应根据orderId调用API-GET-OrderById获取数据。
-    - 应能正确渲染产品、旅客、价格等所有信息。
-    - 根据订单状态动态显示“取消订单”、“重新下单”等操作按钮。
-  changeLog:
-    - date: "2025-11-15"
-      description: "初始创建。"
-
-- type: Frontend
-  id: UI-CancelOrderModal
-  description: 取消订单的确认弹窗。
-  properties:
-    - name: onConfirm
-      type: function
-      description: "确认取消的回调。"
-    - name: onCancel
-      type: function
-      description: "关闭弹窗的回调。"
-  state:
-    - isVisible
-    - isLoading
-  dependencies:
-    - API-POST-CancelOrder
-  acceptanceCriteria:
-    - 弹窗应包含明确的提示信息和操作按钮。
-    - 点击确认后，应调用onConfirm并显示加载状态。
-  changeLog:
-    - date: "2025-11-15"
-      description: "初始创建。"
-
-- type: Frontend
-  id: UI-ReorderButton
-  description: “重新下单”按钮，用于从已取消订单跳转到预订流程。
-  properties:
-    - name: orderInfo
-      type: object
-      description: "旧订单信息，用于预填。"
-  state:
-    - none
-  dependencies:
-    - none
-  acceptanceCriteria:
-    - 点击后，应能携带旧订单信息跳转到搜索或预订页面。
-  changeLog:
-    - date: "2025-11-15"
-      description: "初始创建。"
-
-- type: Frontend
-  id: UI-DownloadButton
-  description: 用于下载订单相关文档（如PDF行程单）的按钮。
-  properties:
-    - name: orderId
-      type: string
-      description: "要下载的订单ID。"
-  state:
-    - isLoading
-  dependencies:
-    - API-GET-OrderAsPdf
-  acceptanceCriteria:
-    - 点击后，应调用API-GET-OrderAsPdf并触发浏览器下载。
-  changeLog:
-    - date: "2025-11-15"
-      description: "初始创建。"

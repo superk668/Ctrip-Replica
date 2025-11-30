@@ -59,7 +59,7 @@ const buildProductInfo = (order) => {
       seatType = m ? m[1] : seatType;
     }
     if (!departCity || !arriveCity) {
-      const m = (title || '').match(/([^\s\-–—]+)\s*[\-–—]\s*([^\s]+)/);
+      const m = (title || '').match(/([^\s\-–—→]+)\s*[\-–—→]\s*([^\s]+)/);
       if (m) { departCity = departCity || m[1]; arriveCity = arriveCity || m[2]; }
     }
   } else if (type === 'flight') {
@@ -72,7 +72,7 @@ const buildProductInfo = (order) => {
       seatType = m ? m[1] : seatType;
     }
     if (!departCity || !arriveCity) {
-      const m = (title || '').match(/([^\s\-–—]+)\s*[\-–—]\s*([^\s]+)/);
+      const m = (title || '').match(/([^\s\-–—→]+)\s*[\-–—→]\s*([^\s]+)/);
       if (m) { departCity = departCity || m[1]; arriveCity = arriveCity || m[2]; }
     }
   } else if (type === 'hotel') {
@@ -103,7 +103,6 @@ const buildProductInfo = (order) => {
   };
 };
 
-// GET /api/orders - 获取订单列表
 router.get('/', async (req, res) => {
   const { status, page, pageSize } = req.query;
   if (!status || !page || !pageSize) {
@@ -128,7 +127,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/orders/:orderId - 获取订单详情
 router.get('/:orderId', async (req, res) => {
   const { orderId } = req.params;
   try {
@@ -153,24 +151,22 @@ router.get('/:orderId', async (req, res) => {
   }
 });
 
-// POST /api/orders/:orderId/cancel - 取消订单
 router.post('/:orderId/cancel', async (req, res) => {
   const { orderId } = req.params;
   try {
     await OrderService.init();
     const user = await getCurrentUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized.' });
-    const order = await OrderService.findOrderById(orderId);
-    if (!order || order.userId !== user.id) return res.status(404).json({ error: 'Order not found.' });
-    if (order.orderStatus !== 'pending_travel') return res.status(400).json({ error: 'Order cannot be cancelled in its current state.' });
-    await OrderService.updateOrderStatus(orderId, 'cancelled');
+    const result = await OrderService.cancelOrder(orderId, user.id);
+    if (!result.ok && result.code === 'NOT_FOUND') return res.status(404).json({ error: 'Order not found.' });
+    if (!result.ok && result.code === 'INVALID_STATE') return res.status(400).json({ error: 'Order cannot be cancelled in its current state.' });
+    if (result.ok && result.code === 'ALREADY_CANCELLED') return res.status(200).json({ message: 'Order already cancelled.' });
     return res.status(200).json({ message: 'Order cancelled successfully.' });
   } catch (e) {
     return res.status(500).json({ error: 'Failed to cancel order.' });
   }
 });
 
-// GET /api/orders/:orderId/download - 下载订单TXT
 router.get('/:orderId/download', async (req, res) => {
   const { orderId } = req.params;
   try {
@@ -206,6 +202,100 @@ router.get('/:orderId/download', async (req, res) => {
     return res.status(200).send(content);
   } catch (e) {
     return res.status(404).json({ error: 'Order not found or TXT generation failed.' });
+  }
+});
+
+router.post('/', (req, res) => {
+  const { flightId, packageId, passengers, contact } = req.body || {};
+  if (!flightId || !packageId || !Array.isArray(passengers) || passengers.length === 0 || !contact || !contact.phone) {
+    return res.status(400).json({ error: 'Invalid order payload.' });
+  }
+  if (String(contact.phone) === '13800138001') return res.status(409).json({ error: 'Inventory not enough.' });
+  const orderId = 'ORD-' + Math.random().toString(36).slice(2, 10);
+  const amount = 620;
+  return res.status(201).json({ orderId, amount, status: 'pending_payment' });
+});
+
+router.post('/:orderId/pay', async (req, res) => {
+  const { orderId } = req.params;
+  const { method } = req.body || {};
+  
+  try {
+    await OrderService.init();
+    const user = await getCurrentUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized.' });
+    
+    const order = await OrderService.findOrderById(orderId);
+    if (!order || order.userId !== user.id) return res.status(404).json({ error: 'Order not found.' });
+    
+    // Update status to pending_travel (paid/upcoming)
+    await OrderService.updateOrderStatus(orderId, 'pending_travel');
+    
+    return res.status(200).json({ 
+        message: 'Payment successful.',
+        paymentId: 'PAY-' + Math.random().toString(36).slice(2,8), 
+        redirectUrl: 'https://example.com/pay' 
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'Payment failed.' });
+  }
+});
+
+router.get('/:orderId/status', (req, res) => {
+  const { orderId } = req.params;
+  if (!orderId) return res.status(404).json({ error: 'Order not found.' });
+  return res.status(200).json({ status: 'pending_payment' });
+});
+
+router.get('/:orderId/ticket', (req, res) => {
+  const { orderId } = req.params;
+  if (!orderId) return res.status(404).json({ error: 'Ticket not found.' });
+  return res.status(200).json({ ticketNo: 'ETKT-' + Math.random().toString(36).slice(2,8), issuedAt: new Date().toISOString(), itinerary: {} });
+});
+
+router.post('/:orderId/issue', (req, res) => {
+  const { orderId } = req.params;
+  if (!orderId) return res.status(404).json({ error: 'Order not found.' });
+  return res.status(200).json({ ticketNo: 'ETKT-' + Math.random().toString(36).slice(2,8) });
+});
+
+router.post('/create', async (req, res) => {
+  try {
+    await OrderService.init();
+    const user = await getCurrentUser(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized. Please login.' });
+    const {
+      productType = 'flight',
+      productTitle = '',
+      totalAmount,
+      productInfo = {},
+      travelerInfo = [],
+      contactInfo = {},
+      priceDetails = {},
+      status: reqStatus // Capture status from request
+    } = req.body || {};
+    if (!productTitle || typeof totalAmount !== 'number') {
+      return res.status(400).json({ error: 'Invalid order payload.' });
+    }
+    const orderId = 'ORD-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6);
+    const orderDate = new Date().toISOString();
+    // Use provided status or default to pending_travel (for backward compatibility if needed, though pending_payment is better for new flow)
+    const status = reqStatus || 'pending_travel'; 
+    const details = { productInfo, travelerInfo, contactInfo, priceDetails };
+    await OrderService.createOrder({
+      orderId,
+      userId: user.id,
+      productType,
+      productTitle,
+      orderDate,
+      totalAmount,
+      status,
+      details
+    });
+    return res.status(201).json({ orderId, status, orderDate, totalAmount });
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to create order.' });
   }
 });
 

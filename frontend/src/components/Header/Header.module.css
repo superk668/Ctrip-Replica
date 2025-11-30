@@ -1,8 +1,7 @@
 .header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 40px;
+  flex-direction: column;
+  padding: 16px 40px 12px;
   background-color: #fff;
   border-bottom: 1px solid #eee;
   position: fixed;
@@ -12,17 +11,155 @@
   z-index: 1000;
 }
 
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.progressCenter {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
 .logo img {
   height: 40px;
 }
 
-.navigation a {
-  margin-left: 20px;
+.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+}
+.navDivider {
+  color: #cfd7e6;
+}
+.userBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #ecf4ff;
+  border-radius: 16px;
   text-decoration: none;
+}
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.idText {
   color: #333;
+  font-size: 14px;
+}
+.navigation a {
+  text-decoration: none;
+  color: #666;
   font-size: 14px;
 }
 
 .navigation a i {
   font-size: 18px;
 }
+
+.username {
+  margin-left: 6px;
+  color: #666;
+  font-size: 14px;
+}
+
+.userMenu {
+  position: relative;
+  display: inline-block;
+}
+
+.userBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
+}
+
+.loginBtn {
+  background: #0086F6;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  text-decoration: none;
+}
+.loginBtn:hover {
+  background: #0076d6;
+}
+
+.dropdown {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-left: 12px;
+  top: 28px;
+  background: #fff;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border-radius: 4px;
+  min-width: 220px;
+  z-index: 1001;
+}
+
+.dropdownItem {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: #fff;
+  border: none;
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dropdownItem:hover {
+  background: #f7f7f7;
+}
+
+.dropdownHeader { padding: 12px; border-bottom: 1px solid #f0f2f5; }
+.dropdownHeaderTop { display: flex; align-items: center; gap: 8px; }
+.memberName { color: #333; text-decoration: none; font-weight: 600; }
+.caret { color: #0071eb; margin-left: auto; }
+.dropdownHeaderBottom { color: #6b6f76; font-size: 12px; margin-top: 6px; }
+.dropdownDivider { height: 1px; background: #f0f2f5; margin: 6px 0; }
+
+/* 购票进度条（仅在 /booking 等购票流程页面显示） */
+.progressBar {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+}
+.progressItem { display: inline-flex; align-items: center; gap: 8px; }
+.badgeIdle,
+.badgeActive,
+.badgeDone {
+  width: 24px;
+  height: 24px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.badgeIdle { background: #e9edf3; color: #9aa3af; }
+.badgeActive { background: #ff8a1a; color: #fff; }
+.badgeDone { background: #3b82f6; color: #fff; }
+.progressTextIdle { color: #9aa3af; }
+.progressTextActive { color: #ff8a1a; font-weight: 600; }
+.progressTextDone { color: #2563eb; font-weight: 600; }
+.divider { width: 120px; height: 1px; background: #e6e9ef; margin: 0 4px; }

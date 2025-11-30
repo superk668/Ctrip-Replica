@@ -1,0 +1,11 @@
+{
+  "placeholders": [
+    { "name": "航空公司LOGO占位", "type": "svg", "usage": "FlightsResultsPage.Row.logo", "size": "40x40" }
+    ,{ "name": "保险插图占位", "type": "svg", "usage": "ServicesPage.Panel.Illustration", "size": "240x160" }
+    ,{ "name": "航线轴占位", "type": "svg", "usage": "ServicesPage.SideCard.Axis", "size": "120x16" }
+    ,{ "name": "银行Logo占位", "type": "svg", "usage": "PaymentPage.Methods.BankIcon", "size": "24x24" }
+    ,{ "name": "支付宝Logo占位", "type": "svg", "usage": "PaymentPage.Methods.AlipayIcon", "size": "24x24" }
+    ,{ "name": "PCI图标占位", "type": "svg", "usage": "PaymentPage.PCI.Icon", "size": "28x28" }
+    ,{ "name": "用户头像占位", "type": "svg", "usage": "UserCenter.MyInfo.Avatar", "size": "80x80" }
+  ]
+}

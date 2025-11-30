@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MemoryRouter } from 'react-router-dom';
 import LoginForm from '../../src/components/LoginForm/LoginForm';
 import { MemoryRouter } from 'react-router-dom';
 

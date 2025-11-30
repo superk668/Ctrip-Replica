@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import styles from './OrderListPage.module.css';
 import DownloadButton from './DownloadButton';
-import { Link, useInRouterContext } from 'react-router-dom';
+import { Link, NavLink, useInRouterContext } from 'react-router-dom';
 import Header from '../../components/Header/Header';
+import UserCenterSidebar from '../../components/UserCenter/UserCenterSidebar';
 
 type OrderItem = {
   orderId: string;
@@ -104,11 +105,6 @@ const OrderListPage = () => {
   );
 
   const pad = (n: number) => (n < 10 ? '0' + n : String(n));
-  const formatDateTime = (s?: string) => {
-    if (!s) return '';
-    const d = new Date(s);
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
   const formatRange = (start?: string, end?: string) => {
     if (!start) return '';
     const sd = new Date(start);
@@ -174,8 +170,89 @@ const OrderListPage = () => {
 
   const filenameSanitize = (name: string) => name.replace(/[\/:*?"<>|]/g, '-');
 
+  const handleCancel = async (orderId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm('确认取消该订单吗？')) return;
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+      const res = await fetch(`/api/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        alert('订单取消成功');
+        fetchOrders(); // Refresh list
+      } else {
+        const data = await res.json();
+        alert(data.error || '取消失败');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('取消失败');
+    }
+  };
+
   const goToDetail = (id: string) => {
     window.location.href = `/orders/${id}`;
+  };
+
+  const goToPay = (o: OrderItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      // Reconstruct bookingSelection for Booking/Payment pages
+      // Basic flight info reconstruction
+      const p = o.productInfo || {};
+      const flight = {
+        from: {
+          city: p.departCity || '',
+          airport: p.departCity ? `${p.departCity}机场` : '',
+          time: p.departTime ? new Date(p.departTime).toTimeString().slice(0,5) : '00:00',
+          terminal: 'T1',
+          code: p.departCity || 'SHA'
+        },
+        to: {
+          city: p.arriveCity || '',
+          airport: p.arriveCity ? `${p.arriveCity}机场` : '',
+          time: p.arriveTime ? new Date(p.arriveTime).toTimeString().slice(0,5) : '00:00',
+          terminal: 'T2',
+          code: p.arriveCity || 'BJS'
+        },
+        flightNo: p.number || '',
+        model: '机型'
+      };
+      // Price reconstruction: total - surcharges
+      // Assuming standard surcharges if details missing
+      const surcharges = { service: 48, build: 50, fuel: 20 };
+      const totalSurcharges = surcharges.service + surcharges.build + surcharges.fuel;
+      const basePrice = Math.max(0, o.totalAmount - totalSurcharges);
+      
+      const pkg = { price: basePrice };
+      
+      const bookingSelection = { flight, package: pkg };
+      sessionStorage.setItem('bookingSelection', JSON.stringify(bookingSelection));
+      
+      // Passenger info
+      const t = (o.travelerInfo && o.travelerInfo[0]) || {};
+      const passengerInfo = {
+        name: t.name || '',
+        idType: '身份证', // Default or need to infer
+        idNumber: t.idMasked || '', // Masked ID might be an issue for re-verification but OK for display
+        passengerPhone: '', // Often not stored in top level
+        contactCountryCode: '中国 86',
+        contactPhone: '' // We might not have this easily
+      };
+      sessionStorage.setItem('passengerInfo', JSON.stringify(passengerInfo));
+      
+      sessionStorage.setItem('createdOrderId', o.orderId);
+      sessionStorage.setItem('bookingStage', '3'); // Jump to payment
+      
+      window.location.href = '/booking/payment';
+    } catch (err) {
+      console.error(err);
+      alert('跳转支付失败，请重试');
+    }
   };
 
   return (
@@ -183,18 +260,7 @@ const OrderListPage = () => {
     <Header />
     <div className={styles.pageContainer}>
       <div className={styles.layout}>
-        <aside className={styles.sidebar}>
-          <div className={styles.sideItem}>我的携程首页</div>
-          <div className={styles.sideItemActive}>订单</div>
-          <div className={styles.sideItem}>我的消息</div>
-          <div className={styles.sideItem}>钱包</div>
-          <div className={styles.sideItem}>礼品卡</div>
-          <div className={styles.sideItem}>优惠券</div>
-          <div className={styles.sideItem}>积分</div>
-          <div className={styles.sideItem}>我的收藏</div>
-          <div className={styles.sideItem}>常用信息</div>
-          <div className={styles.sideItem}>个人中心</div>
-        </aside>
+        <UserCenterSidebar active="orders" />
       <div className={styles.main}>
       <div className={styles.noticeBar}>
         <div className={styles.hint}>您可以在携程查看近一年订单，或使用携程App下载和管理历史订单</div>
@@ -239,14 +305,14 @@ const OrderListPage = () => {
               const target = (e.target as HTMLElement);
               const tag = String(target?.tagName || '').toLowerCase();
               if (['a','button','input','label','select','textarea'].includes(tag)) return;
-              if (target && target.closest('[data-role="row-select-area"]')) return;
+              if (target && (target as any).closest && (target as any).closest('[data-role="row-select-area"]')) return;
               goToDetail(o.orderId);
             }} onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 const target = (e.target as HTMLElement);
                 const tag = String(target?.tagName || '').toLowerCase();
                 if (['a','button','input','label','select','textarea'].includes(tag)) return;
-                if (target && target.closest('[data-role="row-select-area"]')) return;
+                if ((target as any).closest && (target as any).closest('[data-role="row-select-area"]')) return;
                 goToDetail(o.orderId);
               }
             }} tabIndex={0}>
@@ -281,10 +347,46 @@ const OrderListPage = () => {
                   </span>
                 </div>
                 <span className={styles.orderDate}>下单时间：{new Date(o.orderDate).toLocaleDateString()}</span>
-                <span className={styles.status}>{o.orderStatus === 'pending_travel' ? '支付成功' : o.orderStatus === 'pending_payment' ? '待支付' : o.orderStatus === 'pending_review' ? '待点评' : '状态'}</span>
+                <span className={styles.status}>
+                  {o.orderStatus === 'pending_travel' ? '支付成功' : o.orderStatus === 'pending_payment' ? '待支付' : o.orderStatus === 'pending_review' ? '待点评' : o.orderStatus === 'cancelled' ? '已取消' : '状态'}
+                  {o.orderStatus === 'pending_payment' && (
+                      <button 
+                        onClick={(e) => goToPay(o, e)}
+                        style={{
+                          marginLeft: '10px',
+                          padding: '2px 8px',
+                          background: '#ff9500',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        去支付
+                      </button>
+                  )}
+                  {(o.orderStatus === 'pending_payment' || o.orderStatus === 'pending_travel') && (
+                      <button 
+                        onClick={(e) => handleCancel(o.orderId, e)}
+                        style={{
+                          marginLeft: '5px',
+                          padding: '2px 8px',
+                          background: '#ccc',
+                          color: '#333',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          fontSize: '12px'
+                        }}
+                      >
+                        取消
+                      </button>
+                  )}
+                </span>
               </div>
               <div className={styles.cardBody}>
-                <div className={styles.productTitle}>{o.productTitle}</div>
+                <div className={styles.productTitle}>{(o.productInfo?.departCity && o.productInfo?.arriveCity) ? `${o.productInfo.departCity} → ${o.productInfo.arriveCity}` : o.productTitle}</div>
                 <div className={styles.meta}>出发日期：{formatRange(o.productInfo?.departTime, o.productInfo?.arriveTime)} {o.productInfo?.number || ''}</div>
                 <div className={styles.meta}>出行人：{(Array.isArray(o.travelerInfo) ? o.travelerInfo : []).map((t: any) => t?.name).filter(Boolean).join('、') || ''}</div>
               </div>
@@ -293,6 +395,7 @@ const OrderListPage = () => {
                   <div className={styles.priceLabel}>{o.orderStatus === 'pending_travel' ? '支付成功' : ''}</div>
                   <div className={styles.price}>¥{o.totalAmount?.toFixed(1)}</div>
                 </div>
+                <DownloadButton orderId={o.orderId} />
               </div>
             </div>
           ))}
@@ -317,57 +420,4 @@ const OrderListPage = () => {
 };
 
 export default OrderListPage;
-  const toggleSelect = (id: string, checked: boolean) => {
-    setSelectedOrderIds((prev) => {
-      if (checked) {
-        const next = new Set(prev);
-        next.add(id);
-        return Array.from(next);
-      }
-      return prev.filter((x) => x !== id);
-    });
-  };
-  const toggleSelectAll = (checked: boolean) => {
-    setSelectedOrderIds(checked ? orders.map((o) => o.orderId) : []);
-  };
-  const handleBulkDownload = async () => {
-    try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
-      let phone: string | undefined;
-      try {
-        const u = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-        phone = u ? JSON.parse(u)?.phone : undefined;
-      } catch (_) {}
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      if (phone) headers['x-user-phone'] = String(phone);
-      headers['Accept'] = 'text/plain';
-      if (!token && !phone) {
-        alert('请先登录');
-        return;
-      }
-      for (const id of selectedOrderIds) {
-        const res = await fetch(`/api/orders/${id}/download`, { headers });
-        if (!res.ok) throw new Error('生成失败，请稍后重试');
-        const blob = await res.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        const disp = res.headers ? res.headers.get('content-disposition') || '' : '';
-        const match = disp.match(/filename="?([^";]+)"?/i);
-        const filename = match ? filenameSanitize(match[1]) : `${id}.txt`;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-      }
-    } catch (e: any) {
-      alert(e?.message || '生成失败，请稍后重试');
-    }
-  };
 
-  const filenameSanitize = (name: string) => name.replace(/[\\/:*?"<>|]/g, '-');
-  const goToDetail = (id: string) => {
-    window.location.href = `/orders/${id}`;
-  };

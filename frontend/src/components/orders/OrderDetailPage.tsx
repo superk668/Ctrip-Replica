@@ -3,7 +3,6 @@ import Header from '../../components/Header/Header';
 import styles from './OrderListPage.module.css';
 import ReorderButton from './ReorderButton';
 
-// 骨架组件: UI-OrderDetailPage
 type Props = { orderId: string };
 const OrderDetailPage = ({ orderId }: Props) => {
   const [data, setData] = useState<any>(null);
@@ -45,6 +44,29 @@ const OrderDetailPage = ({ orderId }: Props) => {
     run();
   }, [orderId]);
 
+  const handleCancel = async () => {
+    if (!window.confirm('确认取消该订单吗？')) return;
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+      const res = await fetch(`/api/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        alert('订单取消成功');
+        window.location.reload();
+      } else {
+        const d = await res.json();
+        alert(d.error || '取消失败');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('取消失败');
+    }
+  };
+
   return (
     <>
       <Header />
@@ -70,7 +92,7 @@ const OrderDetailPage = ({ orderId }: Props) => {
                 <span className={styles.orderDate}>状态：{data.orderStatus === 'pending_travel' ? '支付成功' : data.orderStatus === 'pending_payment' ? '待支付' : data.orderStatus === 'pending_review' ? '待点评' : data.orderStatus || '未知'}</span>
               </div>
               <div className={styles.cardBody}>
-                <div className={styles.productTitle}>{data.productInfo?.title || data.productTitle || '产品'}</div>
+                <div className={styles.productTitle}>{(data.productInfo?.departCity && data.productInfo?.arriveCity) ? `${data.productInfo.departCity} → ${data.productInfo.arriveCity}` : (data.productInfo?.title || data.productTitle || '产品')}</div>
                 <div className={styles.meta}>
                   {data.productInfo?.number ? `车次/航班：${data.productInfo.number}` : ''}
                   {data.productInfo?.seatType ? `（${data.productInfo.seatType}）` : ''}
@@ -80,6 +102,9 @@ const OrderDetailPage = ({ orderId }: Props) => {
               <div className={styles.cardFooter}>
                 <div className={styles.leftOps}>
                   <ReorderButton orderInfo={{ orderId: data.orderId, productTitle: data.productTitle, productInfo: data.productInfo }} />
+                  {(data.orderStatus === 'pending_payment' || data.orderStatus === 'pending_travel') && (
+                    <button className={styles.cancelBtn} style={{ marginLeft: '12px', padding: '6px 12px', border: '1px solid #ccc', background: '#fff', borderRadius: '4px', cursor: 'pointer' }} onClick={handleCancel}>取消</button>
+                  )}
                 </div>
                 <div className={styles.priceArea}>
                   <div className={styles.priceLabel}>总金额</div>
@@ -126,3 +151,4 @@ const OrderDetailPage = ({ orderId }: Props) => {
 };
 
 export default OrderDetailPage;
+

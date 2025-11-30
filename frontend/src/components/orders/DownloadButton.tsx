@@ -3,7 +3,6 @@ import React from 'react';
 const DownloadButton = ({ orderId }) => {
   const handleClick = async (e?: any) => {
     try { if (e && typeof e.stopPropagation === 'function') e.stopPropagation(); } catch (_) {}
-    console.log('下载订单', orderId);
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
       let phone;
@@ -33,7 +32,7 @@ const DownloadButton = ({ orderId }) => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch (e) {
+    } catch (e: any) {
       alert(e?.message || '生成失败，请稍后重试');
     }
   };
@@ -42,3 +41,4 @@ const DownloadButton = ({ orderId }) => {
 };
 
 export default DownloadButton;
+

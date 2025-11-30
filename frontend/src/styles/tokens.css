@@ -1,0 +1,21 @@
+:root {
+  --color-primary: #0071eb;
+  --color-secondary: #ff7a1a;
+  --color-text: #222;
+  --color-muted: #999;
+  --color-bg: #ffffff;
+
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-size-xxl: 28px;
+  --font-size-sm: 12px;
+  --line-height: 1.6;
+
+  --space-4: 4px;
+  --space-8: 8px;
+
+  --radius-md: 12px;
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+
+  --container-width: 1200px;
+  --z-base: 1;
+}

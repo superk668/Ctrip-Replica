@@ -1,4 +1,4 @@
-const { db } = require('../db');
+const { db } = require('../config/database');
 const bcrypt = require('bcrypt');
 
 class UserService {
@@ -169,12 +169,6 @@ class UserService {
     });
   }
 
-  /**
-   * （测试辅助）根据明文密码找到最近创建的用户
-   * 仅在测试环境中使用，避免生产环境的性能与安全问题
-   * @param {string} plainPassword
-   * @returns {Promise<Object|null>}
-   */
   static async findUserByPlainPassword(plainPassword) {
     if (process.env.NODE_ENV !== 'test') return null;
     return new Promise((resolve, reject) => {
@@ -194,6 +188,52 @@ class UserService {
           resolve(null);
         }
       );
+    });
+  }
+
+  static async getProfile(userId) {
+    return new Promise((resolve, reject) => {
+      db.get('SELECT * FROM profiles WHERE user_id = ?', [userId], (err, row) => {
+        if (err) return reject(err);
+        resolve(row || null);
+      });
+    });
+  }
+
+  static async updateProfile(userId, data) {
+    return new Promise((resolve, reject) => {
+      // Upsert profile
+      db.get('SELECT id FROM profiles WHERE user_id = ?', [userId], (err, row) => {
+        if (err) return reject(err);
+        
+        if (row) {
+          // Update
+          const updates = [];
+          const params = [];
+          if (data.nickname !== undefined) { updates.push('nickname = ?'); params.push(data.nickname); }
+          if (data.name !== undefined) { updates.push('name = ?'); params.push(data.name); }
+          if (data.gender !== undefined) { updates.push('gender = ?'); params.push(data.gender); }
+          if (data.birthday !== undefined) { updates.push('birthday = ?'); params.push(data.birthday); }
+          
+          if (updates.length === 0) return resolve(row);
+
+          updates.push('updated_at = CURRENT_TIMESTAMP');
+          const sql = `UPDATE profiles SET ${updates.join(', ')} WHERE user_id = ?`;
+          params.push(userId);
+          
+          db.run(sql, params, (err) => {
+            if (err) return reject(err);
+            resolve(row);
+          });
+        } else {
+          // Insert
+          const sql = `INSERT INTO profiles (user_id, nickname, name, gender, birthday) VALUES (?, ?, ?, ?, ?)`;
+          db.run(sql, [userId, data.nickname, data.name, data.gender, data.birthday], function(err) {
+            if (err) return reject(err);
+            resolve({ id: this.lastID });
+          });
+        }
+      });
     });
   }
 }

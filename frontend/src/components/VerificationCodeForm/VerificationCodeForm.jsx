@@ -80,11 +80,13 @@ const VerificationCodeForm = ({ onSwitchMode }) => {
       });
 
       const data = await response.json();
+
       if (response.ok) {
-        const token = (data && data.token) || (data && data.data && data.data.token) || '';
-        const user = (data && data.user) || (data && data.data && data.data.user) || null;
-        if (token) localStorage.setItem('token', token);
-        if (user) localStorage.setItem('user', JSON.stringify(user));
+        console.log('登录成功:', data);
+        const token = data?.data?.token || data?.token;
+        if (token) {
+          localStorage.setItem('token', token);
+        }
         navigate('/home');
       } else {
         const errMsg = data.error || data.message || '登录失败';

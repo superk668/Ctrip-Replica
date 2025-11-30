@@ -1,9 +1,6 @@
 import React from 'react';
 
-// 骨架组件: UI-CancelOrderModal
 const CancelOrderModal = ({ onConfirm, onCancel }) => {
-  // TODO: 实现取消订单弹窗的逻辑
-  // 依赖: API-POST-CancelOrder
   return (
     <div>
       <h2>确认取消订单？</h2>
@@ -14,3 +11,4 @@ const CancelOrderModal = ({ onConfirm, onCancel }) => {
 };
 
 export default CancelOrderModal;
+

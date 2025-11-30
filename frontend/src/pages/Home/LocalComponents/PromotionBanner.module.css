@@ -1,0 +1,77 @@
+.sidebar {
+  width: 240px;
+  background: var(--color-bg, #fff);
+  border-right: 1px solid #e6e9ef;
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  box-shadow: var(--shadow-md, 0 2px 8px rgba(0,0,0,0.06));
+  padding: 8px 0;
+}
+
+.menuTrigger {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.bar {
+  display: inline-block;
+  width: 18px;
+  height: 2px;
+  background: #666;
+  margin-right: 6px;
+  border-radius: 2px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  padding: 0 16px;
+  color: var(--color-text, #222);
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+}
+
+.iconBg {
+  fill: #eef5ff;
+}
+
+.iconText {
+  fill: var(--color-primary, #0071eb);
+  font-size: 9px;
+}
+
+.label {
+  font-size: 15px;
+  white-space: nowrap;
+  writing-mode: horizontal-tb;
+  flex: 1;
+}
+
+.badge {
+  margin-left: 8px;
+  background: #ff7a1a;
+  color: #fff;
+  font-size: 12px;
+  line-height: 18px;
+  padding: 0 8px;
+  border-radius: 10px;
+}
+
+.divider {
+  height: 1px;
+  margin: 8px 16px;
+  background: #e6e9ef;
+}
