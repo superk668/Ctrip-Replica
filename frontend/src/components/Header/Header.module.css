@@ -35,6 +35,28 @@
   justify-content: flex-end;
   gap: 20px;
 }
+.navDivider {
+  color: #cfd7e6;
+}
+.userBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #ecf4ff;
+  border-radius: 16px;
+  text-decoration: none;
+}
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.idText {
+  color: #333;
+  font-size: 14px;
+}
 .navigation a {
   text-decoration: none;
   color: #666;
@@ -80,18 +102,21 @@
 
 .dropdown {
   position: absolute;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-left: 12px;
   top: 28px;
   background: #fff;
   border: 1px solid #eee;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   border-radius: 4px;
-  min-width: 140px;
+  min-width: 220px;
   z-index: 1001;
 }
 
 .dropdownItem {
   display: block;
+  box-sizing: border-box;
   width: 100%;
   padding: 8px 12px;
   text-align: left;
@@ -105,6 +130,13 @@
 .dropdownItem:hover {
   background: #f7f7f7;
 }
+
+.dropdownHeader { padding: 12px; border-bottom: 1px solid #f0f2f5; }
+.dropdownHeaderTop { display: flex; align-items: center; gap: 8px; }
+.memberName { color: #333; text-decoration: none; font-weight: 600; }
+.caret { color: #0071eb; margin-left: auto; }
+.dropdownHeaderBottom { color: #6b6f76; font-size: 12px; margin-top: 6px; }
+.dropdownDivider { height: 1px; background: #f0f2f5; margin: 6px 0; }
 
 /* 购票进度条（仅在 /booking 等购票流程页面显示） */
 .progressBar {

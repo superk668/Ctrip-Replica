@@ -24,6 +24,27 @@ const validateVerificationCode = (code) => {
   return /^\d{6}$/.test(code);
 };
 
+const validateChineseIdNumber = (id) => {
+  if (typeof id !== 'string') return false;
+  const s = id.trim();
+  if (!/^\d{15}$/.test(s) && !/^\d{17}[\dXx]$/.test(s)) return false;
+  return true;
+};
+
+const validatePassport = (no) => {
+  if (typeof no !== 'string') return false;
+  const s = no.trim();
+  return /^[A-Za-z0-9]{5,17}$/.test(s);
+};
+
+const validateDateYMD = (str) => {
+  if (typeof str !== 'string') return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(str)) return false;
+  const d = new Date(str);
+  if (Number.isNaN(d.getTime())) return false;
+  return true;
+};
+
 // 验证规则
 const validationRules = {
   // 登录验证
@@ -75,6 +96,9 @@ module.exports = {
   validateEmail,
   validatePassword,
   validateVerificationCode,
+  validateChineseIdNumber,
+  validatePassport,
+  validateDateYMD,
   validationRules,
   handleValidationErrors
 };

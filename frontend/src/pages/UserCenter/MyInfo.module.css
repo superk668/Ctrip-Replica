@@ -1,14 +1,24 @@
 @import '../../styles/tokens.css';
 
 .container { min-height: 100vh; display: flex; flex-direction: column; background: var(--color-bg); }
-.main { flex: 1; padding-top: 80px; padding-bottom: 160px; background: #f5f7fa; }
+.main { flex: 1; padding-top: 80px; padding-bottom: 160px; background: var(--color-bg); }
 .layout { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: 200px 1fr; gap: 18px; }
 
 .sidebar { border: 1px solid #bfd7ff; background: #f5faff; padding: 12px; border-radius: 4px; }
-.sectionTitle { font-weight: 600; margin-bottom: 10px; }
+.sidebar a { text-decoration: none !important; }
+.menuItem, .sectionTitle { display: block; padding: 8px 10px; border-radius: var(--radius-sm); color: #333; cursor: pointer; margin-bottom: 2px; font-weight: 400; font-size: 14px; text-decoration: none; }
+.menuItem:hover, .sectionTitle:hover { background-color: #f0f0f0; }
+.sectionTitleCaret { position: relative; }
+.sectionTitleCaret::after { content: '▾'; color: var(--color-primary); position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+.sectionTitleCollapsed::after { content: '▸'; color: var(--color-primary); position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
 .sideGroup { color: #0071eb; margin-bottom: 8px; }
-.menuItem { display: block; padding: 8px 10px; border-radius: 4px; color: #333; text-decoration: none; }
-.menuItemActive { background: #eaf4ff; color: #0071eb; border-left: 3px solid #0071eb; }
+.menuItem { display: block; padding: 8px 10px; border-radius: var(--radius-sm); color: #333; text-decoration: none; cursor: pointer; margin-bottom: 2px; }
+.menuItem:hover { background-color: #f0f0f0; }
+.menuItemActive { background: #eaf4ff; color: var(--color-primary); border-left: 3px solid var(--color-primary); }
+
+.menuItemCaret { position: relative; }
+.menuItemCaret::after { content: '▸'; color: var(--color-primary); position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+.menuItemCaretOpen::after { content: '▾'; }
 
 .mainArea { min-width: 0; }
 .headerBar { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }

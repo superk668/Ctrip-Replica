@@ -2,71 +2,51 @@ const express = require('express')
 const jwt = require('jsonwebtoken')
 const router = express.Router()
 
-router.get('/search', (req, res) => {
-  const auth = req.headers.authorization || ''
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
-  try {
-    if (!token) throw new Error('missing')
-    jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key')
-  } catch (e) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
-  const { trip, from, to, departDate } = req.query
-  if (!trip || !from || !to || !departDate) return res.status(400).json({ error: 'Invalid search conditions.' })
-  const d = new Date(String(departDate))
-  const today = new Date()
-  today.setHours(0,0,0,0)
-  if (isNaN(d.getTime()) || d < today) return res.status(400).json({ error: 'Depart date must be in the future.' })
-
-  const seedStr = `${from}-${to}-${departDate}`
+const carriers = [
+  { code: 'CA', name: '中国国航' },
+  { code: 'MU', name: '东方航空' },
+  { code: 'HU', name: '海南航空' },
+  { code: 'CZ', name: '南方航空' },
+  { code: 'SC', name: '山东航空' },
+  { code: 'ZH', name: '深圳航空' }
+]
+const models = ['空客A320','空客A321','空客A330-300','波音737-800','波音777-300ER','波音787-9']
+const airportMap = {
+  SHA: { city: '上海', name: '虹桥', terminals: ['T1','T2'] },
+  PVG: { city: '上海', name: '浦东', terminals: ['T1','T2'] },
+  BJS: { city: '北京', name: '首都', terminals: ['T2','T3'] },
+  PEK: { city: '北京', name: '首都', terminals: ['T2','T3'] },
+  TSN: { city: '天津', name: '滨海', terminals: ['T1','T2'] },
+  CKG: { city: '重庆', name: '江北', terminals: ['T2','T3'] },
+  NKG: { city: '南京', name: '禄口', terminals: ['T1','T2'] },
+  HGH: { city: '杭州', name: '萧山', terminals: ['T1','T2'] },
+  CGO: { city: '郑州', name: '新郑', terminals: ['T2'] },
+  WUH: { city: '武汉', name: '天河', terminals: ['T2'] },
+  CAN: { city: '广州', name: '白云', terminals: ['T1','T2'] },
+  CTU: { city: '成都', name: '双流', terminals: ['T1','T2'] },
+  KMG: { city: '昆明', name: '长水', terminals: ['T1'] },
+  XIY: { city: '西安', name: '咸阳', terminals: ['T2','T3'] },
+  URC: { city: '乌鲁木齐', name: '地窝堡', terminals: ['T2','T3'] }
+}
+const formatTime = (m) => {
+  const hh = String(Math.floor(m / 60)).padStart(2, '0')
+  const mm = String(m % 60).padStart(2, '0')
+  return `${hh}:${mm}`
+}
+const genRand = (seedStr) => {
   let h = 2166136261
   for (let i = 0; i < seedStr.length; i++) h = (h ^ seedStr.charCodeAt(i)) >>> 0, h = (h * 16777619) >>> 0
-  const rand = () => {
-    h ^= h << 13
-    h ^= h >>> 17
-    h ^= h << 5
-    return ((h >>> 0) % 1000) / 1000
-  }
-  const carriers = [
-    { code: 'CA', name: '中国国航' },
-    { code: 'MU', name: '东方航空' },
-    { code: 'HU', name: '海南航空' },
-    { code: 'CZ', name: '南方航空' },
-    { code: 'SC', name: '山东航空' },
-    { code: 'ZH', name: '深圳航空' }
-  ]
-  const models = ['空客A320','空客A321','空客A330-300','波音737-800','波音777-300ER','波音787-9']
-  const airportMap = {
-    SHA: { city: '上海', name: '虹桥', terminals: ['T1','T2'] },
-    PVG: { city: '上海', name: '浦东', terminals: ['T1','T2'] },
-    BJS: { city: '北京', name: '首都', terminals: ['T2','T3'] },
-    PEK: { city: '北京', name: '首都', terminals: ['T2','T3'] },
-    TSN: { city: '天津', name: '滨海', terminals: ['T1','T2'] },
-    CKG: { city: '重庆', name: '江北', terminals: ['T2','T3'] },
-    NKG: { city: '南京', name: '禄口', terminals: ['T1','T2'] },
-    HGH: { city: '杭州', name: '萧山', terminals: ['T1','T2'] },
-    CGO: { city: '郑州', name: '新郑', terminals: ['T2'] },
-    WUH: { city: '武汉', name: '天河', terminals: ['T2'] },
-    CAN: { city: '广州', name: '白云', terminals: ['T1','T2'] },
-    CTU: { city: '成都', name: '双流', terminals: ['T1','T2'] },
-    KMG: { city: '昆明', name: '长水', terminals: ['T1'] },
-    XIY: { city: '西安', name: '咸阳', terminals: ['T2','T3'] },
-    URC: { city: '乌鲁木齐', name: '地窝堡', terminals: ['T2','T3'] }
-  }
-  const formatTime = (m) => {
-    const hh = String(Math.floor(m / 60)).padStart(2, '0')
-    const mm = String(m % 60).padStart(2, '0')
-    return `${hh}:${mm}`
-  }
+  return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 1000) / 1000 }
+}
+const searchCache = new Map()
+const minPriceCache = new Map()
+const generateFlights = (from, to, departDate, filters) => {
+  const cacheKey = `S|${from}|${to}|${departDate}|${filters.airline}|${filters.timeSlot}|${filters.model}|${filters.cabin}`
+  if (searchCache.has(cacheKey)) return searchCache.get(cacheKey)
+  const rand = genRand(`${from}-${to}-${departDate}`)
   const len = 10 + Math.floor(rand() * 11)
   const baseDepartMinutes = 6 * 60
   const endDepartMinutes = 22 * 60 + 30
-  const filters = {
-    airline: String(req.query.airline || ''),
-    timeSlot: String(req.query.timeSlot || ''),
-    model: String(req.query.model || ''),
-    cabin: String(req.query.cabin || '')
-  }
   const flights = []
   for (let i = 0; i < len; i++) {
     const c = carriers[Math.floor(rand() * carriers.length)]
@@ -75,7 +55,6 @@ router.get('/search', (req, res) => {
     const arrMin = depMin + dur
     const depTime = formatTime(depMin)
     const arrTime = formatTime(arrMin % (24 * 60))
-    const plusDay = arrMin >= 24 * 60 ? 1 : 0
     const model = models[Math.floor(rand() * models.length)]
     const fromAirport = airportMap[from]?.name || from
     const toAirport = airportMap[to]?.name || to
@@ -136,7 +115,33 @@ router.get('/search', (req, res) => {
       })
     }
   }
-  res.status(200).json({ flights: filtered })
+  searchCache.set(cacheKey, filtered)
+  return filtered
+}
+
+router.get('/search', (req, res) => {
+  const auth = req.headers.authorization || ''
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+  try {
+    if (!token) throw new Error('missing')
+    jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key')
+  } catch (e) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  const { trip, from, to, departDate } = req.query
+  if (!trip || !from || !to || !departDate) return res.status(400).json({ error: 'Invalid search conditions.' })
+  const d = new Date(String(departDate))
+  const today = new Date()
+  today.setHours(0,0,0,0)
+  if (isNaN(d.getTime()) || d < today) return res.status(400).json({ error: 'Depart date must be in the future.' })
+  const filters = {
+    airline: String(req.query.airline || ''),
+    timeSlot: String(req.query.timeSlot || ''),
+    model: String(req.query.model || ''),
+    cabin: String(req.query.cabin || '')
+  }
+  const flights = generateFlights(from, to, departDate, filters)
+  res.status(200).json({ flights })
 })
 
 router.get('/:flightId/details', (req, res) => {
@@ -152,6 +157,46 @@ router.get('/:flightId/details', (req, res) => {
   if (!flightId) return res.status(404).json({ error: 'Flight not found.' })
   const details = { baggage: { carry: 5, checkin: 20 }, wifi: true, meals: true, rules: [ { cabin: 'Y', refundFee: 200, changeFee: 100 } ] }
   res.status(200).json({ details })
+})
+
+router.get('/min-prices', (req, res) => {
+  const auth = req.headers.authorization || ''
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
+  try {
+    if (!token) throw new Error('missing')
+    jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key')
+  } catch (e) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  const { from, to, startDate } = req.query
+  const days = parseInt(req.query.days || '10', 10)
+  if (!from || !to || !startDate || isNaN(days) || days < 1 || days > 31) return res.status(400).json({ error: 'Invalid parameters.' })
+  const start = new Date(String(startDate))
+  const today = new Date()
+  today.setHours(0,0,0,0)
+  if (isNaN(start.getTime()) || start < today) return res.status(400).json({ error: 'Start date must be in the future.' })
+  const filters = {
+    airline: String(req.query.airline || ''),
+    timeSlot: String(req.query.timeSlot || ''),
+    model: String(req.query.model || ''),
+    cabin: String(req.query.cabin || '')
+  }
+  const addDays = (base, n) => { const d = new Date(base); d.setDate(d.getDate()+n); return d }
+  const toISO = (d) => { const m = String(d.getMonth()+1).padStart(2,'0'); const dd = String(d.getDate()).padStart(2,'0'); return `${d.getFullYear()}-${m}-${dd}` }
+  const key = `P|${from}|${to}|${toISO(start)}|${days}|${filters.airline}|${filters.timeSlot}|${filters.model}|${filters.cabin}`
+  if (minPriceCache.has(key)) return res.status(200).json({ prices: minPriceCache.get(key) })
+  const prices = {}
+  for (let i = 0; i < days; i++) {
+    const dateStr = toISO(addDays(start, i))
+    const fs = generateFlights(from, to, dateStr, filters)
+    const vals = fs.map(f => {
+      const arr = (Array.isArray(f.packages) ? f.packages : []).map(p => p.price)
+      return arr.length ? Math.min(...arr) : Infinity
+    })
+    prices[dateStr] = vals.length ? Math.min(...vals) : 0
+  }
+  minPriceCache.set(key, prices)
+  res.status(200).json({ prices })
 })
 
 module.exports = router

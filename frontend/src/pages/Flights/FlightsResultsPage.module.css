@@ -134,8 +134,14 @@
   color: #333;
   border-radius: 8px;
   cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
 }
 .dateActive { background: #0071eb; color: #fff; }
+.dateMain { font-size: 14px; }
+.datePrice { color: var(--color-primary); font-weight: 600; margin-top: 4px; }
+.dateActive .datePrice { color: #fff; }
 
 .segmentBar {
   max-width: var(--container-width);

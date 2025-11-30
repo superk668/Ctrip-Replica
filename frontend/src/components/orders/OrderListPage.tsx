@@ -3,6 +3,7 @@ import styles from './OrderListPage.module.css';
 import DownloadButton from './DownloadButton';
 import { Link, NavLink, useInRouterContext } from 'react-router-dom';
 import Header from '../../components/Header/Header';
+import UserCenterSidebar from '../../components/UserCenter/UserCenterSidebar';
 
 type OrderItem = {
   orderId: string;
@@ -259,23 +260,7 @@ const OrderListPage = () => {
     <Header />
     <div className={styles.pageContainer}>
       <div className={styles.layout}>
-        <aside className={styles.sidebar}>
-          <div className={styles.sectionTitle}>我的携程首页</div>
-          <div className={styles.sideGroup}>快捷入口</div>
-          <NavLink to="/orders" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>订单</NavLink>
-          <NavLink to="#" className={styles.sideItem}>我的消息</NavLink>
-          <div className={styles.sectionTitle}>常用信息</div>
-          <NavLink to="/user-center/common-info" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>常用信息</NavLink>
-          <NavLink to="/user-center/common-info/travelers" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>常用旅客信息</NavLink>
-          <NavLink to="/user-center/common-info/contacts" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>常用联系人</NavLink>
-          <NavLink to="/user-center/common-info/invoices" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>常用报销凭证</NavLink>
-          <NavLink to="/user-center/common-info/addresses" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>常用地址</NavLink>
-          <div className={styles.sectionTitle}>个人中心</div>
-          <NavLink to="/user-center/my-info" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>我的信息</NavLink>
-          <NavLink to="/user-center/bind-link" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>绑定和关联</NavLink>
-          <NavLink to="/user-center/security" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>账户安全</NavLink>
-          <NavLink to="/user-center/community" className={({isActive}) => isActive ? styles.sideItemActive : styles.sideItem}>我的社区主页</NavLink>
-        </aside>
+        <UserCenterSidebar active="orders" />
       <div className={styles.main}>
       <div className={styles.noticeBar}>
         <div className={styles.hint}>您可以在携程查看近一年订单，或使用携程App下载和管理历史订单</div>

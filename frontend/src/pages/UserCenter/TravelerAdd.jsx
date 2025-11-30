@@ -2,26 +2,9 @@ import React, { useState } from 'react';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import styles from './MyInfo.module.css';
+import UserCenterSidebar from '../../components/UserCenter/UserCenterSidebar';
 
-const Sidebar = () => (
-  <aside className={styles.sidebar}>
-    <div className={styles.sectionTitle}>我的携程首页</div>
-    <div className={styles.sideGroup}>快捷入口</div>
-    <a className={styles.menuItem} href="/orders">订单</a>
-    <a className={styles.menuItem} href="#">我的消息</a>
-    <div className={styles.sectionTitle}>常用信息</div>
-    <a className={styles.menuItem} href="/user-center/common-info">常用信息</a>
-    <a className={`${styles.menuItem} ${styles.menuItemActive}`} href="/user-center/common-info/travelers">常用旅客信息</a>
-    <a className={styles.menuItem} href="/user-center/common-info/contacts">常用联系人</a>
-    <a className={styles.menuItem} href="/user-center/common-info/invoices">常用报销凭证</a>
-    <a className={styles.menuItem} href="/user-center/common-info/addresses">常用地址</a>
-    <div className={styles.sectionTitle}>个人中心</div>
-    <a className={styles.menuItem} href="/user-center/my-info">我的信息</a>
-    <a className={styles.menuItem} href="/user-center/bind-link">绑定和关联</a>
-    <a className={styles.menuItem} href="/user-center/security">账户安全</a>
-    <a className={styles.menuItem} href="/user-center/community">我的社区主页</a>
-  </aside>
-);
+const Sidebar = () => (<UserCenterSidebar active="common" activeSub="travelers" />);
 
 const TravelerAdd = () => {
   const [cnName, setCnName] = useState('');
@@ -42,19 +25,33 @@ const TravelerAdd = () => {
   const [fax, setFax] = useState('');
   const [validTill, setValidTill] = useState('');
 
+  const isPhoneValid = (p) => !p || /^1[3-9]\d{9}$/.test(p.trim());
+  const isEmailValid = (e) => !e || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+  const isChineseID = (s) => !!s && (/^\d{15}$/.test(s.trim()) || /^\d{17}[\dXx]$/.test(s.trim()));
+  const isPassport = (s) => !!s && /^[A-Za-z0-9]{5,17}$/.test(s.trim());
+  const isDateYMD = (s) => !s || /^\d{4}-\d{2}-\d{2}$/.test(s.trim());
+
   const nameValid = (cnName.trim().length > 0) || (enLast.trim().length > 0 && enFirst.trim().length > 0);
   const idTypeValid = idType !== '';
-  const idNumberValid = idNumber.trim().length > 0;
-  const formValid = nameValid && idTypeValid && idNumberValid;
+  const idNumberValid = idType === '身份证' ? isChineseID(idNumber) : idType === '护照' ? isPassport(idNumber) : false;
+  const phoneValid = isPhoneValid(phone);
+  const emailValid = isEmailValid(email);
+  const birthdayValid = isDateYMD(birthday);
+  const validTillValid = isDateYMD(validTill);
+  const formValid = nameValid && idTypeValid && idNumberValid && phoneValid && emailValid && birthdayValid && validTillValid;
 
   const handleSave = async (e) => {
     e.preventDefault();
     setTriedSave(true);
     
-    if (!formValid) {
-      alert('请填写所有必填项（姓名、证件类型、证件号码）');
+    if (!nameValid || !idTypeValid || !idNumberValid) {
+      alert('请填写所有必填项（姓名、证件类型、证件号码）且格式正确');
       return;
     }
+    if (!phoneValid) { alert('手机号格式不正确'); return; }
+    if (!emailValid) { alert('Email格式不正确'); return; }
+    if (!birthdayValid) { alert('生日格式应为 yyyy-MM-dd'); return; }
+    if (!validTillValid) { alert('有效期格式应为 yyyy-MM-dd'); return; }
 
     try {
       let token = localStorage.getItem('token');
@@ -150,9 +147,9 @@ const TravelerAdd = () => {
                 </div></div>
                 <div className={styles.formRow}><div className={styles.infoLabel}>生日</div><input className={styles.input} placeholder="yyyy-MM-dd" value={birthday} onChange={(e)=>setBirthday(e.target.value)} /></div>
                 <div className={styles.formRow}><div className={styles.infoLabel}>出生地</div><input className={styles.input} placeholder="省市/国家" value={birthplace} onChange={(e)=>setBirthplace(e.target.value)} /></div>
-                <div className={styles.formRow}><div className={styles.infoLabel}>手机号</div><input className={styles.input} placeholder="用于接收通知" value={phone} onChange={(e)=>setPhone(e.target.value)} /></div>
+                <div className={styles.formRow}><div className={styles.infoLabel}>手机号</div><input className={styles.input} placeholder="用于接收通知" value={phone} onChange={(e)=>setPhone(e.target.value)} />{triedSave && !phoneValid && (<div className={styles.errorText}>手机号格式不正确</div>)}</div>
                 <div className={styles.formRow}><div className={styles.infoLabel}>传真号码</div><input className={styles.input} value={fax} onChange={(e)=>setFax(e.target.value)} /></div>
-                <div className={styles.formRow}><div className={styles.infoLabel}>Email</div><input className={styles.input} placeholder="用于接收通知" value={email} onChange={(e)=>setEmail(e.target.value)} /></div>
+                <div className={styles.formRow}><div className={styles.infoLabel}>Email</div><input className={styles.input} placeholder="用于接收通知" value={email} onChange={(e)=>setEmail(e.target.value)} />{triedSave && !emailValid && (<div className={styles.errorText}>Email格式不正确</div>)}</div>
               </div>
             </div>
 
@@ -160,8 +157,8 @@ const TravelerAdd = () => {
               <div className={styles.cardHeader}><div className={styles.sectionLine}>证件信息</div></div>
               <div className={styles.cardBody}>
                 <div className={styles.formRow}><div className={`${styles.infoLabel} ${styles.labelReq}`}>证件类型</div><select className={styles.input} value={idType} onChange={(e)=>setIdType(e.target.value)}><option value="">请选择</option><option value="身份证">身份证</option><option value="护照">护照</option></select>{triedSave && !idTypeValid && (<div className={styles.errorText}>请选择证件类型</div>)}</div>
-                <div className={styles.formRow}><div className={`${styles.infoLabel} ${styles.labelReq}`}>证件号码</div><input className={styles.input} value={idNumber} onChange={(e)=>setIdNumber(e.target.value)} />{triedSave && !idNumberValid && (<div className={styles.errorText}>请输入证件号码</div>)}</div>
-                <div className={styles.formRow}><div className={styles.infoLabel}>有效期</div><input className={styles.input} placeholder="yyyy-MM-dd" value={validTill} onChange={(e)=>setValidTill(e.target.value)} /><a className={styles.actionLink} href="#" style={{marginLeft:'12px'}}>设为长期有效</a></div>
+                <div className={styles.formRow}><div className={`${styles.infoLabel} ${styles.labelReq}`}>证件号码</div><input className={styles.input} value={idNumber} onChange={(e)=>setIdNumber(e.target.value)} />{triedSave && !idNumberValid && (<div className={styles.errorText}>证件号码格式不正确</div>)}</div>
+                <div className={styles.formRow}><div className={styles.infoLabel}>有效期</div><input className={styles.input} placeholder="yyyy-MM-dd" value={validTill} onChange={(e)=>setValidTill(e.target.value)} />{triedSave && !validTillValid && (<div className={styles.errorText}>有效期格式应为 yyyy-MM-dd</div>)}<a className={styles.actionLink} href="#" style={{marginLeft:'12px'}}>设为长期有效</a></div>
               </div>
             </div>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import styles from './FlightsResultsPage.module.css'
 import GlobalHeader from '../../components/Header/Header'
@@ -356,6 +356,12 @@ const FlightsResultsPage = () => {
   const [tabStart, setTabStart] = useState(depart)
 
   const DateTabs = () => {
+    const [priceMap, setPriceMap] = useState({})
+    const cacheRef = useRef(new Map())
+    const abortRef = useRef(null)
+    const prefetchedStartRef = useRef('')
+    const priceCacheRef = useRef(new Map())
+    const lastKnownPricesRef = useRef(new Map())
     const items = Array.from({ length: 10 }).map((_, i) => {
       const d = addDays(tabStart, i)
       const s = toISO(d)
@@ -365,8 +371,110 @@ const FlightsResultsPage = () => {
       const isActive = (type === '去' && s === depart) || (type === '返' && s === ret)
       return { s, label: `${mm}-${dd} ${weekday(s)} ${type}`, isActive, type }
     })
-    const goPrev = () => setTabStart(toISO(addDays(tabStart, -1)))
-    const goNext = () => setTabStart(toISO(addDays(tabStart, 1)))
+    const goPrev = async () => {
+      const token = localStorage.getItem('token')
+      if (!token) { setTabStart(toISO(addDays(tabStart, -1))); return }
+      const s = new URLSearchParams(location.search)
+      const fromCode = s.get('from') || fromCity
+      const toCode = s.get('to') || toCity
+      const airline = s.get('airline') || ''
+      const timeSlot = s.get('timeSlot') || ''
+      const model = s.get('model') || ''
+      const cabin = s.get('cabin') || ''
+      if (abortRef.current) abortRef.current.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+      const days = 10
+      const start = toISO(addDays(tabStart, -1))
+      const buildQuery = (a, b) => {
+        const sp = new URLSearchParams()
+        sp.set('from', a)
+        sp.set('to', b)
+        sp.set('startDate', start)
+        sp.set('days', String(days))
+        if (airline) sp.set('airline', airline)
+        if (timeSlot) sp.set('timeSlot', timeSlot)
+        if (model) sp.set('model', model)
+        if (cabin) sp.set('cabin', cabin)
+        return sp
+      }
+      const needBack = !!ret
+      const goRes = await fetch(`/api/flights/min-prices?${buildQuery(fromCode, toCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} }))
+      const backRes = needBack ? await fetch(`/api/flights/min-prices?${buildQuery(toCode, fromCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} })) : { prices: {} }
+      if (controller.signal.aborted) return
+      const nextItems = Array.from({ length: 10 }).map((_, i) => {
+        const d = addDays(start, i)
+        const s2 = toISO(d)
+        const type2 = ret ? (new Date(s2) >= new Date(ret) ? '返' : '去') : '去'
+        return { s: s2, type: type2 }
+      })
+      const map = {}
+      nextItems.forEach(it => {
+        const src = it.type === '返' ? backRes : goRes
+        const val = (src && src.prices && typeof src.prices[it.s] === 'number') ? src.prices[it.s] : 0
+        map[it.s] = val
+      })
+      nextItems.forEach(it => { lastKnownPricesRef.current.set(it.s, map[it.s]) })
+      const cacheKeyGo = `${fromCode}|${toCode}|${airline}|${timeSlot}|${model}|${cabin}|${start}|go`
+      const cacheKeyBack = `${toCode}|${fromCode}|${airline}|${timeSlot}|${model}|${cabin}|${start}|back`
+      priceCacheRef.current.set(cacheKeyGo, goRes.prices || {})
+      if (needBack) priceCacheRef.current.set(cacheKeyBack, backRes.prices || {})
+      prefetchedStartRef.current = start
+      setPriceMap(map)
+      setTabStart(start)
+    }
+    const goNext = async () => {
+      const token = localStorage.getItem('token')
+      if (!token) { setTabStart(toISO(addDays(tabStart, 1))); return }
+      const s = new URLSearchParams(location.search)
+      const fromCode = s.get('from') || fromCity
+      const toCode = s.get('to') || toCity
+      const airline = s.get('airline') || ''
+      const timeSlot = s.get('timeSlot') || ''
+      const model = s.get('model') || ''
+      const cabin = s.get('cabin') || ''
+      if (abortRef.current) abortRef.current.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+      const days = 10
+      const start = toISO(addDays(tabStart, 1))
+      const buildQuery = (a, b) => {
+        const sp = new URLSearchParams()
+        sp.set('from', a)
+        sp.set('to', b)
+        sp.set('startDate', start)
+        sp.set('days', String(days))
+        if (airline) sp.set('airline', airline)
+        if (timeSlot) sp.set('timeSlot', timeSlot)
+        if (model) sp.set('model', model)
+        if (cabin) sp.set('cabin', cabin)
+        return sp
+      }
+      const needBack = !!ret
+      const goRes = await fetch(`/api/flights/min-prices?${buildQuery(fromCode, toCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} }))
+      const backRes = needBack ? await fetch(`/api/flights/min-prices?${buildQuery(toCode, fromCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} })) : { prices: {} }
+      if (controller.signal.aborted) return
+      const nextItems = Array.from({ length: 10 }).map((_, i) => {
+        const d = addDays(start, i)
+        const s2 = toISO(d)
+        const type2 = ret ? (new Date(s2) >= new Date(ret) ? '返' : '去') : '去'
+        return { s: s2, type: type2 }
+      })
+      const map = {}
+      nextItems.forEach(it => {
+        const src = it.type === '返' ? backRes : goRes
+        const val = (src && src.prices && typeof src.prices[it.s] === 'number') ? src.prices[it.s] : 0
+        map[it.s] = val
+      })
+      nextItems.forEach(it => { lastKnownPricesRef.current.set(it.s, map[it.s]) })
+      const cacheKeyGo = `${fromCode}|${toCode}|${airline}|${timeSlot}|${model}|${cabin}|${start}|go`
+      const cacheKeyBack = `${toCode}|${fromCode}|${airline}|${timeSlot}|${model}|${cabin}|${start}|back`
+      priceCacheRef.current.set(cacheKeyGo, goRes.prices || {})
+      if (needBack) priceCacheRef.current.set(cacheKeyBack, backRes.prices || {})
+      prefetchedStartRef.current = start
+      setPriceMap(map)
+      setTabStart(start)
+    }
     const onPick = (it) => {
       if (it.type === '返') {
         setRet(it.s)
@@ -376,11 +484,74 @@ const FlightsResultsPage = () => {
       }
       setTimeout(applyParams, 0)
     }
+    useEffect(() => {
+      const token = localStorage.getItem('token')
+      if (!token) return
+      const s = new URLSearchParams(location.search)
+      const fromCode = s.get('from') || fromCity
+      const toCode = s.get('to') || toCity
+      const airline = s.get('airline') || ''
+      const timeSlot = s.get('timeSlot') || ''
+      const model = s.get('model') || ''
+      const cabin = s.get('cabin') || ''
+      if (abortRef.current) abortRef.current.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
+      const days = 10
+      const buildQuery = (a, b) => {
+        const sp = new URLSearchParams()
+        sp.set('from', a)
+        sp.set('to', b)
+        sp.set('startDate', tabStart)
+        sp.set('days', String(days))
+        if (airline) sp.set('airline', airline)
+        if (timeSlot) sp.set('timeSlot', timeSlot)
+        if (model) sp.set('model', model)
+        if (cabin) sp.set('cabin', cabin)
+        return sp
+      }
+      const needBack = !!ret
+      const cacheKeyGo = `${fromCode}|${toCode}|${airline}|${timeSlot}|${model}|${cabin}|${tabStart}|go`
+      const cacheKeyBack = `${toCode}|${fromCode}|${airline}|${timeSlot}|${model}|${cabin}|${tabStart}|back`
+      const cachedGo = priceCacheRef.current.get(cacheKeyGo)
+      const cachedBack = needBack ? priceCacheRef.current.get(cacheKeyBack) : null
+      if (cachedGo || cachedBack) {
+        const map = {}
+        items.forEach(it => {
+          const srcPrices = it.type === '返' ? (cachedBack || {}) : (cachedGo || {})
+          const val = (srcPrices && typeof srcPrices[it.s] === 'number') ? srcPrices[it.s] : undefined
+          if (val !== undefined) map[it.s] = val
+        })
+        if (Object.keys(map).length > 0) setPriceMap(prev => ({ ...prev, ...map }))
+      }
+      const run = async () => {
+        const goRes = await fetch(`/api/flights/min-prices?${buildQuery(fromCode, toCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} }))
+        const backRes = needBack ? await fetch(`/api/flights/min-prices?${buildQuery(toCode, fromCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} })) : { prices: {} }
+        if (controller.signal.aborted) return
+        const map = {}
+        items.forEach(it => {
+          const src = it.type === '返' ? backRes : goRes
+          const val = (src && src.prices && typeof src.prices[it.s] === 'number') ? src.prices[it.s] : 0
+          map[it.s] = val
+        })
+        items.forEach(it => { lastKnownPricesRef.current.set(it.s, map[it.s]) })
+        priceCacheRef.current.set(cacheKeyGo, goRes.prices || {})
+        if (needBack) priceCacheRef.current.set(cacheKeyBack, backRes.prices || {})
+        setPriceMap(map)
+      }
+      if (prefetchedStartRef.current === tabStart) { prefetchedStartRef.current = '' } else { run() }
+    }, [tabStart, location.search])
     return (
       <div className={styles.dateTabs}>
         <span className={styles.arrow} onClick={goPrev}>◀</span>
         {items.map(it => (
-          <span key={it.s} className={`${styles.dateCell} ${it.isActive?styles.dateActive:''}`} onClick={()=>onPick(it)}>{it.label}</span>
+          <span key={it.s} className={`${styles.dateCell} ${it.isActive?styles.dateActive:''}`} onClick={()=>onPick(it)}>
+            <span className={styles.dateMain}>{it.label}</span>
+            <span className={styles.datePrice}>{(() => {
+              const v = priceMap[it.s] !== undefined ? priceMap[it.s] : lastKnownPricesRef.current.get(it.s)
+              return v !== undefined ? (v > 0 ? `¥${v}` : '—') : '—'
+            })()}</span>
+          </span>
         ))}
         <span className={styles.arrow} onClick={goNext}>▶</span>
       </div>

@@ -4,6 +4,7 @@ const TravelerService = require('../services/travelerService');
 const UserService = require('../services/userService');
 const authenticateToken = require('../middleware/authenticateToken');
 const { successResponse, errorResponse } = require('../utils/response');
+const { validatePhone, validateEmail, validateChineseIdNumber, validatePassport, validateDateYMD } = require('../utils/validator');
 
 // Middleware for all routes
 router.use(authenticateToken);
@@ -35,7 +36,26 @@ router.get('/travelers/:id', async (req, res) => {
 
 router.post('/travelers', async (req, res) => {
   try {
-    const result = await TravelerService.createTraveler(req.user.userId, req.body);
+    const b = req.body || {};
+    const hasCn = !!(b.cnName && String(b.cnName).trim());
+    const hasEn = !!(b.enLast && String(b.enLast).trim() && b.enFirst && String(b.enFirst).trim());
+    if (!hasCn && !hasEn) return res.status(400).json(errorResponse('Name required.'));
+    if (b.phone && !validatePhone(String(b.phone))) return res.status(400).json(errorResponse('Invalid phone.'));
+    if (b.email && !validateEmail(String(b.email))) return res.status(400).json(errorResponse('Invalid email.'));
+    if (b.birthday) {
+      if (!validateDateYMD(String(b.birthday))) return res.status(400).json(errorResponse('Invalid birthday format.'));
+      const bd = new Date(b.birthday);
+      const today = new Date(); today.setHours(0,0,0,0);
+      if (bd > today) return res.status(400).json(errorResponse('Birthday cannot be in future.'));
+    }
+    if (!b.document || !b.document.type || !b.document.no) return res.status(400).json(errorResponse('Document type and number required.'));
+    if (b.document.type === '身份证') {
+      if (!validateChineseIdNumber(String(b.document.no))) return res.status(400).json(errorResponse('Invalid ID number.'));
+    } else if (b.document.type === '护照') {
+      if (!validatePassport(String(b.document.no))) return res.status(400).json(errorResponse('Invalid passport number.'));
+    }
+    if (b.document.validTill && !validateDateYMD(String(b.document.validTill))) return res.status(400).json(errorResponse('Invalid validTill format.'));
+    const result = await TravelerService.createTraveler(req.user.userId, b);
     res.status(201).json(successResponse(result));
   } catch (error) {
     if (error.message === 'Document already exists') {
@@ -48,7 +68,28 @@ router.post('/travelers', async (req, res) => {
 
 router.put('/travelers/:id', async (req, res) => {
   try {
-    const result = await TravelerService.updateTraveler(req.user.userId, req.params.id, req.body);
+    const b = req.body || {};
+    if (b.cnName !== undefined || b.enLast !== undefined || b.enFirst !== undefined) {
+      const hasCn = !!(b.cnName && String(b.cnName).trim());
+      const hasEn = !!(b.enLast && String(b.enLast).trim() && b.enFirst && String(b.enFirst).trim());
+      if (!hasCn && !hasEn) return res.status(400).json(errorResponse('Name required.'));
+    }
+    if (b.phone !== undefined && b.phone && !validatePhone(String(b.phone))) return res.status(400).json(errorResponse('Invalid phone.'));
+    if (b.email !== undefined && b.email && !validateEmail(String(b.email))) return res.status(400).json(errorResponse('Invalid email.'));
+    if (b.birthday !== undefined && b.birthday) {
+      if (!validateDateYMD(String(b.birthday))) return res.status(400).json(errorResponse('Invalid birthday format.'));
+      const bd = new Date(b.birthday);
+      const today = new Date(); today.setHours(0,0,0,0);
+      if (bd > today) return res.status(400).json(errorResponse('Birthday cannot be in future.'));
+    }
+    if (b.document) {
+      if (b.document.type !== undefined && b.document.type === '') return res.status(400).json(errorResponse('Document type required.'));
+      if (b.document.no !== undefined && (!b.document.no || String(b.document.no).trim() === '')) return res.status(400).json(errorResponse('Document number required.'));
+      if (b.document.type === '身份证' && b.document.no && !validateChineseIdNumber(String(b.document.no))) return res.status(400).json(errorResponse('Invalid ID number.'));
+      if (b.document.type === '护照' && b.document.no && !validatePassport(String(b.document.no))) return res.status(400).json(errorResponse('Invalid passport number.'));
+      if (b.document.validTill !== undefined && b.document.validTill && !validateDateYMD(String(b.document.validTill))) return res.status(400).json(errorResponse('Invalid validTill format.'));
+    }
+    const result = await TravelerService.updateTraveler(req.user.userId, req.params.id, b);
     if (!result) {
       return res.status(404).json(errorResponse('Traveler not found.'));
     }

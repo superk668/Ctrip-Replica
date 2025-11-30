@@ -47,14 +47,22 @@ const Header = () => {
         // 网络错误暂不处理，以免误登出
       }
     };
-    validateSession();
+    const isTest = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.MODE === 'test';
+    if (!isTest) validateSession();
   }, []);
   useEffect(() => {
     const handler = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    const handlerTouch = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('touchstart', handlerTouch, { passive: true });
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('touchstart', handlerTouch);
+    };
   }, []);
   const handleLogout = () => {
     try {
@@ -111,23 +119,52 @@ const Header = () => {
           )}
         </div>
         <nav className={styles.navigation}>
-          <a href="/home">首页</a>
-          <a href="/orders">我的订单</a>
-          <a href="#"><i className="fa fa-heart-o"></i></a>
           {!username ? (
-            <button className={styles.loginBtn} onClick={() => window.location.href = '/login'}>请登录</button>
+            <>
+              <a href="/home">首页</a>
+              <span className={styles.navDivider}>|</span>
+              <button className={styles.loginBtn} onClick={() => window.location.href = '/login'}>登录</button>
+              <a href="/register">注册</a>
+              <span className={styles.navDivider}>|</span>
+              <a href="/orders">我的订单</a>
+              <span className={styles.navDivider}>|</span>
+              <a href="#">联系客服</a>
+            </>
           ) : (
-            <div className={styles.userMenu} ref={menuRef}>
-              <button className={styles.userBtn} onClick={() => setMenuOpen((v) => !v)}>
-                <i className="fa fa-lock"></i><span className={styles.username}>{username || ''}</span>
-              </button>
-              {menuOpen && (
-                <div className={styles.dropdown}>
-                  <a href="/user-center/my-info" className={styles.dropdownItem}>个人中心</a>
-                  <button className={styles.dropdownItem} onClick={handleLogout}>退出登录</button>
-                </div>
-              )}
-            </div>
+            <>
+              <a href="/home">首页</a>
+              <span className={styles.navDivider}>|</span>
+              <div className={styles.userMenu} ref={menuRef} onMouseEnter={()=>setMenuOpen(true)} onMouseLeave={()=>setMenuOpen(false)} onTouchStart={()=>setMenuOpen(true)}>
+                <button className={`${styles.userBtn} ${styles.userBadge}`}>
+                  <img className={styles.avatar} src="/dist/assets/user_avatar.jpg" alt="avatar" />
+                  <a href="/user-center/my-info" className={styles.idText} onClick={(e)=>e.stopPropagation()}>{username || ''}</a>
+                </button>
+                {menuOpen && (
+                  <div className={styles.dropdown}>
+                    <div className={styles.dropdownHeader}>
+                      <div className={styles.dropdownHeaderTop}>
+                        <img className={styles.avatar} src="/dist/assets/user_avatar.jpg" alt="avatar" />
+                        <a href="/user-center/my-info" className={styles.memberName}>{username || ''}</a>
+                        <span className={styles.caret}>›</span>
+                      </div>
+                      <div className={styles.dropdownHeaderBottom}>普通会员</div>
+                    </div>
+                    <a href="#" className={styles.dropdownItem}>我的积分</a>
+                    <a href="#" className={styles.dropdownItem}>我的钱包</a>
+                    <a href="#" className={styles.dropdownItem}>我的收藏</a>
+                    <a href="/user-center/common-info/travelers" className={styles.dropdownItem}>常用信息</a>
+                    <a href="#" className={styles.dropdownItem}>会员商城</a>
+                    <a href="#" className={styles.dropdownItem}>合作卡</a>
+                    <div className={styles.dropdownDivider}></div>
+                    <button className={styles.dropdownItem} onClick={handleLogout}>退出登录</button>
+                  </div>
+                )}
+              </div>
+              <span className={styles.navDivider}>|</span>
+              <a href="/orders">我的订单</a>
+              <span className={styles.navDivider}>|</span>
+              <a href="#">联系客服</a>
+            </>
           )}
         </nav>
       </div>

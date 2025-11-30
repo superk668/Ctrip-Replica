@@ -157,10 +157,10 @@ router.post('/:orderId/cancel', async (req, res) => {
     await OrderService.init();
     const user = await getCurrentUser(req);
     if (!user) return res.status(401).json({ error: 'Unauthorized.' });
-    const order = await OrderService.findOrderById(orderId);
-    if (!order || order.userId !== user.id) return res.status(404).json({ error: 'Order not found.' });
-    if (order.orderStatus !== 'pending_travel' && order.orderStatus !== 'pending_payment') return res.status(400).json({ error: 'Order cannot be cancelled in its current state.' });
-    await OrderService.updateOrderStatus(orderId, 'cancelled');
+    const result = await OrderService.cancelOrder(orderId, user.id);
+    if (!result.ok && result.code === 'NOT_FOUND') return res.status(404).json({ error: 'Order not found.' });
+    if (!result.ok && result.code === 'INVALID_STATE') return res.status(400).json({ error: 'Order cannot be cancelled in its current state.' });
+    if (result.ok && result.code === 'ALREADY_CANCELLED') return res.status(200).json({ message: 'Order already cancelled.' });
     return res.status(200).json({ message: 'Order cancelled successfully.' });
   } catch (e) {
     return res.status(500).json({ error: 'Failed to cancel order.' });

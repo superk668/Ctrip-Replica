@@ -67,6 +67,31 @@ class OrderService {
     });
   }
 
+  static async cancelOrder(orderId, userId) {
+    return new Promise((resolve, reject) => {
+      db.serialize(() => {
+        db.get(
+          'SELECT user_id AS userId, status FROM orders WHERE order_id = ?',
+          [orderId],
+          (err, row) => {
+            if (err) return reject(err);
+            if (!row || row.userId !== userId) return resolve({ ok: false, code: 'NOT_FOUND' });
+            if (row.status === 'cancelled') return resolve({ ok: true, code: 'ALREADY_CANCELLED' });
+            if (row.status !== 'pending_travel' && row.status !== 'pending_payment') return resolve({ ok: false, code: 'INVALID_STATE' });
+            db.run(
+              'UPDATE orders SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE order_id = ?',
+              ['cancelled', orderId],
+              (e2) => {
+                if (e2) return reject(e2);
+                resolve({ ok: true, code: 'CANCELLED' });
+              }
+            );
+          }
+        );
+      });
+    });
+  }
+
   static async createOrder(order) {
     const {
       orderId,
