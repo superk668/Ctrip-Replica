@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+// no routing change here per requirement
 import styles from './FlightsSearchCard.module.css';
 
 function IconSwap() {
@@ -26,7 +27,7 @@ const Tabs = () => (
     <span className={styles.tab}>航班动态</span>
     <span className={styles.tab}>在线选座</span>
     <span className={styles.tab}>退票改签</span>
-    <span className={styles.tab}>更多服务</span>
+    <span className={styles.tab} onClick={() => { window.location.href = '/booking/services' }}>更多服务</span>
     <span className={styles.cabin}>不限舱等 ▾</span>
   </div>
 );

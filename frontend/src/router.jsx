@@ -21,6 +21,8 @@ import TravelersManagement from './pages/UserCenter/TravelersManagement';
 import TravelerEdit from './pages/UserCenter/TravelerEdit';
 import TravelerAdd from './pages/UserCenter/TravelerAdd';
 import TravelerView from './pages/UserCenter/TravelerView';
+import AirportGuidePage from './pages/AirportGuide/AirportGuidePage';
+import BoardingProcessPage from './pages/BoardingProcess/BoardingProcessPage';
 
 const OrderDetailRoute = () => {
   const params = useParams();
@@ -116,6 +118,14 @@ const router = createBrowserRouter([
   {
     path: '/user-center/community',
     element: <CommunityHome />,
+  },
+  {
+    path: '/airport-guide',
+    element: <AirportGuidePage />,
+  },
+  {
+    path: '/boarding-process',
+    element: <BoardingProcessPage />,
   },
 ]);
 
