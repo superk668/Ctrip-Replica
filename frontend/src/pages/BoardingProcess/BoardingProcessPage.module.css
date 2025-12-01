@@ -1,0 +1,15 @@
+@import '../../styles/tokens.css';
+
+.container { min-height: 100vh; display: flex; flex-direction: column; }
+.main { flex: 1; padding: 80px 20px 40px; background: #f5f7fa; }
+.layout { width: 100%; max-width: 1200px; margin-left: 0; margin-right: auto; display: flex; gap: 16px; }
+.content { flex: 1; background: #fff; border-radius: 12px; box-shadow: var(--shadow-md); padding: 16px; }
+.title { font-size: 20px; font-weight: 700; color: #2463eb; display: flex; align-items: baseline; gap: 8px; }
+.note { color: #6b6f76; font-size: 12px; margin-top: 6px; }
+.block { margin-top: 16px; background: #f7f9fc; border: 1px solid #e6e9ef; border-radius: 12px; overflow: hidden; }
+.blockHeader { background: #eaf2ff; color: #2463eb; font-weight: 700; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+.blockSub { color: #6b6f76; margin-left: auto; font-size: 12px; }
+.imgWrap { background: #fff; display: flex; justify-content: center; align-items: center; }
+.img { max-width: 100%; height: auto; display: block; }
+.placeholder { padding: 24px; text-align: center; color: #6b6f76; }
+

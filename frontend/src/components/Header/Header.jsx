@@ -72,8 +72,8 @@ const Header = () => {
     window.location.href = '/login';
   };
 
-  // 仅在购票流程相关页面显示进度条（示例：/booking、/payment、/orders/complete）
-  const showBookingProgress = /^\/booking(\b|\/)/.test(location.pathname);
+  // 仅在购票流程相关页面显示进度条，但排除 /booking/services 页面
+  const showBookingProgress = /^\/booking(\b|\/)/.test(location.pathname) && location.pathname !== '/booking/services';
   const stage = (() => {
     // 允许通过 sessionStorage 覆盖当前阶段；默认展示第一步“乘机信息”
     try {
