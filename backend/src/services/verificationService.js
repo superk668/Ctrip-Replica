@@ -4,7 +4,7 @@ class VerificationService {
   /**
    * 创建验证码
    * @param {string} phone - 手机号
-   * @param {string} type - 验证码类型 ('login' 或 'register')
+   * @param {string} type - 验证码类型 ('login', 'register', 或 'reset')
    * @returns {Promise<string>} 验证码
    */
   static async createVerificationCode(phone, type) {
@@ -41,7 +41,7 @@ class VerificationService {
    * 验证验证码
    * @param {string} phone - 手机号
    * @param {string} code - 验证码
-   * @param {string} type - 验证码类型 ('login' 或 'register')
+   * @param {string} type - 验证码类型 ('login', 'register', 或 'reset')
    * @returns {Promise<boolean>} 验证结果
    */
   static async verifyCode(phone, code, type) {
