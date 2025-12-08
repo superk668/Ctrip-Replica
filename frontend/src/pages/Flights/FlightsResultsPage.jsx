@@ -61,6 +61,8 @@ const FlightsResultsPage = () => {
   const [ret, setRet] = useState(trip === 'round' ? returnDate : '')
   const [fromList, setFromList] = useState([])
   const [toList, setToList] = useState([])
+  const fromSuggestAbortRef = useRef(null)
+  const toSuggestAbortRef = useRef(null)
   const [showFrom, setShowFrom] = useState(false)
   const [showTo, setShowTo] = useState(false)
   const [selectedFrom, setSelectedFrom] = useState(null)
@@ -101,12 +103,21 @@ const FlightsResultsPage = () => {
       const q = fromInput.trim()
       if (!q) { setFromList([]); return }
       try {
-        const res = await fetch(`/api/airports/suggest?query=${encodeURIComponent(q)}`)
+        if (fromSuggestAbortRef.current) fromSuggestAbortRef.current.abort()
+        const controller = new AbortController()
+        fromSuggestAbortRef.current = controller
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : ''
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+        const res = await fetch(`/api/airports/suggest?query=${encodeURIComponent(q)}`, { signal: controller.signal, headers })
         const data = await res.json()
-        setFromList(Array.isArray(data.suggestions) ? data.suggestions : [])
-      } catch { setFromList([]) }
+        if (!controller.signal.aborted) {
+          setFromList(Array.isArray(data.suggestions) ? data.suggestions : [])
+        }
+      } catch (e) {
+        if (e.name !== 'AbortError') setFromList([])
+      }
     }, 250)
-    return () => clearTimeout(t)
+    return () => { clearTimeout(t); if (fromSuggestAbortRef.current) fromSuggestAbortRef.current.abort() }
   }, [fromInput])
 
   useEffect(() => {
@@ -114,12 +125,21 @@ const FlightsResultsPage = () => {
       const q = toInput.trim()
       if (!q) { setToList([]); return }
       try {
-        const res = await fetch(`/api/airports/suggest?query=${encodeURIComponent(q)}`)
+        if (toSuggestAbortRef.current) toSuggestAbortRef.current.abort()
+        const controller = new AbortController()
+        toSuggestAbortRef.current = controller
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : ''
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+        const res = await fetch(`/api/airports/suggest?query=${encodeURIComponent(q)}`, { signal: controller.signal, headers })
         const data = await res.json()
-        setToList(Array.isArray(data.suggestions) ? data.suggestions : [])
-      } catch { setToList([]) }
+        if (!controller.signal.aborted) {
+          setToList(Array.isArray(data.suggestions) ? data.suggestions : [])
+        }
+      } catch (e) {
+        if (e.name !== 'AbortError') setToList([])
+      }
     }, 250)
-    return () => clearTimeout(t)
+    return () => { clearTimeout(t); if (toSuggestAbortRef.current) toSuggestAbortRef.current.abort() }
   }, [toInput])
 
   const parseCode = (txt) => {
@@ -127,19 +147,43 @@ const FlightsResultsPage = () => {
     return m ? m[1] : ''
   }
 
-  const applyParams = () => {
+  const applyTimerRef = useRef(null)
+  const pendingParamsRef = useRef('')
+  useEffect(() => {
+    return () => {
+      if (applyTimerRef.current) {
+        clearTimeout(applyTimerRef.current)
+        applyTimerRef.current = null
+      }
+      if (fromSuggestAbortRef.current) try { fromSuggestAbortRef.current.abort() } catch {}
+      if (toSuggestAbortRef.current) try { toSuggestAbortRef.current.abort() } catch {}
+    }
+  }, [])
+  const applyParamsDebounced = (delay = 180, overrides = {}) => {
     const s = new URLSearchParams(location.search)
-    const fCode = selectedFrom?.cityCode || selectedFrom?.airportCode || parseCode(fromInput) || fromCity
-    const tCode = selectedTo?.cityCode || selectedTo?.airportCode || parseCode(toInput) || toCity
+    const fCode = overrides.from !== undefined ? overrides.from : (selectedFrom?.cityCode || selectedFrom?.airportCode || parseCode(fromInput) || fromCity)
+    const tCode = overrides.to !== undefined ? overrides.to : (selectedTo?.cityCode || selectedTo?.airportCode || parseCode(toInput) || toCity)
     s.set('from', fCode)
     s.set('to', tCode)
-    s.set('departDate', depart || todayStr)
-    if (ret) s.set('returnDate', ret); else s.delete('returnDate')
-    if (filterAirline) s.set('airline', filterAirline); else s.delete('airline')
-    if (filterTime) s.set('timeSlot', filterTime); else s.delete('timeSlot')
-    if (filterModel) s.set('model', filterModel); else s.delete('model')
-    if (filterCabin) s.set('cabin', filterCabin); else s.delete('cabin')
-    navigate(`/flights/results?${s.toString()}`)
+    s.set('departDate', overrides.departDate !== undefined ? overrides.departDate : (depart || todayStr))
+    const nextRet = overrides.returnDate !== undefined ? overrides.returnDate : ret
+    if (nextRet) s.set('returnDate', nextRet); else s.delete('returnDate')
+    const nextAirline = overrides.airline !== undefined ? overrides.airline : filterAirline
+    if (nextAirline) s.set('airline', nextAirline); else s.delete('airline')
+    const nextTime = overrides.timeSlot !== undefined ? overrides.timeSlot : filterTime
+    if (nextTime) s.set('timeSlot', nextTime); else s.delete('timeSlot')
+    const nextModel = overrides.model !== undefined ? overrides.model : filterModel
+    if (nextModel) s.set('model', nextModel); else s.delete('model')
+    const nextCabin = overrides.cabin !== undefined ? overrides.cabin : filterCabin
+    if (nextCabin) s.set('cabin', nextCabin); else s.delete('cabin')
+    const next = s.toString()
+    pendingParamsRef.current = next
+    if (applyTimerRef.current) clearTimeout(applyTimerRef.current)
+    applyTimerRef.current = setTimeout(() => {
+      applyTimerRef.current = null
+      const current = new URLSearchParams(location.search).toString()
+      if (next !== current) navigate(`/flights/results?${next}`)
+    }, delay)
   }
 
   const handleSwap = () => {
@@ -151,7 +195,9 @@ const FlightsResultsPage = () => {
     const tS = selectedTo
     setSelectedFrom(tS)
     setSelectedTo(fS)
-    setTimeout(applyParams, 0)
+    const fCode = tS?.cityCode || tS?.airportCode || parseCode(tI) || toCity
+    const tCode = fS?.cityCode || fS?.airportCode || parseCode(fI) || fromCity
+    applyParamsDebounced(100, { from: fCode, to: tCode })
   }
 
   useEffect(() => {
@@ -160,28 +206,55 @@ const FlightsResultsPage = () => {
       navigate('/login')
       return
     }
+    const controller = new AbortController()
     const fetchData = async () => {
       try {
+        setError('')
         setLoading(true)
         const url = `/api/flights/search${location.search}`
-        const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-        const data = await res.json()
+        const res = await fetch(url, { 
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal
+        })
+        let data = {}
+        try {
+          data = await res.json()
+        } catch (e) {
+          console.warn('Response not JSON', res.status)
+        }
         if (!res.ok) {
           if (res.status === 401) {
+            try {
+              const prof = await fetch('/api/users/me/profile', { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
+              if (prof.ok) {
+                const retry = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
+                if (retry.ok) {
+                  const j = await retry.json().catch(()=>({ flights: [] }))
+                  setResults(Array.isArray(j.flights) ? j.flights : [])
+                  return
+                }
+              }
+            } catch (_) {}
             navigate('/login')
             return
           }
-          setError(data.error || '搜索失败')
+          const msg = data?.error || data?.message || (res.status === 500 ? '服务器内部错误' : '搜索失败')
+          setError(`${msg} (${res.status})`)
         } else {
           setResults(Array.isArray(data.flights) ? data.flights : [])
         }
       } catch (e) {
-        setError('网络异常，请稍后重试')
+        if (e.name !== 'AbortError') {
+          setError('网络异常，请稍后重试')
+        }
       } finally {
-        setLoading(false)
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
     fetchData()
+    return () => controller.abort()
   }, [location.search])
 
   const Header = () => (
@@ -207,7 +280,7 @@ const FlightsResultsPage = () => {
                   seen.add(key)
                   return true
                 }).map(item => (
-                  <div key={`${item.city}-${item.airportCode}`} className={styles.dropdownItem} onMouseDown={()=>{setSelectedFrom(item); setFromInput(`${item.city}(${item.cityCode})`); setShowFrom(false); setTimeout(applyParams,0)}}>
+                  <div key={`${item.city}-${item.airportCode}`} className={styles.dropdownItem} onMouseDown={()=>{setSelectedFrom(item); setFromInput(`${item.city}(${item.cityCode})`); setShowFrom(false); applyParamsDebounced(100, { from: item.cityCode || item.airportCode })}}>
                     {item.city}({item.cityCode}) · {item.airport}({item.airportCode})
                   </div>
                 ))
@@ -230,7 +303,7 @@ const FlightsResultsPage = () => {
                   seen.add(key)
                   return true
                 }).map(item => (
-                  <div key={`${item.city}-${item.airportCode}`} className={styles.dropdownItem} onMouseDown={()=>{setSelectedTo(item); setToInput(`${item.city}(${item.cityCode})`); setShowTo(false); setTimeout(applyParams,0)}}>
+                  <div key={`${item.city}-${item.airportCode}`} className={styles.dropdownItem} onMouseDown={()=>{setSelectedTo(item); setToInput(`${item.city}(${item.cityCode})`); setShowTo(false); applyParamsDebounced(100, { to: item.cityCode || item.airportCode })}}>
                     {item.city}({item.cityCode}) · {item.airport}({item.airportCode})
                   </div>
                 ))
@@ -240,12 +313,12 @@ const FlightsResultsPage = () => {
         </div>
         <div className={styles.fieldWide}>
           <div className={styles.label}>出发日期</div>
-          <input className={styles.dateInput} type="date" value={depart} min={todayStr} onChange={e=>{setDepart(e.target.value); setTimeout(applyParams,0)}} />
+          <input className={styles.dateInput} type="date" value={depart} min={todayStr} onChange={e=>{setDepart(e.target.value); applyParamsDebounced(100, { departDate: e.target.value })}} />
         </div>
         {trip !== 'oneway' && (
           <div className={styles.fieldWide}>
             <div className={styles.label}>返回日期</div>
-            <input className={styles.dateInput} type="date" value={ret} min={depart||todayStr} onChange={e=>{setRet(e.target.value); setTimeout(applyParams,0)}} />
+            <input className={styles.dateInput} type="date" value={ret} min={depart||todayStr} onChange={e=>{setRet(e.target.value); applyParamsDebounced(100, { returnDate: e.target.value })}} />
           </div>
         )}
         <div className={styles.fieldSmall}>
@@ -275,11 +348,11 @@ const FlightsResultsPage = () => {
           {showAirline && (
             <div className={styles.filterDropdown} onMouseLeave={()=>setShowAirline(false)}>
               {airlines.map(a => (
-                <div key={a.code} className={`${styles.filterItem} ${filterAirline===a.code?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterAirline(a.code); setShowAirline(false); setTimeout(applyParams,0)}}>
+                <div key={a.code} className={`${styles.filterItem} ${filterAirline===a.code?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterAirline(a.code); setShowAirline(false); applyParamsDebounced(100, { airline: a.code })}}>
                   {a.name}
                 </div>
               ))}
-              <div className={styles.filterItem} onMouseDown={()=>{setFilterAirline(''); setShowAirline(false); setTimeout(applyParams,0)}}>不限</div>
+              <div className={styles.filterItem} onMouseDown={()=>{setFilterAirline(''); setShowAirline(false); applyParamsDebounced(100, { airline: '' })}}>不限</div>
             </div>
           )}
         </div>
@@ -288,11 +361,11 @@ const FlightsResultsPage = () => {
           {showTime && (
             <div className={styles.filterDropdownWide} onMouseLeave={()=>setShowTime(false)}>
               {timeSlots.map(ts => (
-                <div key={ts} className={`${styles.filterItem} ${filterTime===ts?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterTime(ts); setShowTime(false); setTimeout(applyParams,0)}}>
+                <div key={ts} className={`${styles.filterItem} ${filterTime===ts?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterTime(ts); setShowTime(false); applyParamsDebounced(100, { timeSlot: ts })}}>
                   {ts}
                 </div>
               ))}
-              <div className={styles.filterItem} onMouseDown={()=>{setFilterTime(''); setShowTime(false); setTimeout(applyParams,0)}}>不限</div>
+              <div className={styles.filterItem} onMouseDown={()=>{setFilterTime(''); setShowTime(false); applyParamsDebounced(100, { timeSlot: '' })}}>不限</div>
             </div>
           )}
         </div>
@@ -301,11 +374,11 @@ const FlightsResultsPage = () => {
           {showModel && (
             <div className={styles.filterDropdown} onMouseLeave={()=>setShowModel(false)}>
               {modelOptions.map(mo => (
-                <div key={mo} className={`${styles.filterItem} ${filterModel===mo?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterModel(mo); setShowModel(false); setTimeout(applyParams,0)}}>
+                <div key={mo} className={`${styles.filterItem} ${filterModel===mo?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterModel(mo); setShowModel(false); applyParamsDebounced(100, { model: mo })}}>
                   {mo}
                 </div>
               ))}
-              <div className={styles.filterItem} onMouseDown={()=>{setFilterModel(''); setShowModel(false); setTimeout(applyParams,0)}}>不限</div>
+              <div className={styles.filterItem} onMouseDown={()=>{setFilterModel(''); setShowModel(false); applyParamsDebounced(100, { model: '' })}}>不限</div>
             </div>
           )}
         </div>
@@ -314,11 +387,11 @@ const FlightsResultsPage = () => {
           {showCabin && (
             <div className={styles.filterDropdown} onMouseLeave={()=>setShowCabin(false)}>
               {cabinOptions.map(cb => (
-                <div key={cb.code} className={`${styles.filterItem} ${filterCabin===cb.code?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterCabin(cb.code); setShowCabin(false); setTimeout(applyParams,0)}}>
+                <div key={cb.code} className={`${styles.filterItem} ${filterCabin===cb.code?styles.filterItemActive:''}`} onMouseDown={()=>{setFilterCabin(cb.code); setShowCabin(false); applyParamsDebounced(100, { cabin: cb.code })}}>
                   {cb.name}
                 </div>
               ))}
-              <div className={styles.filterItem} onMouseDown={()=>{setFilterCabin(''); setShowCabin(false); setTimeout(applyParams,0)}}>不限</div>
+              <div className={styles.filterItem} onMouseDown={()=>{setFilterCabin(''); setShowCabin(false); applyParamsDebounced(100, { cabin: '' })}}>不限</div>
             </div>
           )}
         </div>
@@ -478,11 +551,16 @@ const FlightsResultsPage = () => {
     const onPick = (it) => {
       if (it.type === '返') {
         setRet(it.s)
+        applyParamsDebounced(0, { returnDate: it.s })
       } else {
         setDepart(it.s)
-        if (ret && new Date(ret) < new Date(it.s)) setRet('')
+        if (ret && new Date(ret) < new Date(it.s)) {
+          setRet('')
+          applyParamsDebounced(0, { departDate: it.s, returnDate: '' })
+        } else {
+          applyParamsDebounced(0, { departDate: it.s })
+        }
       }
-      setTimeout(applyParams, 0)
     }
     useEffect(() => {
       const token = localStorage.getItem('token')
@@ -511,36 +589,36 @@ const FlightsResultsPage = () => {
         return sp
       }
       const needBack = !!ret
-      const cacheKeyGo = `${fromCode}|${toCode}|${airline}|${timeSlot}|${model}|${cabin}|${tabStart}|go`
-      const cacheKeyBack = `${toCode}|${fromCode}|${airline}|${timeSlot}|${model}|${cabin}|${tabStart}|back`
-      const cachedGo = priceCacheRef.current.get(cacheKeyGo)
-      const cachedBack = needBack ? priceCacheRef.current.get(cacheKeyBack) : null
-      if (cachedGo || cachedBack) {
-        const map = {}
-        items.forEach(it => {
-          const srcPrices = it.type === '返' ? (cachedBack || {}) : (cachedGo || {})
-          const val = (srcPrices && typeof srcPrices[it.s] === 'number') ? srcPrices[it.s] : undefined
-          if (val !== undefined) map[it.s] = val
-        })
-        if (Object.keys(map).length > 0) setPriceMap(prev => ({ ...prev, ...map }))
-      }
       const run = async () => {
-        const goRes = await fetch(`/api/flights/min-prices?${buildQuery(fromCode, toCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} }))
-        const backRes = needBack ? await fetch(`/api/flights/min-prices?${buildQuery(toCode, fromCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} })) : { prices: {} }
-        if (controller.signal.aborted) return
-        const map = {}
-        items.forEach(it => {
-          const src = it.type === '返' ? backRes : goRes
-          const val = (src && src.prices && typeof src.prices[it.s] === 'number') ? src.prices[it.s] : 0
-          map[it.s] = val
-        })
-        items.forEach(it => { lastKnownPricesRef.current.set(it.s, map[it.s]) })
-        priceCacheRef.current.set(cacheKeyGo, goRes.prices || {})
-        if (needBack) priceCacheRef.current.set(cacheKeyBack, backRes.prices || {})
-        setPriceMap(map)
+        try {
+          const goRes = await fetch(`/api/flights/min-prices?${buildQuery(fromCode, toCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} }))
+          const backRes = needBack ? await fetch(`/api/flights/min-prices?${buildQuery(toCode, fromCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} })) : { prices: {} }
+          if (controller.signal.aborted) return
+          const nextItems = Array.from({ length: 10 }).map((_, i) => {
+            const d = addDays(tabStart, i)
+            const s2 = toISO(d)
+            const type2 = ret ? (new Date(s2) >= new Date(ret) ? '返' : '去') : '去'
+            return { s: s2, type: type2 }
+          })
+          const map = {}
+          nextItems.forEach(it => {
+            const src = it.type === '返' ? backRes : goRes
+            const val = (src && src.prices && typeof src.prices[it.s] === 'number') ? src.prices[it.s] : 0
+            map[it.s] = val
+          })
+          nextItems.forEach(it => { lastKnownPricesRef.current.set(it.s, map[it.s]) })
+          const cacheKeyGo = `${fromCode}|${toCode}|${airline}|${timeSlot}|${model}|${cabin}|${tabStart}|go`
+          const cacheKeyBack = `${toCode}|${fromCode}|${airline}|${timeSlot}|${model}|${cabin}|${tabStart}|back`
+          priceCacheRef.current.set(cacheKeyGo, goRes.prices || {})
+          if (needBack) priceCacheRef.current.set(cacheKeyBack, backRes.prices || {})
+          setPriceMap(map)
+        } catch (e) {
+          // ignore
+        }
       }
-      if (prefetchedStartRef.current === tabStart) { prefetchedStartRef.current = '' } else { run() }
-    }, [tabStart, location.search])
+      run()
+      return () => controller.abort()
+    }, [location.search, tabStart])
     return (
       <div className={styles.dateTabs}>
         <span className={styles.arrow} onClick={goPrev}>◀</span>
@@ -677,15 +755,11 @@ const FlightsResultsPage = () => {
       <main className={styles.container}>
       {loading && <div className={styles.loading}>加载中…</div>}
       {error && <div className={styles.error}>{error}</div>}
-      {!error && (
-        <>
-          <Header />
-          <DateTabs />
-          <OneWayBar />
-          <FilterBar />
-          <List />
-        </>
-      )}
+      <Header />
+      <DateTabs />
+      <OneWayBar />
+      <FilterBar />
+      <List />
       </main>
     </div>
   )

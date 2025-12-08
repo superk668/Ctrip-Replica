@@ -30,6 +30,8 @@ const Header = () => {
     const validateSession = async () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       if (!token) return;
+      const path = typeof window !== 'undefined' ? window.location?.pathname || '' : ''
+      if (/^\/login\b/.test(path) || /^\/register\b/.test(path) || /^\/forgot-password\b/.test(path)) return;
 
       try {
         // 使用 profile 接口验证 Token 对应的用户是否存在
@@ -37,8 +39,7 @@ const Header = () => {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         
-        if (!res.ok) {
-          // 401 Unauthorized 或 404 User Not Found
+        if (res.status === 401 || res.status === 404) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           setUsername('');

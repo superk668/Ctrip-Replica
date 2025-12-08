@@ -34,7 +34,7 @@ app.use(cors());
 // 限流中间件
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15分钟
-  max: 100 // 限制每个IP每15分钟最多100个请求
+  max: 3000 // 限制每个IP每15分钟最多3000个请求
 });
 app.use(limiter);
 

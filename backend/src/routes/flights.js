@@ -115,6 +115,7 @@ const generateFlights = (from, to, departDate, filters) => {
       })
     }
   }
+  if (searchCache.size > 1000) searchCache.clear()
   searchCache.set(cacheKey, filtered)
   return filtered
 }
@@ -195,6 +196,7 @@ router.get('/min-prices', (req, res) => {
     })
     prices[dateStr] = vals.length ? Math.min(...vals) : 0
   }
+  if (minPriceCache.size > 1000) minPriceCache.clear()
   minPriceCache.set(key, prices)
   res.status(200).json({ prices })
 })
