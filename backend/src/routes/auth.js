@@ -123,6 +123,63 @@ router.post('/phone-login', validationRules.phoneLogin, handleValidationErrors, 
   }
 });
 
+// 密码重置第一步：验证手机号是否已注册
+router.post('/reset-password/step1', validationRules.resetPasswordStep1, handleValidationErrors, async (req, res) => {
+  try {
+    const { phone } = req.body;
+    
+    // 检查手机号是否已注册
+    const user = await UserService.findUserByPhone(phone);
+    if (!user) {
+      return res.status(400).json(errorResponse('该手机号未注册'));
+    }
+
+    res.json(successResponse(null, '手机号验证成功'));
+  } catch (error) {
+    console.error('密码重置第一步错误:', error);
+    res.status(500).json(errorResponse('验证失败'));
+  }
+});
+
+// 密码重置第二步：验证验证码
+router.post('/reset-password/step2', validationRules.resetPasswordStep2, handleValidationErrors, async (req, res) => {
+  try {
+    const { phone, code } = req.body;
+    
+    // 验证验证码
+    const isCodeValid = await VerificationService.verifyCode(phone, code, 'reset');
+    if (!isCodeValid) {
+      return res.status(400).json(errorResponse('验证码错误或已过期'));
+    }
+
+    res.json(successResponse(null, '验证码验证成功'));
+  } catch (error) {
+    console.error('密码重置第二步错误:', error);
+    res.status(500).json(errorResponse('验证失败'));
+  }
+});
+
+// 密码重置第三步：更新密码
+router.post('/reset-password/step3', validationRules.resetPasswordStep3, handleValidationErrors, async (req, res) => {
+  try {
+    const { phone, password } = req.body;
+    
+    // 查找用户
+    const user = await UserService.findUserByPhone(phone);
+    if (!user) {
+      return res.status(400).json(errorResponse('该手机号未注册'));
+    }
+
+    // 更新密码
+    await UserService.updateUserPassword(user.id, password);
+
+    res.json(successResponse(null, '密码重置成功'));
+  } catch (error) {
+    console.error('密码重置第三步错误:', error);
+    res.status(500).json(errorResponse('密码重置失败'));
+  }
+});
+
 module.exports = router;
 
 // 兼容测试用端点：发送验证码（英文消息与不同字段名）
