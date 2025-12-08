@@ -1,0 +1,14 @@
+{
+  "id": "environment_mhktmkpn_0.9lrdh54v84c",
+  "name": "Local Development",
+  "environmentVariables": {
+    "12306_PASSWORD": "PLACEHOLDER",
+    "12306_USERNAME": "PLACEHOLDER",
+    "12306_URL": "localhost:5137",
+    "CTRIP_PHONE_NUMBER": "PLACEHOLDER",
+    "CTRIP_PASSWORD": "PLACEHOLDER",
+    "CTRIP_URL": "localhost:5137"
+  },
+  "createdAt": "2025-11-04T17:06:35.483Z",
+  "updatedAt": "2025-11-08T18:04:06.249Z"
+}

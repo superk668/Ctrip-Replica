@@ -1,0 +1,25 @@
+{
+  "id": "test_mhqfli2t_0.eoi1nd6hwhd",
+  "name": "Account password login",
+  "url": "${CTRIP_URL}",
+  "actions": [
+    {
+      "action": "Click 'Login' on the home page",
+      "expectedResult": ""
+    },
+    {
+      "action": "Enter ${CTRIP_PHONE_NUMBER} in the 'Mainland phone number' input",
+      "expectedResult": ""
+    },
+    {
+      "action": "Enter ${CTRIP_PASSWORD} in the 'Login password' input",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click 'Login' button with color dark orange",
+      "expectedResult": "The interface asks user to read and check agreement box first"
+    }
+  ],
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-12-01T04:13:45.314Z"
+}

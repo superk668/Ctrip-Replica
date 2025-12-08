@@ -1,0 +1,49 @@
+{
+  "id": "test-3-en",
+  "name": "2 - Business Travel Service - Closed Shop Verification",
+  "url": "${12306_URL}",
+  "actions": [
+    {
+      "action": "Click \"Business Travel Service\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Food & Specialty\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Enter train number \"G104\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Departure Station\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Shanghai\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Arrival Station\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Beijing\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Search\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click on a shop marked as \"Closed\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Verify product button status",
+      "expectedResult": "All products in the shop have their \"Add to Cart\" buttons in \"Not Available\" state and are disabled"
+    }
+  ],
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-11-09T12:41:36.249Z"
+}

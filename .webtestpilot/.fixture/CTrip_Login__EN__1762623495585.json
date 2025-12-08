@@ -1,0 +1,28 @@
+{
+  "id": "fixture_mhkk6dxl_0.yzhck1mtv5f",
+  "name": "CTrip Login (EN)",
+  "actions": [
+    {
+      "action": "Click 'Login' on the home page",
+      "expectedResult": ""
+    },
+    {
+      "action": "Enter ${CTRIP_PHONE_NUMBER} in the 'Mainland phone number' input",
+      "expectedResult": ""
+    },
+    {
+      "action": "Enter \"${CTRIP_PASSWORD}\" in the 'Login password' input",
+      "expectedResult": ""
+    },
+    {
+      "action": "Tick checkbox on agree terms of services",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click 'Login'",
+      "expectedResult": "Login succeeds and returns to the home page"
+    }
+  ],
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-11-09T01:52:42.582Z"
+}

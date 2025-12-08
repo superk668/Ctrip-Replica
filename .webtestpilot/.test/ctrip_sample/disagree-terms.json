@@ -1,0 +1,17 @@
+{
+  "id": "test-1-1",
+  "name": "Disagree with terms",
+  "url": "${CTRIP_URL}",
+  "actions": [
+    {
+      "action": "Click the '注册' button",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click '不同意'",
+      "expectedResult": "Show a home page with search bar"
+    }
+  ],
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-11-10T05:54:34.281Z"
+}

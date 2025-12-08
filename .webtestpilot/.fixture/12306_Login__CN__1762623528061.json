@@ -1,0 +1,28 @@
+{
+  "id": "fixture_mhqkjekd_0.xceb6ac9pec",
+  "name": "12306 Login (CN)",
+  "actions": [
+    {
+      "action": "首页点击\"登录\"",
+      "expectedResult": "跳转至登录界面"
+    },
+    {
+      "action": "选择\"账号登录\"方式",
+      "expectedResult": ""
+    },
+    {
+      "action": "\"用户名\"输入框输入'${12306_USERNAME}'",
+      "expectedResult": ""
+    },
+    {
+      "action": "\"密码\"输入框输入'${12306_PASSWORD}'",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"立即登录\"",
+      "expectedResult": "系统验证成功后跳转首页，顶部显示\"您好, New User\""
+    }
+  ],
+  "createdAt": "2025-11-08T17:38:48.061Z",
+  "updatedAt": "2025-11-08T18:12:14.215Z"
+}

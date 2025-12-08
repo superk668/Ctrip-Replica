@@ -1,0 +1,28 @@
+{
+  "id": "fixture_mhn5dtcu_0.c36m9g880gm",
+  "name": "12306 Login (EN)",
+  "actions": [
+    {
+      "action": "Click 'Login' on the home page",
+      "expectedResult": "Navigate to the login page"
+    },
+    {
+      "action": "Select 'Account login' method",
+      "expectedResult": ""
+    },
+    {
+      "action": "Enter '${12306_USERNAME}' in the 'Username' input",
+      "expectedResult": ""
+    },
+    {
+      "action": "Enter '${12306_PASSWORD}' in the 'Password' input",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click 'Log in'",
+      "expectedResult": "Validation succeeds, navigate to home; header shows 'Hello, New User'"
+    }
+  ],
+  "createdAt": "2025-11-06T08:11:14.526Z",
+  "updatedAt": "2025-11-08T18:03:42.601Z"
+}

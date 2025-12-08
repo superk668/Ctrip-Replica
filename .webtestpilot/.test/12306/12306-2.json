@@ -1,0 +1,50 @@
+{
+  "id": "test-3",
+  "name": "2 - 商旅服务 - 休息中商店验证",
+  "url": "${12306_URL}",
+  "fixtureId": "fixture_mhqkjekd_0.xceb6ac9pec",
+  "actions": [
+    {
+      "action": "点击\"商旅服务\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"餐饮-特产\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "输入\"G104\"车次",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"乘车站\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"上海\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"到达站\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"北京\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"搜索\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"休息中\"的商店",
+      "expectedResult": ""
+    },
+    {
+      "action": "验证商品按钮状态",
+      "expectedResult": "商店里的所有商品对应的加入购物车按钮处于\"未供应\"状态，已被禁用"
+    }
+  ],
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-12-01T04:44:44.525Z"
+}

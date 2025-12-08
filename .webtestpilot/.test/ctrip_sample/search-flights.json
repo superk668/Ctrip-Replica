@@ -1,0 +1,37 @@
+{
+  "id": "test-2",
+  "name": "Search Flights",
+  "url": "${CTRIP_URL}",
+  "actions": [
+    {
+      "action": "Click the left “机票” button",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click “单程”",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click the “出发地” field",
+      "expectedResult": ""
+    },
+    {
+      "action": "Select “成都”",
+      "expectedResult": ""
+    },
+    {
+      "action": "For the “目的地” field, select “上海”",
+      "expectedResult": ""
+    },
+    {
+      "action": "For the “出发日期” field, Select “11月11日”",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click “搜索”",
+      "expectedResult": "Navigate to the search results page"
+    }
+  ],
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-11-09T12:41:36.249Z"
+}

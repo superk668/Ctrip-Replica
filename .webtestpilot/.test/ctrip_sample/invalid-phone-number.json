@@ -1,0 +1,25 @@
+{
+  "id": "test-1-2",
+  "name": "Invalid phone number",
+  "url": "${CTRIP_URL}",
+  "actions": [
+    {
+      "action": "Click the '注册' button",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click '同意并继续'",
+      "expectedResult": ""
+    },
+    {
+      "action": "Input '123456' in the '有效手机号' field",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click button 获取验证码",
+      "expectedResult": "Any warning message is displayed"
+    }
+  ],
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-12-01T04:07:28.095Z"
+}

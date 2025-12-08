@@ -1,0 +1,61 @@
+{
+  "id": "test-2-en",
+  "name": "1 - Business Travel Service - Food & Specialty Ordering",
+  "url": "${12306_URL}",
+  "actions": [
+    {
+      "action": "Click \"Business Travel Service\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Food & Specialty\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Enter train number \"G104\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Departure Station\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Shanghai\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Arrival Station\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Beijing\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Search\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Show Available Merchants\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Shanghai Xinglv Catering (Xuzhou East Station)\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Add one item to cart\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Click \"Checkout\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "Verify page navigation",
+      "expectedResult": "User is redirected to the \"Confirm Order\" page"
+    }
+  ],
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-11-09T12:41:36.249Z"
+}

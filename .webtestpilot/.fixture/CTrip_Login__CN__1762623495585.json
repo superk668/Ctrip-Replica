@@ -1,0 +1,28 @@
+{
+  "id": "fixture_mhqkipi9_0.hj9zkx0weyq",
+  "name": "CTrip Login (CN)",
+  "actions": [
+    {
+      "action": "首页点击“登录”",
+      "expectedResult": ""
+    },
+    {
+      "action": "“国内手机号”输入框输入${CTRIP_PHONE_NUMBER}",
+      "expectedResult": ""
+    },
+    {
+      "action": "“登录密码”输入框输入“${CTRIP_PASSWORD}”",
+      "expectedResult": ""
+    },
+    {
+      "action": "提示登录成功，返回首页",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击“登录”",
+      "expectedResult": "提示登录成功，返回首页"
+    }
+  ],
+  "createdAt": "2025-11-08T17:38:15.585Z",
+  "updatedAt": "2025-11-09T01:52:56.800Z"
+}
