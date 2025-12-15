@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const TravelerService = require('../services/travelerService');
+const AddressService = require('../services/addressService');
 const UserService = require('../services/userService');
 const authenticateToken = require('../middleware/authenticateToken');
 const { successResponse, errorResponse } = require('../utils/response');
@@ -116,6 +117,50 @@ router.delete('/travelers', async (req, res) => {
       return res.status(409).json(errorResponse('Contains non-deletable travelers.'));
     }
     console.error('Delete travelers error:', error);
+    res.status(500).json(errorResponse('Service unavailable.'));
+  }
+});
+
+// Addresses Routes
+router.get('/addresses', async (req, res) => {
+  try {
+    const items = await AddressService.listAddresses(req.user.userId);
+    res.json(successResponse({ items }));
+  } catch (error) {
+    console.error('List addresses error:', error);
+    res.status(500).json(errorResponse('Service unavailable.'));
+  }
+});
+
+router.post('/addresses', async (req, res) => {
+  try {
+    const b = req.body || {};
+    const receiver = String(b.receiver || '').trim();
+    const province = String(b.province || '').trim();
+    const city = String(b.city || '').trim();
+    const district = String(b.district || '').trim();
+    const detail = String(b.detail || '').trim();
+    const phone = String(b.phone || '').trim();
+    if (!receiver) return res.status(400).json(errorResponse('请输入收件人姓名'));
+    if (!province || !city || !district) return res.status(400).json(errorResponse('请选择完整的地区信息'));
+    if (!detail) return res.status(400).json(errorResponse('请输入详细地址'));
+    if (!validatePhone(phone)) return res.status(400).json(errorResponse('请输入正确的手机号码'));
+    const result = await AddressService.createAddress(req.user.userId, { receiver, province, city, district, detail, phone });
+    res.status(201).json(successResponse(result, '新常用地址成功!'));
+  } catch (error) {
+    console.error('Create address error:', error);
+    res.status(500).json(errorResponse('Service unavailable.'));
+  }
+});
+
+router.delete('/addresses/:id', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const deleted = await AddressService.deleteAddress(req.user.userId, id);
+    if (deleted === 0) return res.status(404).json(errorResponse('Address not found.'));
+    res.json(successResponse({ deleted }));
+  } catch (error) {
+    console.error('Delete address error:', error);
     res.status(500).json(errorResponse('Service unavailable.'));
   }
 });

@@ -21,6 +21,8 @@ import TravelersManagement from './pages/UserCenter/TravelersManagement';
 import TravelerEdit from './pages/UserCenter/TravelerEdit';
 import TravelerAdd from './pages/UserCenter/TravelerAdd';
 import TravelerView from './pages/UserCenter/TravelerView';
+import AddressesManagement from './pages/UserCenter/AddressesManagement';
+import AddressAdd from './pages/UserCenter/AddressAdd';
 
 const OrderDetailRoute = () => {
   const params = useParams();
@@ -104,6 +106,14 @@ const router = createBrowserRouter([
   {
     path: '/user-center/common-info/travelers/view',
     element: <TravelerView />,
+  },
+  {
+    path: '/user-center/common-info/addresses',
+    element: <AddressesManagement />,
+  },
+  {
+    path: '/user-center/common-info/addresses/add',
+    element: <AddressAdd />,
   },
   {
     path: '/user-center/bind-link',
