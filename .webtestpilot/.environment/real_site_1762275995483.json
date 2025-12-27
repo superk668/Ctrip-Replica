@@ -1,0 +1,14 @@
+{
+  "id": "environment_mhkk6dxe_0.9dqp9pgzn49",
+  "name": "Real Sites",
+  "environmentVariables": {
+    "12306_PASSWORD": "PLACEHOLDER",
+    "12306_USERNAME": "PLACEHOLDER",
+    "12306_URL": "https://kyfw.12306.cn",
+    "CTRIP_PHONE_NUMBER": "dev",
+    "CTRIP_PASSWORD": "dev",
+    "CTRIP_URL": "http://localhost:5173/"
+  },
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-12-01T06:21:01.289Z"
+}

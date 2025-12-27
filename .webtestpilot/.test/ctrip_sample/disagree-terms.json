@@ -1,0 +1,18 @@
+{
+  "id": "test-1-1",
+  "name": "Disagree with terms",
+  "url": "${CTRIP_URL}",
+  "fixtureId": "",
+  "actions": [
+    {
+      "action": "Click the '注册' button in the upper right corner of the page",
+      "expectedResult": "Jump to the registration page"
+    },
+    {
+      "action": "Click '不同意'",
+      "expectedResult": "Show a home page with search bar"
+    }
+  ],
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-12-01T06:35:19.764Z"
+}

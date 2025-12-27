@@ -4,10 +4,8 @@ import userEvent from '@testing-library/user-event'
 import FlightsSearchCard from '../../src/pages/Home/LocalComponents/FlightsSearchCard.jsx'
 
 describe('FlightsSearchCard', () => {
-  it('渲染单程/往返/多程切换与出发/目的地与日期', () => {
+  it('渲染出发/目的地与日期', () => {
     render(<FlightsSearchCard />)
-    expect(screen.getByText('单程')).toBeTruthy()
-    expect(screen.getByText('往返')).toBeTruthy()
     expect(screen.getByText(/出发地/)).toBeTruthy()
     expect(screen.getByText(/目的地/)).toBeTruthy()
     expect(screen.getByText(/出发日期/)).toBeTruthy()

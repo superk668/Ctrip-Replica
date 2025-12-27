@@ -92,6 +92,21 @@ const MyInfo = () => {
           gender: data.data.gender,
           birthday: data.data.birthday
         });
+        
+        // Update localStorage and notify Header
+        try {
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            const u = JSON.parse(storedUser);
+            // Update username in local storage to match the new nickname
+            u.username = data.data.nickname;
+            localStorage.setItem('user', JSON.stringify(u));
+            window.dispatchEvent(new Event('userInfoUpdated'));
+          }
+        } catch (e) {
+          console.error('Failed to update local storage', e);
+        }
+
         setIsEditing(false);
       } else {
         alert(data.msg || '保存失败');

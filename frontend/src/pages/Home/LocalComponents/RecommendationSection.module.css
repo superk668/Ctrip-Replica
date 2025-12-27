@@ -1,0 +1,164 @@
+.container {
+  width: 100%;
+  margin-top: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mainTitle {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.label {
+  margin-right: 8px;
+}
+
+.input {
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  width: 120px;
+}
+
+.right {
+  font-size: 14px;
+}
+
+.moreLink {
+  color: #0071eb;
+  text-decoration: none;
+}
+
+.grid {
+  display: flex;
+  gap: 16px;
+}
+
+.card {
+  flex: 1;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.cardHeader {
+  padding: 12px 16px;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.green { background: linear-gradient(90deg, #00bfa5, #00c292); }
+.orange { background: linear-gradient(90deg, #ff9a1f, #ff7a1a); }
+.blue { background: linear-gradient(90deg, #448aff, #2979ff); }
+
+.cardBody {
+  padding: 8px 0;
+}
+
+.routeRow {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.routeRow:last-child {
+  border-bottom: none;
+}
+
+.rank {
+  width: 18px;
+  height: 18px;
+  background: #eee;
+  color: #999;
+  font-size: 12px;
+  text-align: center;
+  line-height: 18px;
+  border-radius: 4px;
+  margin-right: 12px;
+}
+
+.rank1 { background: #ff4d4f; color: #fff; }
+.rank2 { background: #ff9a1f; color: #fff; }
+.rank3 { background: #ffc53d; color: #fff; }
+
+.thumb {
+  width: 60px;
+  height: 40px;
+  margin-right: 12px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.imgPlaceholder {
+  width: 100%;
+  height: 100%;
+  background: #ccc;
+}
+
+.info {
+  flex: 1;
+}
+
+.routeTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.routeDate {
+  font-size: 12px;
+  color: #999;
+}
+
+.priceInfo {
+  text-align: right;
+}
+
+.price {
+  color: #0071eb;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.qi {
+  font-size: 12px;
+  font-weight: normal;
+  margin-left: 2px;
+}
+
+.discount {
+  font-size: 12px;
+  color: #999;
+  margin-top: 2px;
+}

@@ -55,8 +55,17 @@ const FlightsResultsPage = () => {
     const dd = String(d.getDate()).padStart(2,'0')
     return `${d.getFullYear()}-${m}-${dd}`
   }, [])
-  const [fromInput, setFromInput] = useState(`上海(${fromCity})`)
-  const [toInput, setToInput] = useState(`北京(${toCity})`)
+  const getDisplayName = (code) => {
+    const found = capitals.find(c => c.cityCode === code || c.airportCode === code)
+    return found ? `${found.city}(${code})` : code
+  }
+  const [fromInput, setFromInput] = useState(getDisplayName(fromCity))
+  const [toInput, setToInput] = useState(getDisplayName(toCity))
+
+  useEffect(() => {
+    setFromInput(getDisplayName(fromCity))
+    setToInput(getDisplayName(toCity))
+  }, [fromCity, toCity])
   const [depart, setDepart] = useState(departDate)
   const [ret, setRet] = useState(trip === 'round' ? returnDate : '')
   const [fromList, setFromList] = useState([])
@@ -261,8 +270,6 @@ const FlightsResultsPage = () => {
     <div className={styles.headerBar}>
       <div className={styles.radioRow}>
         <span className={`${styles.radio} ${styles.checked}`}>单程</span>
-        <span className={styles.radio}>往返</span>
-        <span className={styles.radio}>多程(含缺口程)</span>
         <span className={styles.cabin}>不限舱等 ▾</span>
       </div>
       <div className={styles.formRow}>

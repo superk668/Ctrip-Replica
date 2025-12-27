@@ -6,10 +6,24 @@ class OrderService {
   }
 
   static async findOrdersByUserId(userId, status, page, pageSize, productType = 'all') {
-    const whereStatus = status === 'all' ? '' : 'AND status = ?';
-    const whereProduct = productType === 'all' ? '' : 'AND product_type = ?';
+    let whereStatus = '';
     const filterParams = [userId];
-    if (status !== 'all') filterParams.push(status);
+    
+    // Time-based filtering for pending_travel (Unused) and pending_review (Review)
+    if (status === 'pending_travel') {
+      // Include orders that are paid/confirmed but haven't departed yet
+      // We check both pending_travel and pending_review statuses in DB to cover all bases, 
+      // but strictly filter by time > now
+      whereStatus = `AND status IN ('pending_travel', 'pending_review') AND (json_extract(details, '$.productInfo.departTime') > datetime('now') OR json_extract(details, '$.productInfo.departTime') IS NULL)`;
+    } else if (status === 'pending_review') {
+      // Include orders that are paid/confirmed and have departed
+      whereStatus = `AND status IN ('pending_travel', 'pending_review') AND json_extract(details, '$.productInfo.departTime') <= datetime('now')`;
+    } else if (status !== 'all') {
+      whereStatus = 'AND status = ?';
+      filterParams.push(status);
+    }
+
+    const whereProduct = productType === 'all' ? '' : 'AND product_type = ?';
     if (productType !== 'all') filterParams.push(productType);
 
     const count = await new Promise((resolve, reject) => {
@@ -30,7 +44,21 @@ class OrderService {
           const parsed = (rows || []).map((r) => {
             let details = {};
             try { details = r.details ? JSON.parse(r.details) : {}; } catch (_) {}
-            return { ...r, details };
+            // Dynamically adjust status for frontend display based on time
+            let displayStatus = r.orderStatus;
+            if (['pending_travel', 'pending_review'].includes(r.orderStatus)) {
+              const departTime = details?.productInfo?.departTime;
+              if (departTime) {
+                const now = new Date().toISOString();
+                // Simple string comparison for ISO dates
+                if (departTime <= now) {
+                  displayStatus = 'pending_review';
+                } else {
+                  displayStatus = 'pending_travel';
+                }
+              }
+            }
+            return { ...r, details, orderStatus: displayStatus };
           });
           resolve(parsed);
         }

@@ -65,7 +65,7 @@ const FlightsSearchCard = ({ onSearch }) => {
     { city: '拉萨', cityCode: 'LXA', airport: '贡嘎国际机场', airportCode: 'LXA', hot: false },
     { city: '呼和浩特', cityCode: 'HET', airport: '白塔国际机场', airportCode: 'HET', hot: false }
   ]
-  const [tripType, setTripType] = useState('oneway')
+  const [tripType] = useState('oneway')
   const [fromInput, setFromInput] = useState('上海(SHA)')
   const [toInput, setToInput] = useState('北京(BJS)')
   const today = useMemo(() => {
@@ -75,7 +75,6 @@ const FlightsSearchCard = ({ onSearch }) => {
     return `${d.getFullYear()}-${m}-${dd}`
   }, [])
   const [departDate, setDepartDate] = useState(today)
-  const [returnDate, setReturnDate] = useState('')
   const [fromList, setFromList] = useState([])
   const [toList, setToList] = useState([])
   const [showFrom, setShowFrom] = useState(false)
@@ -116,22 +115,14 @@ const FlightsSearchCard = ({ onSearch }) => {
     setSelectedFrom(st); setSelectedTo(sf)
   }
 
-  const days = useMemo(() => {
-    if (tripType !== 'round' || !departDate || !returnDate) return ''
-    const d1 = new Date(departDate)
-    const d2 = new Date(returnDate)
-    const diff = Math.round((d2 - d1) / 86400000)
-    return diff > 0 ? `${diff}天` : ''
-  }, [tripType, departDate, returnDate])
-
   const handleSearch = () => {
     if (typeof onSearch === 'function') {
       const payload = {
-        tripType,
+        tripType: 'oneway',
         fromCity: fromInput,
         toCity: toInput,
         departDate,
-        returnDate,
+        returnDate: '',
         from: selectedFrom,
         to: selectedTo
       }
@@ -142,11 +133,6 @@ const FlightsSearchCard = ({ onSearch }) => {
     <section className={styles.wrapper}>
       <Tabs />
       <div className={styles.card}>
-        <div className={styles.radioRow}>
-          <span className={`${styles.radio} ${tripType==='oneway'?styles.checked:''}`} onClick={()=>setTripType('oneway')}>单程</span>
-          <span className={`${styles.radio} ${tripType==='round'?styles.checked:''}`} onClick={()=>setTripType('round')}>往返</span>
-          <span className={styles.radio} onClick={()=>setTripType('multi')}>多程(含缺口程)</span>
-        </div>
 
         <div className={styles.formRow}>
           <div className={styles.field}>
@@ -180,13 +166,6 @@ const FlightsSearchCard = ({ onSearch }) => {
             <div className={styles.label}>出发日期</div>
             <input className={styles.input} type="date" value={departDate} min={today} onChange={e=>setDepartDate(e.target.value)} />
           </div>
-          <div className={styles.days}>{days}</div>
-          {tripType==='round' && (
-            <div className={styles.fieldWide}>
-              <div className={styles.label}>返程日期</div>
-              <input className={styles.input} type="date" value={returnDate} min={departDate||today} onChange={e=>setReturnDate(e.target.value)} />
-            </div>
-          )}
           <div className={styles.passengerType}>
             <div className={styles.label}>乘客类型</div>
             <div className={styles.checkboxRow}>

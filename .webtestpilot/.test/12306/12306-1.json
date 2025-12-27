@@ -1,0 +1,62 @@
+{
+  "id": "test-2",
+  "name": "1 - 商旅服务 - 餐饮特产订购",
+  "url": "${12306_URL}",
+  "fixtureId": "fixture_mhqkjekd_0.xceb6ac9pec",
+  "actions": [
+    {
+      "action": "点击\"商旅服务\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"餐饮-特产\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "输入\"G104\"车次",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"乘车站\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"上海\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"到达站\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"北京\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"搜索\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"显示可预订商家\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"上海兴旅餐饮（徐州东站店）\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"把一样商品加入购物车\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击\"去结算\"",
+      "expectedResult": ""
+    },
+    {
+      "action": "验证页面跳转",
+      "expectedResult": "用户跳转至\"确认订单\"页面"
+    }
+  ],
+  "createdAt": "2025-10-25T06:19:05.681Z",
+  "updatedAt": "2025-12-01T04:44:38.910Z"
+}

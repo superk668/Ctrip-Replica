@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import PromotionBanner from './LocalComponents/PromotionBanner';
 import HotelBookingCard from './LocalComponents/HotelBookingCard';
 import FlightsSearchCard from './LocalComponents/FlightsSearchCard';
+import AdBanner from './LocalComponents/AdBanner';
+import RecommendationSection from './LocalComponents/RecommendationSection';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -42,6 +44,8 @@ const HomePage = () => {
           <PromotionBanner />
           <div className={styles.rightPane}>
             <FlightsSearchCard onSearch={handleSearch} />
+            <AdBanner />
+            <RecommendationSection />
           </div>
         </div>
       </main>

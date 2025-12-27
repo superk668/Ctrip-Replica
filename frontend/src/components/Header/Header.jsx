@@ -9,22 +9,27 @@ const Header = () => {
   const menuRef = useRef(null);
   const location = useLocation();
   useEffect(() => {
-    try {
-      const u = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-      if (u) {
-        const ju = JSON.parse(u);
-        if (ju && ju.username) setUsername(String(ju.username));
-      } else {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
-        if (token) {
-          const parts = token.split('.');
-          if (parts.length === 3) {
-            const payload = JSON.parse(atob(parts[1]));
-            if (payload && payload.username) setUsername(String(payload.username));
+    const loadUser = () => {
+      try {
+        const u = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+        if (u) {
+          const ju = JSON.parse(u);
+          if (ju && ju.username) setUsername(String(ju.username));
+        } else {
+          const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
+          if (token) {
+            const parts = token.split('.');
+            if (parts.length === 3) {
+              const payload = JSON.parse(atob(parts[1]));
+              if (payload && payload.username) setUsername(String(payload.username));
+            }
           }
         }
-      }
-    } catch (_) {}
+      } catch (_) {}
+    };
+
+    loadUser();
+    window.addEventListener('userInfoUpdated', loadUser);
 
     // 验证 Token 有效性（例如后端重启后 User ID 变更导致 Token 失效）
     const validateSession = async () => {
@@ -50,6 +55,10 @@ const Header = () => {
     };
     const isTest = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.MODE === 'test';
     if (!isTest) validateSession();
+
+    return () => {
+      window.removeEventListener('userInfoUpdated', loadUser);
+    };
   }, []);
   useEffect(() => {
     const handler = (e) => {
