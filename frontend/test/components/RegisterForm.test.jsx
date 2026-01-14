@@ -13,6 +13,7 @@ describe('RegisterForm', () => {
 
   test('renders step 1 of registration form correctly', () => {
     render(<MemoryRouter><RegisterForm /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: '同意并继续' }));
     expect(screen.getByPlaceholderText('有效手机号')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('6位数字')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '发送验证码' })).toBeInTheDocument();
@@ -21,11 +22,11 @@ describe('RegisterForm', () => {
 
   test('moves to step 2 after successful step 1 submission', async () => {
     render(<MemoryRouter><RegisterForm /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: '同意并继续' }));
     fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ tempToken: 'test-token' }) });
 
     fireEvent.change(screen.getByPlaceholderText('有效手机号'), { target: { value: '13800138000' } });
     fireEvent.change(screen.getByPlaceholderText('6位数字'), { target: { value: '123456' } });
-    fireEvent.click(screen.getByRole('checkbox', { name: '同意《服务协议》和《隐私政策》' }));
     fireEvent.click(screen.getByRole('button', { name: '下一步，设置密码' }));
 
     await waitFor(() => {
@@ -37,11 +38,11 @@ describe('RegisterForm', () => {
 
   test('shows password strength indicator', async () => {
     render(<MemoryRouter><RegisterForm /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: '同意并继续' }));
     // Navigate to step 2
     fetch.mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ tempToken: 'test-token' }) });
     fireEvent.change(screen.getByPlaceholderText('有效手机号'), { target: { value: '13800138000' } });
     fireEvent.change(screen.getByPlaceholderText('6位数字'), { target: { value: '123456' } });
-    fireEvent.click(screen.getByRole('checkbox', { name: '同意《服务协议》和《隐私政策》' }));
     fireEvent.click(screen.getByRole('button', { name: '下一步，设置密码' }));
 
     // Wait for step 2 to appear and then interact with it

@@ -67,6 +67,18 @@ const OrderDetailPage = ({ orderId }: Props) => {
     }
   };
 
+  const handlePayNow = () => {
+    try {
+      sessionStorage.setItem('createdOrderId', String((data && data.orderId) || orderId));
+      sessionStorage.setItem('bookingStage', '3');
+      const list = Array.isArray(data?.travelerInfo) ? data.travelerInfo : [];
+      if (list.length > 0) {
+        sessionStorage.setItem('passengerInfo', JSON.stringify({ passengerList: list }));
+      }
+    } catch (_) {}
+    window.location.href = '/booking/payment';
+  };
+
   return (
     <>
       <Header />
@@ -102,6 +114,15 @@ const OrderDetailPage = ({ orderId }: Props) => {
               <div className={styles.cardFooter}>
                 <div className={styles.leftOps}>
                   <ReorderButton orderInfo={{ orderId: data.orderId, productTitle: data.productTitle, productInfo: data.productInfo }} />
+                  {data.orderStatus === 'pending_payment' && (
+                    <button
+                      type="button"
+                      style={{ padding: '6px 12px', border: 'none', background: '#ff9500', color: '#fff', borderRadius: '4px', cursor: 'pointer' }}
+                      onClick={handlePayNow}
+                    >
+                      立即支付
+                    </button>
+                  )}
                   {(data.orderStatus === 'pending_payment' || data.orderStatus === 'pending_travel') && (
                     <button className={styles.cancelBtn} style={{ marginLeft: '12px', padding: '6px 12px', border: '1px solid #ccc', background: '#fff', borderRadius: '4px', cursor: 'pointer' }} onClick={handleCancel}>取消</button>
                   )}
@@ -151,4 +172,3 @@ const OrderDetailPage = ({ orderId }: Props) => {
 };
 
 export default OrderDetailPage;
-

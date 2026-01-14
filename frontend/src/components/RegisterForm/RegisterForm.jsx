@@ -18,6 +18,7 @@ const RegisterForm = () => {
   const [isCountingDown, setIsCountingDown] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
+  const [showAgreementModal, setShowAgreementModal] = useState(true);
 
   useEffect(() => {
     let timer;
@@ -28,6 +29,15 @@ const RegisterForm = () => {
     }
     return () => clearTimeout(timer);
   }, [isCountingDown, countdown]);
+
+  const handleAgreementAccept = () => {
+    setAgreeToTerms(true);
+    setShowAgreementModal(false);
+  };
+
+  const handleAgreementDecline = () => {
+    navigate('/home');
+  };
 
   const checkPasswordStrength = (password) => {
     let strength = 0;
@@ -193,6 +203,57 @@ const RegisterForm = () => {
 
   return (
     <div className={styles.registerForm}>
+      {showAgreementModal && (
+        <div className={styles.agreementModalOverlay} role="dialog" aria-modal="true" aria-label="用户协议弹窗">
+          <div className={styles.agreementModalCard}>
+            <div className={styles.agreementModalHeader}>
+              <div className={styles.agreementModalTitle}>携程用户注册协议和隐私政策</div>
+              <button className={styles.agreementModalClose} type="button" aria-label="关闭" onClick={handleAgreementDecline}>
+                ×
+              </button>
+            </div>
+            <div className={styles.agreementModalBody}>
+              <div className={styles.agreementModalDesc}>
+                亲爱的用户，在您注册为携程用户的过程中，您需要完成我们的注册流程并通过点击同意的形式在线签署以下协议。请您务必仔细阅读，充分理解协议条款内容后再点击同意。
+              </div>
+              <a className={styles.agreementModalLink} href="#">服务协议</a>
+              <div className={styles.agreementModalList}>
+                <div className={styles.agreementModalListCol}>
+                  <div>1. 总则</div>
+                  <div>3. 服务条款的修改</div>
+                  <div>5. 使用规则</div>
+                  <div>7. 用户隐私制度</div>
+                  <div>9. 拒绝提供担保</div>
+                  <div>11. 携程网络会员服务信息的存储及限制</div>
+                  <div>13. 用户的连约责任</div>
+                  <div>15. 结束服务</div>
+                  <div>17. 参与广告策划</div>
+                  <div>19. 法律</div>
+                </div>
+                <div className={styles.agreementModalListCol}>
+                  <div>2. 服务简介</div>
+                  <div>4. 服务变更、中断、终止</div>
+                  <div>6. 版权声明</div>
+                  <div>8. 用户账号、密码和安全性</div>
+                  <div>10. 有限责任</div>
+                  <div>12. 用户管理</div>
+                  <div>14. 保障</div>
+                  <div>16. 通告</div>
+                  <div>18. 邮件内容的所有权</div>
+                </div>
+              </div>
+            </div>
+            <div className={styles.agreementModalActions}>
+              <button className={styles.agreementModalDecline} type="button" onClick={handleAgreementDecline}>
+                不同意
+              </button>
+              <button className={styles.agreementModalAccept} type="button" onClick={handleAgreementAccept}>
+                同意并继续
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <ProgressIndicator currentStep={step} />
       <ErrorMessage message={error} />
       {step === 1 && (
@@ -224,15 +285,6 @@ const RegisterForm = () => {
             <button className={styles.sendCodeButton} onClick={handleSendCode} disabled={isCountingDown}>
               {isCountingDown ? `重新发送(${countdown}s)` : '发送验证码'}
             </button>
-          </div>
-          <div className={styles.agreement}>
-            <input
-              type="checkbox"
-              id="agreement"
-              checked={agreeToTerms}
-              onChange={(e) => setAgreeToTerms(e.target.checked)}
-            />
-            <label htmlFor="agreement">同意《服务协议》和《隐私政策》</label>
           </div>
           <button className={styles.submitButton} onClick={handleStep1Submit}>下一步，设置密码</button>
         </>
