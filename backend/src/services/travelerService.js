@@ -1,6 +1,22 @@
 const { db } = require('../config/database');
 
 class TravelerService {
+  static findSelfTraveler(userId, excludeId) {
+    return new Promise((resolve, reject) => {
+      const params = [userId]
+      let sql = 'SELECT * FROM travelers WHERE user_id = ? AND is_self = 1'
+      if (excludeId !== undefined && excludeId !== null && excludeId !== '') {
+        sql += ' AND id != ?'
+        params.push(excludeId)
+      }
+      sql += ' ORDER BY created_at DESC LIMIT 1'
+      db.get(sql, params, (err, row) => {
+        if (err) return reject(err)
+        resolve(row ? this.formatTraveler(row) : null)
+      })
+    })
+  }
+
   static listTravelers(userId, { keyword, page = 1, pageSize = 10 }) {
     return new Promise((resolve, reject) => {
       const offset = (page - 1) * pageSize;
@@ -51,17 +67,30 @@ class TravelerService {
   }
 
   static createTraveler(userId, data) {
-    return new Promise((resolve, reject) => {
-      // Check for duplicate document if provided
-      if (data.document && data.document.type && data.document.no) {
-        const checkSql = 'SELECT id FROM travelers WHERE user_id = ? AND document_type = ? AND document_no = ?';
-        db.get(checkSql, [userId, data.document.type, data.document.no], (err, row) => {
-          if (err) return reject(err);
-          if (row) return reject(new Error('Document already exists'));
+    return new Promise(async (resolve, reject) => {
+      try {
+        if (data && data.isSelf) {
+          const existing = await this.findSelfTraveler(userId)
+          if (existing) {
+            const err = new Error('Self traveler already exists')
+            err.existingSelfTraveler = existing
+            return reject(err)
+          }
+        }
+
+        // Check for duplicate document if provided
+        if (data.document && data.document.type && data.document.no) {
+          const checkSql = 'SELECT id FROM travelers WHERE user_id = ? AND document_type = ? AND document_no = ?';
+          db.get(checkSql, [userId, data.document.type, data.document.no], (err, row) => {
+            if (err) return reject(err);
+            if (row) return reject(new Error('Document already exists'));
+            this._insertTraveler(userId, data, resolve, reject);
+          });
+        } else {
           this._insertTraveler(userId, data, resolve, reject);
-        });
-      } else {
-        this._insertTraveler(userId, data, resolve, reject);
+        }
+      } catch (e) {
+        reject(e)
       }
     });
   }
@@ -99,23 +128,40 @@ class TravelerService {
   }
 
   static updateTraveler(userId, travelerId, data) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       // Check existence
       db.get('SELECT id FROM travelers WHERE id = ? AND user_id = ?', [travelerId, userId], (err, row) => {
         if (err) return reject(err);
         if (!row) return resolve(null); // Not found
 
-        // If updating document, check duplicates
-        if (data.document && data.document.type && data.document.no) {
-           const checkSql = 'SELECT id FROM travelers WHERE user_id = ? AND document_type = ? AND document_no = ? AND id != ?';
-           db.get(checkSql, [userId, data.document.type, data.document.no, travelerId], (err, dup) => {
-             if (err) return reject(err);
-             if (dup) return reject(new Error('Document already exists'));
-             this._updateTraveler(travelerId, data, resolve, reject);
-           });
-        } else {
-          this._updateTraveler(travelerId, data, resolve, reject);
+        const proceed = async () => {
+          try {
+            if (data && data.isSelf === true) {
+              const existing = await TravelerService.findSelfTraveler(userId, travelerId)
+              if (existing) {
+                const e = new Error('Self traveler already exists')
+                e.existingSelfTraveler = existing
+                return reject(e)
+              }
+            }
+
+            // If updating document, check duplicates
+            if (data.document && data.document.type && data.document.no) {
+              const checkSql = 'SELECT id FROM travelers WHERE user_id = ? AND document_type = ? AND document_no = ? AND id != ?';
+              db.get(checkSql, [userId, data.document.type, data.document.no, travelerId], (err, dup) => {
+                if (err) return reject(err);
+                if (dup) return reject(new Error('Document already exists'));
+                TravelerService._updateTraveler(travelerId, data, resolve, reject);
+              });
+            } else {
+              TravelerService._updateTraveler(travelerId, data, resolve, reject);
+            }
+          } catch (e) {
+            reject(e)
+          }
         }
+
+        void proceed()
       });
     });
   }
@@ -169,18 +215,17 @@ class TravelerService {
       if (!ids || ids.length === 0) return resolve(0);
       
       const placeholders = ids.map(() => '?').join(',');
-      
-      // Check for non-deletable travelers (is_self = 1)
+
       const checkSql = `SELECT id FROM travelers WHERE user_id = ? AND is_self = 1 AND id IN (${placeholders})`;
       const checkParams = [userId, ...ids];
-      
+
       db.get(checkSql, checkParams, (err, row) => {
         if (err) return reject(err);
         if (row) return reject(new Error('Contains non-deletable travelers'));
 
         const sql = `DELETE FROM travelers WHERE user_id = ? AND id IN (${placeholders})`;
         const params = [userId, ...ids];
-  
+
         db.run(sql, params, function(err) {
           if (err) return reject(err);
           resolve(this.changes);

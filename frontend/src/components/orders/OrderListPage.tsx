@@ -16,6 +16,14 @@ type OrderItem = {
   travelerInfo?: any[];
 };
 
+const cityName = (v: any) => {
+  const s = String(v || '');
+  const map: Record<string, string> = {
+    SJW: '石家庄'
+  };
+  return map[s] || s;
+};
+
 const tabs = [
   { key: 'all', label: '全部订单' },
   { key: 'pending_travel', label: '未出行' },
@@ -206,15 +214,15 @@ const OrderListPage = () => {
       const p = o.productInfo || {};
       const flight = {
         from: {
-          city: p.departCity || '',
-          airport: p.departCity ? `${p.departCity}机场` : '',
+          city: cityName(p.departCity) || '',
+          airport: p.departCity ? `${cityName(p.departCity)}机场` : '',
           time: p.departTime ? new Date(p.departTime).toTimeString().slice(0,5) : '00:00',
           terminal: 'T1',
           code: p.departCity || 'SHA'
         },
         to: {
-          city: p.arriveCity || '',
-          airport: p.arriveCity ? `${p.arriveCity}机场` : '',
+          city: cityName(p.arriveCity) || '',
+          airport: p.arriveCity ? `${cityName(p.arriveCity)}机场` : '',
           time: p.arriveTime ? new Date(p.arriveTime).toTimeString().slice(0,5) : '00:00',
           terminal: 'T2',
           code: p.arriveCity || 'BJS'
@@ -386,7 +394,7 @@ const OrderListPage = () => {
                 </span>
               </div>
               <div className={styles.cardBody}>
-                <div className={styles.productTitle}>{(o.productInfo?.departCity && o.productInfo?.arriveCity) ? `${o.productInfo.departCity} → ${o.productInfo.arriveCity}` : o.productTitle}</div>
+                <div className={styles.productTitle}>{(o.productInfo?.departCity && o.productInfo?.arriveCity) ? `${cityName(o.productInfo.departCity)} → ${cityName(o.productInfo.arriveCity)}` : o.productTitle}</div>
                 <div className={styles.meta}>出发日期：{formatRange(o.productInfo?.departTime, o.productInfo?.arriveTime)} {o.productInfo?.number || ''}</div>
                 <div className={styles.meta}>出行人：{(Array.isArray(o.travelerInfo) ? o.travelerInfo : []).map((t: any) => t?.name).filter(Boolean).join('、') || ''}</div>
               </div>

@@ -84,8 +84,14 @@ const VerificationCodeForm = ({ onSwitchMode }) => {
       if (response.ok) {
         console.log('登录成功:', data);
         const token = data?.data?.token || data?.token;
+        const user = data?.data?.user || data?.user;
         if (token) {
           localStorage.setItem('token', token);
+        }
+        if (user) {
+          try { localStorage.setItem('user', JSON.stringify(user)); } catch (_) {}
+        } else {
+          try { localStorage.setItem('user', JSON.stringify({ phone: phoneNumber })); } catch (_) {}
         }
         navigate('/home');
       } else {

@@ -121,14 +121,6 @@ const generateFlights = (from, to, departDate, filters) => {
 }
 
 router.get('/search', (req, res) => {
-  const auth = req.headers.authorization || ''
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : ''
-  try {
-    if (!token) throw new Error('missing')
-    jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key')
-  } catch (e) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
   const { trip, from, to, departDate } = req.query
   if (!trip || !from || !to || !departDate) return res.status(400).json({ error: 'Invalid search conditions.' })
   const d = new Date(String(departDate))

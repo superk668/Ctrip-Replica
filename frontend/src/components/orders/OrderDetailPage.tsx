@@ -9,6 +9,14 @@ const OrderDetailPage = ({ orderId }: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const cityName = (v: any) => {
+    const s = String(v || '');
+    const map: Record<string, string> = {
+      SJW: '石家庄'
+    };
+    return map[s] || s;
+  };
+
   useEffect(() => {
     const run = async () => {
       setError('');
@@ -104,7 +112,7 @@ const OrderDetailPage = ({ orderId }: Props) => {
                 <span className={styles.orderDate}>状态：{data.orderStatus === 'pending_travel' ? '支付成功' : data.orderStatus === 'pending_payment' ? '待支付' : data.orderStatus === 'pending_review' ? '待点评' : data.orderStatus || '未知'}</span>
               </div>
               <div className={styles.cardBody}>
-                <div className={styles.productTitle}>{(data.productInfo?.departCity && data.productInfo?.arriveCity) ? `${data.productInfo.departCity} → ${data.productInfo.arriveCity}` : (data.productInfo?.title || data.productTitle || '产品')}</div>
+                <div className={styles.productTitle}>{(data.productInfo?.departCity && data.productInfo?.arriveCity) ? `${cityName(data.productInfo.departCity)} → ${cityName(data.productInfo.arriveCity)}` : (data.productInfo?.title || data.productTitle || '产品')}</div>
                 <div className={styles.meta}>
                   {data.productInfo?.number ? `车次/航班：${data.productInfo.number}` : ''}
                   {data.productInfo?.seatType ? `（${data.productInfo.seatType}）` : ''}

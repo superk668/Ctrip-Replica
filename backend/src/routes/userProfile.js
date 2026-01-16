@@ -61,6 +61,9 @@ router.post('/travelers', async (req, res) => {
     if (error.message === 'Document already exists') {
       return res.status(409).json(errorResponse('Document already exists.'));
     }
+    if (error.message === 'Self traveler already exists') {
+      return res.status(409).json(errorResponse('Self traveler already exists.', 409, { existing: error.existingSelfTraveler || null }));
+    }
     console.error('Create traveler error:', error);
     res.status(500).json(errorResponse('Service unavailable.'));
   }
@@ -97,6 +100,9 @@ router.put('/travelers/:id', async (req, res) => {
   } catch (error) {
     if (error.message === 'Document already exists') {
       return res.status(409).json(errorResponse('Document already exists.'));
+    }
+    if (error.message === 'Self traveler already exists') {
+      return res.status(409).json(errorResponse('Self traveler already exists.', 409, { existing: error.existingSelfTraveler || null }));
     }
     console.error('Update traveler error:', error);
     res.status(500).json(errorResponse('Service unavailable.'));

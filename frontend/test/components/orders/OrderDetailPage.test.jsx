@@ -54,5 +54,27 @@ describe('OrderDetailPage', () => {
     expect(sessionStorage.getItem('bookingStage')).toBe('3')
     expect(window.location.href).toBe('/booking/payment')
   })
-})
 
+  it('起始点为SJW时应显示为石家庄', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          orderId: 'O-2',
+          orderStatus: 'pending_payment',
+          orderDate: new Date().toISOString(),
+          totalAmount: 100,
+          productInfo: { departCity: 'SJW', arriveCity: 'BJS', number: 'MU1234' },
+          travelerInfo: [{ name: '张三', idMasked: '430802**********12' }]
+        })
+    })
+
+    render(
+      <MemoryRouter>
+        <OrderDetailPage orderId="O-2" />
+      </MemoryRouter>
+    )
+
+    expect(await screen.findByText('石家庄 → BJS')).toBeInTheDocument()
+  })
+})

@@ -11,6 +11,30 @@ const TravelersManagement = () => {
   const [keyword, setKeyword] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
 
+  const travelerById = useMemo(() => {
+    const map = new Map();
+    (list || []).forEach((t) => {
+      if (t && t.id !== undefined && t.id !== null) map.set(t.id, t);
+    });
+    return map;
+  }, [list]);
+
+  const unmarkSelfBeforeDelete = async (token, ids) => {
+    const selfIds = ids.filter((id) => travelerById.get(id)?.isSelf);
+    for (const id of selfIds) {
+      const res = await fetch(`/api/users/me/travelers/${id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isSelf: false })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!data.success) {
+        const message = data.message || data.msg || '清除本人标识失败';
+        throw new Error(message);
+      }
+    }
+  };
+
   const fetchList = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -51,9 +75,19 @@ const TravelersManagement = () => {
   };
 
   const handleDelete = async (ids) => {
-    if (!ids.length || !window.confirm('确认删除选中的旅客信息吗？')) return;
+    if (!ids.length) return;
+    const containsSelf = ids.some((id) => travelerById.get(id)?.isSelf);
+    const confirmText = containsSelf
+      ? '选中旅客包含“本人”。系统会先清除本人标识再删除，确认继续吗？'
+      : '确认删除选中的旅客信息吗？';
+    if (!window.confirm(confirmText)) return;
     try {
       const token = localStorage.getItem('token');
+
+      if (containsSelf) {
+        await unmarkSelfBeforeDelete(token, ids);
+      }
+
       const res = await fetch('/api/users/me/travelers', {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -64,11 +98,16 @@ const TravelersManagement = () => {
         fetchList();
         setSelectedIds([]);
       } else {
-        alert(data.msg || '删除失败');
+        const message = data.message || data.msg || '删除失败';
+        if (res.status === 409 && message.includes('Contains non-deletable travelers')) {
+          alert('选中旅客包含“本人”，请先取消本人标识后再删除。');
+          return;
+        }
+        alert(message);
       }
     } catch (e) {
       console.error(e);
-      alert('删除失败');
+      alert(e?.message ? `删除失败：${e.message}` : '删除失败');
     }
   };
 

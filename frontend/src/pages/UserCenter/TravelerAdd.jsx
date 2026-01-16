@@ -40,6 +40,15 @@ const TravelerAdd = () => {
   const validTillValid = isDateYMD(validTill);
   const formValid = nameValid && idTypeValid && idNumberValid && phoneValid && emailValid && birthdayValid && validTillValid;
 
+  const formatTravelerLabel = (t) => {
+    if (!t) return '';
+    const name = (t.name || t.cnName || '').trim();
+    const docType = t.document?.type || '';
+    const docNo = t.document?.no || '';
+    const doc = `${docType}${docNo ? ` ${docNo}` : ''}`.trim();
+    return `${name}${name && doc ? '，' : ''}${doc}`.trim();
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setTriedSave(true);
@@ -112,7 +121,14 @@ const TravelerAdd = () => {
       if (data.success) {
         window.location.href = '/user-center/common-info/travelers';
       } else {
-        alert(data.msg || '保存失败');
+        const message = data.message || data.msg || '';
+        if (res.status === 409 && message.includes('Self traveler already exists')) {
+          const existingLabel = formatTravelerLabel(data.data?.existing);
+          const suffix = existingLabel ? `\n当前已设置为本人的旅客：${existingLabel}` : '';
+          alert(`本人信息只能存在一个。${suffix}\n如需更换本人，请先到旅客列表编辑该旅客，取消“设置为本人”，再保存。`);
+          return;
+        }
+        alert(message || '保存失败');
       }
     } catch (err) {
       console.error(err);

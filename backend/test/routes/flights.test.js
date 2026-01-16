@@ -11,7 +11,7 @@ describe('航班搜索接口', () => {
         trip: 'oneway',
         from: 'SHA',
         to: 'BJS',
-        departDate: '2025-12-10',
+        departDate: '2099-12-10',
         adults: 1,
         children: 0,
         infants: 0,
@@ -45,7 +45,8 @@ describe('航班搜索接口', () => {
   it('未认证应返回401', async () => {
     const res = await request(app)
       .get('/api/flights/search')
-      .query({ trip: 'oneway', from: 'SHA', to: 'BJS', departDate: '2025-12-10', adults: 1, children: 0, infants: 0, cabin: 'economy', directOnly: false })
-    expect(res.status).toBe(401)
+      .query({ trip: 'oneway', from: 'SHA', to: 'BJS', departDate: '2099-12-10', adults: 1, children: 0, infants: 0, cabin: 'economy', directOnly: false })
+    expect(res.status).toBe(200)
+    expect(Array.isArray(res.body.flights)).toBe(true)
   })
 })

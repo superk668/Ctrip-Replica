@@ -98,6 +98,61 @@ const FlightsResultsPage = () => {
   const [filterModel, setFilterModel] = useState('')
   const [filterCabin, setFilterCabin] = useState('')
 
+  const findCityByCode = (code) => {
+    if (!code) return null
+    return capitals.find((c) => c.cityCode === code || c.airportCode === code) || null
+  }
+
+  const labelForCode = (code) => {
+    const c = findCityByCode(code)
+    if (c) return `${c.city}(${c.cityCode})`
+    return code ? `(${code})` : ''
+  }
+
+  const cityNameForCode = (code) => {
+    const c = findCityByCode(code)
+    return c ? c.city : (code || '')
+  }
+
+  useEffect(() => {
+    const s = new URLSearchParams(location.search)
+    const nextTrip = s.get('trip') || 'oneway'
+    const nextFrom = s.get('from') || 'SHA'
+    const nextTo = s.get('to') || 'BJS'
+    const nextDepart = s.get('departDate') || todayStr
+    const nextReturnRaw = s.get('returnDate')
+    const nextRet = nextTrip === 'round' ? (nextReturnRaw || '') : ''
+
+    const nextFromLabel = labelForCode(nextFrom)
+    const nextToLabel = labelForCode(nextTo)
+    if (nextFromLabel && nextFromLabel !== fromInput) setFromInput(nextFromLabel)
+    if (nextToLabel && nextToLabel !== toInput) setToInput(nextToLabel)
+    if (nextDepart !== depart) setDepart(nextDepart)
+    if (nextRet !== ret) setRet(nextRet)
+
+    const nextFromSelected = findCityByCode(nextFrom)
+    const nextToSelected = findCityByCode(nextTo)
+    if (nextFromSelected) {
+      if (nextFromSelected !== selectedFrom) setSelectedFrom(nextFromSelected)
+    } else if (selectedFrom) {
+      setSelectedFrom(null)
+    }
+    if (nextToSelected) {
+      if (nextToSelected !== selectedTo) setSelectedTo(nextToSelected)
+    } else if (selectedTo) {
+      setSelectedTo(null)
+    }
+
+    const nextAirline = s.get('airline') || ''
+    const nextTime = s.get('timeSlot') || ''
+    const nextModel = s.get('model') || ''
+    const nextCabin = s.get('cabin') || ''
+    if (nextAirline !== filterAirline) setFilterAirline(nextAirline)
+    if (nextTime !== filterTime) setFilterTime(nextTime)
+    if (nextModel !== filterModel) setFilterModel(nextModel)
+    if (nextCabin !== filterCabin) setFilterCabin(nextCabin)
+  }, [location.search])
+
   useEffect(() => {
     const t = setTimeout(async () => {
       const q = fromInput.trim()
@@ -202,20 +257,14 @@ const FlightsResultsPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (!token) {
-      navigate('/login')
-      return
-    }
     const controller = new AbortController()
     const fetchData = async () => {
       try {
         setError('')
         setLoading(true)
         const url = `/api/flights/search${location.search}`
-        const res = await fetch(url, { 
-          headers: { Authorization: `Bearer ${token}` },
-          signal: controller.signal
-        })
+        const headers = token ? { Authorization: `Bearer ${token}` } : {}
+        const res = await fetch(url, { headers, signal: controller.signal })
         let data = {}
         try {
           data = await res.json()
@@ -223,7 +272,7 @@ const FlightsResultsPage = () => {
           console.warn('Response not JSON', res.status)
         }
         if (!res.ok) {
-          if (res.status === 401) {
+          if (res.status === 401 && token) {
             try {
               const prof = await fetch('/api/users/me/profile', { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
               if (prof.ok) {
@@ -334,7 +383,7 @@ const FlightsResultsPage = () => {
 
   const OneWayBar = () => (
     <div className={styles.segmentBar}>
-      <div className={styles.stepActive}><span className={styles.stepNum}>1</span><span className={styles.stepText}>单程：上海 → 北京 {depart}</span></div>
+      <div className={styles.stepActive}><span className={styles.stepNum}>1</span><span className={styles.stepText}>单程：{cityNameForCode(fromCity)} → {cityNameForCode(toCity)} {depart}</span></div>
       <div className={styles.updateAt}>最近更新时间：20:37:18</div>
     </div>
   )
@@ -427,6 +476,10 @@ const FlightsResultsPage = () => {
   }
   const weekday = (d) => ['周日','周一','周二','周三','周四','周五','周六'][new Date(d).getDay()]
   const [tabStart, setTabStart] = useState(depart)
+
+  useEffect(() => {
+    setTabStart(depart)
+  }, [depart])
 
   const DateTabs = () => {
     const [priceMap, setPriceMap] = useState({})

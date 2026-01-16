@@ -4,29 +4,71 @@ import styles from './Header.module.css';
 import logo from '../../assets/images/logo-ctrip.png';
 
 const Header = () => {
-  const [username, setUsername] = useState('');
+  const [authed, setAuthed] = useState(false);
+  const [displayName, setDisplayName] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const location = useLocation();
-  useEffect(() => {
+
+  const maskPhone = (p) => {
+    const s = String(p || '').replace(/\D/g, '');
+    if (s.length === 11) return `${s.slice(0, 3)}****${s.slice(7)}`;
+    if (s.length >= 7) return `${s.slice(0, 3)}****${s.slice(-4)}`;
+    return s;
+  };
+
+  const readSession = () => {
+    let token = '';
+    let user = null;
+    try { token = typeof window !== 'undefined' ? (localStorage.getItem('token') || '') : ''; } catch (_) {}
     try {
       const u = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-      if (u) {
-        const ju = JSON.parse(u);
-        if (ju && ju.username) setUsername(String(ju.username));
-      } else {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : '';
-        if (token) {
-          const parts = token.split('.');
-          if (parts.length === 3) {
-            const payload = JSON.parse(atob(parts[1]));
-            if (payload && payload.username) setUsername(String(payload.username));
-          }
-        }
-      }
-    } catch (_) {}
+      user = u ? JSON.parse(u) : null;
+    } catch (_) {
+      user = null;
+    }
 
-    // 验证 Token 有效性（例如后端重启后 User ID 变更导致 Token 失效）
+    const isAuthed = !!token || !!(user && (user.username || user.phone));
+
+    let name = '';
+    if (user && user.username) name = String(user.username);
+    if (!name && user && user.phone) name = maskPhone(user.phone);
+    if (!name && token) {
+      try {
+        const parts = token.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1]));
+          if (payload && payload.username) name = String(payload.username);
+          if (!name && payload && payload.phone) name = maskPhone(payload.phone);
+        }
+      } catch (_) {}
+    }
+    if (!name && isAuthed) name = '已登录';
+
+    return { isAuthed, name };
+  };
+
+  useEffect(() => {
+    try {
+      const s = readSession();
+      setAuthed(!!s.isAuthed);
+      setDisplayName(s.name || '');
+    } catch (_) {}
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handler = () => {
+      try {
+        const s = readSession();
+        setAuthed(!!s.isAuthed);
+        setDisplayName(s.name || '');
+      } catch (_) {}
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
+
+  useEffect(() => {
     const validateSession = async () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       if (!token) return;
@@ -34,7 +76,6 @@ const Header = () => {
       if (/^\/login\b/.test(path) || /^\/register\b/.test(path) || /^\/forgot-password\b/.test(path)) return;
 
       try {
-        // 使用 profile 接口验证 Token 对应的用户是否存在
         const res = await fetch('/api/users/me/profile', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -42,11 +83,10 @@ const Header = () => {
         if (res.status === 401 || res.status === 404) {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          setUsername('');
+          setAuthed(false);
+          setDisplayName('');
         }
-      } catch (_) {
-        // 网络错误暂不处理，以免误登出
-      }
+      } catch (_) {}
     };
     const isTest = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.MODE === 'test';
     if (!isTest) validateSession();
@@ -120,7 +160,7 @@ const Header = () => {
           )}
         </div>
         <nav className={styles.navigation}>
-          {!username ? (
+          {!authed ? (
             <>
               <a href="/home">首页</a>
               <span className={styles.navDivider}>|</span>
@@ -138,14 +178,14 @@ const Header = () => {
               <div className={styles.userMenu} ref={menuRef} onMouseEnter={()=>setMenuOpen(true)} onMouseLeave={()=>setMenuOpen(false)} onTouchStart={()=>setMenuOpen(true)}>
                 <button className={`${styles.userBtn} ${styles.userBadge}`}>
                   <img className={styles.avatar} src="/dist/assets/user_avatar.jpg" alt="avatar" />
-                  <a href="/user-center/my-info" className={styles.idText} onClick={(e)=>e.stopPropagation()}>{username || ''}</a>
+                  <a href="/user-center/my-info" className={styles.idText} onClick={(e)=>e.stopPropagation()}>{displayName || ''}</a>
                 </button>
                 {menuOpen && (
                   <div className={styles.dropdown}>
                     <div className={styles.dropdownHeader}>
                       <div className={styles.dropdownHeaderTop}>
                         <img className={styles.avatar} src="/dist/assets/user_avatar.jpg" alt="avatar" />
-                        <a href="/user-center/my-info" className={styles.memberName}>{username || ''}</a>
+                        <a href="/user-center/my-info" className={styles.memberName}>{displayName || ''}</a>
                         <span className={styles.caret}>›</span>
                       </div>
                       <div className={styles.dropdownHeaderBottom}>普通会员</div>

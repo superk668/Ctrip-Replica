@@ -291,21 +291,39 @@ const RegisterForm = () => {
       )}
       {step === 2 && (
         <>
-          <div className={styles.formItem}>
-            <label htmlFor="password">设置密码</label>
-            <div className={styles.passwordField}>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                placeholder="6-20位，建议字母、数字、符号组合"
-                className={styles.passwordInput}
-                value={password}
-                onChange={handlePasswordChange}
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className={styles.showPasswordButton}>
-                {showPassword ? '隐藏' : '显示'}
-              </button>
+          <div className={styles.step2Grid}>
+            <label htmlFor="password" className={styles.step2Label}>设置密码</label>
+            <div className={styles.step2Field}>
+              <div className={styles.passwordField}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  placeholder="6-20位，建议字母、数字、符号组合"
+                  className={styles.passwordInput}
+                  value={password}
+                  onChange={handlePasswordChange}
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className={styles.showPasswordButton}>
+                  {showPassword ? '隐藏' : '显示'}
+                </button>
+              </div>
             </div>
+
+            <label htmlFor="confirmPassword" className={styles.step2Label}>确认密码</label>
+            <div className={styles.step2Field}>
+              <div className={styles.passwordField}>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  placeholder="再次输入密码"
+                  className={styles.passwordInput}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <div className={styles.passwordFieldSpacer} />
+              </div>
+            </div>
+
             <div className={styles.passwordStrengthInline}>
               <div
                 data-testid="strength-weak"
@@ -329,17 +347,6 @@ const RegisterForm = () => {
                 强
               </div>
             </div>
-          </div>
-          <div className={styles.formItem}>
-            <label htmlFor="confirmPassword">确认密码</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              placeholder="再次输入密码"
-              className={styles.passwordInput}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
           </div>
           <button className={styles.submitButton} onClick={handleStep2Submit}>完成注册</button>
         </>
