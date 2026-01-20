@@ -27,7 +27,15 @@
   gap: 18px;
   padding: 4px 0 10px;
 }
-.radio { color: #666; }
+.radio {
+  color: #666;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  line-height: inherit;
+}
 .checked { color: #333; font-weight: 600; }
 .cabin { margin-left: auto; color: #666; }
 
@@ -204,6 +212,31 @@
   align-items: center;
   gap: 12px;
 }
+.segmentTabs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.segmentBtn {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  max-width: 420px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #e6e9ef;
+  background: #f8fafc;
+  cursor: pointer;
+  min-width: 0;
+}
+.segmentBtnActive {
+  background: #eef5ff;
+  border-color: #cfe3ff;
+}
+.segmentBtnLabel { color: #111; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.segmentBtnRoute { color: #111; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.segmentBtnDate { color: #111; font-size: 14px; font-weight: 500; white-space: nowrap; }
 .summaryLeft {
   display: inline-flex;
   align-items: baseline;
@@ -296,6 +329,16 @@
 
 .list {
   margin: 12px 0 0;
+}
+
+.empty {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid #e6e9ef;
+  padding: 24px 16px;
+  text-align: center;
+  color: #667085;
 }
 .row {
   background: #fff;

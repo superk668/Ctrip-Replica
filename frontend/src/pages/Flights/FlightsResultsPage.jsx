@@ -79,6 +79,7 @@ const FlightsResultsPage = () => {
   const [showModel, setShowModel] = useState(false)
   const [showCabin, setShowCabin] = useState(false)
   const [showMore, setShowMore] = useState(false)
+  const activeLeg = trip === 'round' ? (qs.get('leg') || 'go') : 'go'
   const airlines = [
     { name: '中国国航', code: 'CA' },
     { name: '东方航空', code: 'MU' },
@@ -108,6 +109,11 @@ const FlightsResultsPage = () => {
   const findCityByCode = (code) => {
     if (!code) return null
     return capitals.find((c) => c.cityCode === code || c.airportCode === code) || null
+  }
+
+  const normalizeCityCode = (code) => {
+    const c = findCityByCode(code)
+    return c?.cityCode || code
   }
 
   const labelForCode = (code) => {
@@ -235,13 +241,19 @@ const FlightsResultsPage = () => {
   }, [])
   const applyParamsDebounced = (delay = 180, overrides = {}) => {
     const s = new URLSearchParams(location.search)
+    const nextTrip = overrides.trip !== undefined ? overrides.trip : trip
+    s.set('trip', nextTrip)
+    const nextLegRaw = overrides.leg !== undefined ? overrides.leg : (s.get('leg') || activeLeg)
+    if (nextTrip === 'round') s.set('leg', nextLegRaw || 'go')
+    else s.delete('leg')
     const fCode = overrides.from !== undefined ? overrides.from : (selectedFrom?.cityCode || selectedFrom?.airportCode || parseCode(fromInput) || fromCity)
     const tCode = overrides.to !== undefined ? overrides.to : (selectedTo?.cityCode || selectedTo?.airportCode || parseCode(toInput) || toCity)
     s.set('from', fCode)
     s.set('to', tCode)
     s.set('departDate', overrides.departDate !== undefined ? overrides.departDate : (depart || todayStr))
     const nextRet = overrides.returnDate !== undefined ? overrides.returnDate : ret
-    if (nextRet) s.set('returnDate', nextRet); else s.delete('returnDate')
+    if (nextTrip === 'oneway') s.delete('returnDate')
+    else if (nextRet) s.set('returnDate', nextRet); else s.delete('returnDate')
     const nextAirline = overrides.airline !== undefined ? overrides.airline : filterAirline
     if (nextAirline) s.set('airline', nextAirline); else s.delete('airline')
     const nextTime = overrides.timeSlot !== undefined ? overrides.timeSlot : filterTime
@@ -253,6 +265,12 @@ const FlightsResultsPage = () => {
     const next = s.toString()
     pendingParamsRef.current = next
     if (applyTimerRef.current) clearTimeout(applyTimerRef.current)
+    if (delay <= 0) {
+      applyTimerRef.current = null
+      const current = new URLSearchParams(location.search).toString()
+      if (next !== current) navigate(`/flights/results?${next}`)
+      return
+    }
     applyTimerRef.current = setTimeout(() => {
       applyTimerRef.current = null
       const current = new URLSearchParams(location.search).toString()
@@ -276,12 +294,45 @@ const FlightsResultsPage = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
+    const base = new URLSearchParams(location.search)
+    const uiTrip = base.get('trip') || 'oneway'
+    const uiLeg = uiTrip === 'round' ? (base.get('leg') || 'go') : 'go'
+    const req = new URLSearchParams(base.toString())
+
+    if (uiTrip === 'round') {
+      const baseFrom = base.get('from') || 'SHA'
+      const baseTo = base.get('to') || 'BJS'
+      const baseDepart = base.get('departDate') || todayStr
+      const baseReturn = base.get('returnDate') || ''
+      req.set('trip', 'oneway')
+      req.delete('returnDate')
+      if (uiLeg === 'back') {
+        req.set('from', baseTo)
+        req.set('to', baseFrom)
+        req.set('departDate', baseReturn || baseDepart)
+      } else {
+        req.set('from', baseFrom)
+        req.set('to', baseTo)
+        req.set('departDate', baseDepart)
+      }
+    }
+
+    const qFrom = req.get('from') || 'SHA'
+    const qTo = req.get('to') || 'BJS'
+    const sameCity = normalizeCityCode(qFrom) === normalizeCityCode(qTo)
+    if (sameCity) {
+      setError('')
+      setResults([])
+      setLoading(false)
+      setLastUpdateAt(formatHHMMSS(new Date()))
+      return
+    }
     const controller = new AbortController()
     const fetchData = async () => {
       try {
         setError('')
         setLoading(true)
-        const url = `/api/flights/search${location.search}`
+        const url = `/api/flights/search?${req.toString()}`
         const headers = token ? { Authorization: `Bearer ${token}` } : {}
         const res = await fetch(url, { headers, signal: controller.signal })
         let data = {}
@@ -328,12 +379,20 @@ const FlightsResultsPage = () => {
     return () => controller.abort()
   }, [location.search])
 
+  const emptyText = normalizeCityCode(fromCity) === normalizeCityCode(toCity)
+    ? '“出发地和目的地”为同一城市'
+    : '未找到航班'
+
   const Header = () => (
     <div className={styles.headerBar}>
       <div className={styles.radioRow}>
-        <span className={`${styles.radio} ${styles.checked}`}>单程</span>
-        <span className={styles.radio}>往返</span>
-        <span className={styles.radio}>多程(含缺口程)</span>
+        <button type="button" className={`${styles.radio} ${trip==='oneway'?styles.checked:''}`} onClick={()=>{setRet(''); applyParamsDebounced(0, { trip: 'oneway', returnDate: '', leg: '' })}}>单程</button>
+        <button type="button" className={`${styles.radio} ${trip==='round'?styles.checked:''}`} onClick={()=>{
+          const nextRet = ret || toISO(addDays(depart || todayStr, 1))
+          if (!ret) setRet(nextRet)
+          applyParamsDebounced(0, { trip: 'round', returnDate: nextRet, leg: 'go' })
+        }}>往返</button>
+        <button type="button" className={`${styles.radio} ${trip==='multi'?styles.checked:''}`} onClick={()=>{setRet(''); applyParamsDebounced(0, { trip: 'multi', returnDate: '', leg: '' })}}>多程(含缺口程)</button>
         <span className={styles.cabin}>不限舱等 ▾</span>
       </div>
       <div className={styles.formRow}>
@@ -410,13 +469,31 @@ const FlightsResultsPage = () => {
     const tripLabel = trip === 'round' ? '往返' : trip === 'multi' ? '多程' : '单程'
     const route = `${cityNameForCode(fromCity)}→${cityNameForCode(toCity)}`
     const dateLabel = `${formatCnMD(depart)} ${weekday(depart)}`
+    const backRoute = `${cityNameForCode(toCity)}→${cityNameForCode(fromCity)}`
+    const backDateLabel = ret ? `${formatCnMD(ret)} ${weekday(ret)}` : ''
     return (
       <div className={styles.segmentBar}>
-        <div className={styles.summaryLeft}>
-          <span className={styles.tripPrefix}>{tripLabel}：</span>
-          <span className={styles.routeText}>{route}</span>
-          <span className={styles.summaryDate}>{dateLabel}</span>
-        </div>
+        {trip === 'round' ? (
+          <div className={styles.segmentTabs}>
+            <span className={styles.tripPrefix}>往返：</span>
+            <button type="button" className={`${styles.segmentBtn} ${activeLeg==='go'?styles.segmentBtnActive:''}`} onClick={()=>applyParamsDebounced(0, { leg: 'go' })}>
+              <span className={styles.segmentBtnLabel}>去程：</span>
+              <span className={styles.segmentBtnRoute}>{route}</span>
+              <span className={styles.segmentBtnDate}>{dateLabel}</span>
+            </button>
+            <button type="button" className={`${styles.segmentBtn} ${activeLeg==='back'?styles.segmentBtnActive:''}`} onClick={()=>applyParamsDebounced(0, { leg: 'back' })}>
+              <span className={styles.segmentBtnLabel}>返程：</span>
+              <span className={styles.segmentBtnRoute}>{backRoute}</span>
+              <span className={styles.segmentBtnDate}>{backDateLabel || '请选择返程日期'}</span>
+            </button>
+          </div>
+        ) : (
+          <div className={styles.summaryLeft}>
+            <span className={styles.tripPrefix}>{tripLabel}：</span>
+            <span className={styles.routeText}>{route}</span>
+            <span className={styles.summaryDate}>{dateLabel}</span>
+          </div>
+        )}
         <div className={styles.updateAt}>
           <span>最近更新时间：{lastUpdateAt || '--:--:--'}</span>
           <span className={styles.updateIcon}>ⓘ</span>
@@ -842,6 +919,9 @@ const FlightsResultsPage = () => {
 
   const List = () => (
     <div className={styles.list}>
+      {!loading && !error && results.length === 0 && (
+        <div className={styles.empty}>{emptyText}</div>
+      )}
       {results.map(f => {
         const airlineName = f.carrier
         return (
