@@ -2,6 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import styles from './FlightsResultsPage.module.css'
 import GlobalHeader from '../../components/Header/Header'
+import chinaNationalAirlinesLogo from '../../assets/images/airlines_logo/china_national_airlines.png'
+import easternAirlinesLogo from '../../assets/images/airlines_logo/eastern_airlines.png'
+import hainanAirlinesLogo from '../../assets/images/airlines_logo/hainan_airlines.png'
+import southernAirlinesLogo from '../../assets/images/airlines_logo/southern_airlines.png'
+import shenzhenAirlinesLogo from '../../assets/images/airlines_logo/shenzhen_airlines.png'
+import sichuanAirlinesLogo from '../../assets/images/airlines_logo/sichuan_airlines.png'
 
 const FlightsResultsPage = () => {
   const location = useLocation()
@@ -9,6 +15,7 @@ const FlightsResultsPage = () => {
   const [results, setResults] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [lastUpdateAt, setLastUpdateAt] = useState('')
   const qs = useMemo(() => new URLSearchParams(location.search), [location.search])
   const trip = qs.get('trip') || 'oneway'
   const fromCity = qs.get('from') || 'SHA'
@@ -112,6 +119,18 @@ const FlightsResultsPage = () => {
   const cityNameForCode = (code) => {
     const c = findCityByCode(code)
     return c ? c.city : (code || '')
+  }
+
+  const formatHHMMSS = (d) => {
+    const pad = (n) => String(n).padStart(2, '0')
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+  }
+
+  const formatCnMD = (iso) => {
+    const s = String(iso || '')
+    const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(s)
+    if (!m) return s
+    return `${m[1]}月${m[2]}日`
   }
 
   useEffect(() => {
@@ -289,12 +308,15 @@ const FlightsResultsPage = () => {
           }
           const msg = data?.error || data?.message || (res.status === 500 ? '服务器内部错误' : '搜索失败')
           setError(`${msg} (${res.status})`)
+          setLastUpdateAt(formatHHMMSS(new Date()))
         } else {
           setResults(Array.isArray(data.flights) ? data.flights : [])
+          setLastUpdateAt(formatHHMMSS(new Date()))
         }
       } catch (e) {
         if (e.name !== 'AbortError') {
           setError('网络异常，请稍后重试')
+          setLastUpdateAt(formatHHMMSS(new Date()))
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -374,19 +396,34 @@ const FlightsResultsPage = () => {
           <div className={styles.labelMuted}>乘客类型</div>
           <div className={styles.checkboxRow}><span className={styles.checkbox}>□ 常儿童</span><span className={styles.checkbox}>□ 带婴儿</span></div>
         </div>
-        <div className={styles.dateMore}>更多日期</div>
+        <div className={styles.dateMore}>
+          <span className={styles.dateMoreText}>更多日期</span>
+          <span className={styles.dateMoreIcon}>▸</span>
+        </div>
       </div>
     </div>
   )
 
   
 
-  const OneWayBar = () => (
-    <div className={styles.segmentBar}>
-      <div className={styles.stepActive}><span className={styles.stepNum}>1</span><span className={styles.stepText}>单程：{cityNameForCode(fromCity)} → {cityNameForCode(toCity)} {depart}</span></div>
-      <div className={styles.updateAt}>最近更新时间：20:37:18</div>
-    </div>
-  )
+  const OneWayBar = () => {
+    const tripLabel = trip === 'round' ? '往返' : trip === 'multi' ? '多程' : '单程'
+    const route = `${cityNameForCode(fromCity)}→${cityNameForCode(toCity)}`
+    const dateLabel = `${formatCnMD(depart)} ${weekday(depart)}`
+    return (
+      <div className={styles.segmentBar}>
+        <div className={styles.summaryLeft}>
+          <span className={styles.tripPrefix}>{tripLabel}：</span>
+          <span className={styles.routeText}>{route}</span>
+          <span className={styles.summaryDate}>{dateLabel}</span>
+        </div>
+        <div className={styles.updateAt}>
+          <span>最近更新时间：{lastUpdateAt || '--:--:--'}</span>
+          <span className={styles.updateIcon}>ⓘ</span>
+        </div>
+      </div>
+    )
+  }
 
   const FilterBar = () => (
     <div className={styles.filterBar}>
@@ -488,14 +525,15 @@ const FlightsResultsPage = () => {
     const prefetchedStartRef = useRef('')
     const priceCacheRef = useRef(new Map())
     const lastKnownPricesRef = useRef(new Map())
-    const items = Array.from({ length: 10 }).map((_, i) => {
+    const days = 7
+    const items = Array.from({ length: days }).map((_, i) => {
       const d = addDays(tabStart, i)
       const s = toISO(d)
       const mm = String(d.getMonth()+1).padStart(2,'0')
       const dd = String(d.getDate()).padStart(2,'0')
       const type = ret ? (new Date(s) >= new Date(ret) ? '返' : '去') : '去'
       const isActive = (type === '去' && s === depart) || (type === '返' && s === ret)
-      return { s, label: `${mm}-${dd} ${weekday(s)} ${type}`, isActive, type }
+      return { s, md: `${mm}-${dd}`, wk: weekday(s), isActive, type }
     })
     const goPrev = async () => {
       const token = localStorage.getItem('token')
@@ -510,7 +548,6 @@ const FlightsResultsPage = () => {
       if (abortRef.current) abortRef.current.abort()
       const controller = new AbortController()
       abortRef.current = controller
-      const days = 10
       const start = toISO(addDays(tabStart, -1))
       const buildQuery = (a, b) => {
         const sp = new URLSearchParams()
@@ -528,7 +565,7 @@ const FlightsResultsPage = () => {
       const goRes = await fetch(`/api/flights/min-prices?${buildQuery(fromCode, toCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} }))
       const backRes = needBack ? await fetch(`/api/flights/min-prices?${buildQuery(toCode, fromCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} })) : { prices: {} }
       if (controller.signal.aborted) return
-      const nextItems = Array.from({ length: 10 }).map((_, i) => {
+      const nextItems = Array.from({ length: days }).map((_, i) => {
         const d = addDays(start, i)
         const s2 = toISO(d)
         const type2 = ret ? (new Date(s2) >= new Date(ret) ? '返' : '去') : '去'
@@ -562,7 +599,6 @@ const FlightsResultsPage = () => {
       if (abortRef.current) abortRef.current.abort()
       const controller = new AbortController()
       abortRef.current = controller
-      const days = 10
       const start = toISO(addDays(tabStart, 1))
       const buildQuery = (a, b) => {
         const sp = new URLSearchParams()
@@ -580,7 +616,7 @@ const FlightsResultsPage = () => {
       const goRes = await fetch(`/api/flights/min-prices?${buildQuery(fromCode, toCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} }))
       const backRes = needBack ? await fetch(`/api/flights/min-prices?${buildQuery(toCode, fromCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} })) : { prices: {} }
       if (controller.signal.aborted) return
-      const nextItems = Array.from({ length: 10 }).map((_, i) => {
+      const nextItems = Array.from({ length: days }).map((_, i) => {
         const d = addDays(start, i)
         const s2 = toISO(d)
         const type2 = ret ? (new Date(s2) >= new Date(ret) ? '返' : '去') : '去'
@@ -628,7 +664,6 @@ const FlightsResultsPage = () => {
       if (abortRef.current) abortRef.current.abort()
       const controller = new AbortController()
       abortRef.current = controller
-      const days = 10
       const buildQuery = (a, b) => {
         const sp = new URLSearchParams()
         sp.set('from', a)
@@ -647,7 +682,7 @@ const FlightsResultsPage = () => {
           const goRes = await fetch(`/api/flights/min-prices?${buildQuery(fromCode, toCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} }))
           const backRes = needBack ? await fetch(`/api/flights/min-prices?${buildQuery(toCode, fromCode).toString()}`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }).then(r=>r.json()).catch(()=>({ prices: {} })) : { prices: {} }
           if (controller.signal.aborted) return
-          const nextItems = Array.from({ length: 10 }).map((_, i) => {
+          const nextItems = Array.from({ length: days }).map((_, i) => {
             const d = addDays(tabStart, i)
             const s2 = toISO(d)
             const type2 = ret ? (new Date(s2) >= new Date(ret) ? '返' : '去') : '去'
@@ -677,7 +712,11 @@ const FlightsResultsPage = () => {
         <span className={styles.arrow} onClick={goPrev}>◀</span>
         {items.map(it => (
           <span key={it.s} className={`${styles.dateCell} ${it.isActive?styles.dateActive:''}`} onClick={()=>onPick(it)}>
-            <span className={styles.dateMain}>{it.label}</span>
+            <span className={styles.dateTop}>
+              <span className={styles.dateMd}>{it.md}</span>
+              <span className={styles.dateWk}>{it.wk}</span>
+              <span className={`${styles.tripTag} ${it.type === '返' ? styles.tripTagBack : styles.tripTagGo}`}>{it.type}</span>
+            </span>
             <span className={styles.datePrice}>{(() => {
               const v = priceMap[it.s] !== undefined ? priceMap[it.s] : lastKnownPricesRef.current.get(it.s)
               return v !== undefined ? (v > 0 ? `¥${v}` : '—') : '—'
@@ -689,12 +728,35 @@ const FlightsResultsPage = () => {
     )
   }
 
-  const Logo = ({ text }) => (
-    <svg className={styles.logo} viewBox="0 0 40 40" aria-hidden="true">
-      <rect x="0" y="0" width="40" height="40" rx="10" fill="#eef5ff"/>
-      <text x="20" y="24" textAnchor="middle" fontSize="10" fill="#0071eb">{text}</text>
-    </svg>
-  )
+  const airlineLogoMap = useMemo(() => ({
+    '中国国航': chinaNationalAirlinesLogo,
+    CA: chinaNationalAirlinesLogo,
+    '东方航空': easternAirlinesLogo,
+    MU: easternAirlinesLogo,
+    '海南航空': hainanAirlinesLogo,
+    HU: hainanAirlinesLogo,
+    '南方航空': southernAirlinesLogo,
+    CZ: southernAirlinesLogo,
+    '深圳航空': shenzhenAirlinesLogo,
+    '深航': shenzhenAirlinesLogo,
+    ZH: shenzhenAirlinesLogo,
+    '四川航空': sichuanAirlinesLogo,
+    '川航': sichuanAirlinesLogo,
+    '3U': sichuanAirlinesLogo,
+    SC: sichuanAirlinesLogo
+  }), [])
+
+  const Logo = ({ airline }) => {
+    const key = String(airline || '').trim()
+    const src = airlineLogoMap[key] || airlineLogoMap[key.toUpperCase()] || ''
+    if (src) return <img className={styles.logo} src={src} alt={key || 'airline logo'} />
+    return (
+      <svg className={styles.logo} viewBox="0 0 40 40" aria-hidden="true">
+        <rect x="0" y="0" width="40" height="40" rx="10" fill="#eef5ff"/>
+        <text x="20" y="24" textAnchor="middle" fontSize="10" fill="#0071eb">LOGO</text>
+      </svg>
+    )
+  }
 
   const Row = ({ airline, flightNo, model, share, depTime, depAirport, depTerminal, arrTime, arrAirport, arrTerminal, packages, flight }) => {
     const [open, setOpen] = useState(false)
@@ -705,7 +767,7 @@ const FlightsResultsPage = () => {
     return (
       <div className={styles.row}>
         <div className={styles.leftCol}>
-          <Logo text="LOGO占位" />
+          <Logo airline={airline} />
           <div className={styles.airlineInfo}><span className={styles.airline}>{airline}</span><span className={styles.flightNo}>{flightNo}</span><span className={styles.model}>{model}</span>{share && <span className={styles.share}>{share}</span>}</div>
         </div>
         <div className={styles.middleCol}>
@@ -806,13 +868,15 @@ const FlightsResultsPage = () => {
     <div>
       <GlobalHeader />
       <main className={styles.container}>
-      {loading && <div className={styles.loading}>加载中…</div>}
-      {error && <div className={styles.error}>{error}</div>}
-      <Header />
-      <DateTabs />
-      <OneWayBar />
-      <FilterBar />
-      <List />
+        <div className={styles.wrap}>
+          {loading && <div className={styles.loading}>加载中…</div>}
+          {error && <div className={styles.error}>{error}</div>}
+          <Header />
+          <DateTabs />
+          <OneWayBar />
+          <FilterBar />
+          <List />
+        </div>
       </main>
     </div>
   )

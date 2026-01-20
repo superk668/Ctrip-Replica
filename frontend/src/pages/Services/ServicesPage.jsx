@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import styles from './ServicesPage.module.css'
 import Header from '../../components/Header/Header'
 import Footer from '../../components/Footer/Footer'
+import insuranceIllustration from '../../assets/images/insurance_illustration.png'
 
 const ServicesPage = () => {
   const navigate = useNavigate()
@@ -63,10 +64,7 @@ const ServicesPage = () => {
   )
 
   const InsuranceIllustration = () => (
-    <svg className={styles.illustration} viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg">
-      <rect width="240" height="160" fill="#eef5ff" />
-      <text x="50%" y="50%" dominantBaseline="middle" textAnchor="middle" fill="#7aa6e8" fontSize="14">占位 保险插图</text>
-    </svg>
+    <img className={styles.illustration} src={insuranceIllustration} alt="保险插图" />
   )
 
   const InsuranceCard = ({ title, desc, price }) => (

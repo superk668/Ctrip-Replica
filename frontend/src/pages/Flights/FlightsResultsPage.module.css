@@ -6,9 +6,14 @@
   background: #f5f7fa;
 }
 
-.headerBar {
+.wrap {
+  width: 100%;
   max-width: var(--container-width);
   margin: 0 auto;
+  padding: 0 20px;
+}
+
+.headerBar {
   background: #fff;
   border-radius: 12px;
   box-shadow: var(--shadow-md);
@@ -70,7 +75,23 @@
 .checkboxRow { display: flex; gap: 10px; }
 .checkbox { color: #666; }
 .swapIcon { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; flex: 0 0 26px; }
-.dateMore { margin-left: auto; color: var(--color-primary); flex: 0 0 auto; }
+.dateMore {
+  margin-left: auto;
+  color: var(--color-primary);
+  flex: 0 0 auto;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #cfe3ff;
+  background: #f4f8ff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+  cursor: pointer;
+}
+.dateMoreText { font-size: 14px; font-weight: 600; }
+.dateMoreIcon { color: var(--color-primary); }
 
 .input {
   width: 100%;
@@ -117,8 +138,7 @@
 .dropdownItem:hover { background: #f5f7fa; }
 
 .dateTabs {
-  max-width: var(--container-width);
-  margin: 12px auto 0;
+  margin: 12px 0 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -126,26 +146,56 @@
   background: #fff;
   border-radius: 12px;
   box-shadow: var(--shadow-md);
+  overflow-x: auto;
 }
-.arrow { color: #888; padding: 0 8px; }
+.arrow {
+  color: #667085;
+  padding: 0 8px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+.arrow:hover { background: #f5f7fa; }
 .dateCell {
-  padding: 10px 12px;
-  background: #f0f2f5;
+  flex: 1 1 0;
+  min-width: 92px;
+  padding: 8px 10px;
+  background: #f8fafc;
   color: #333;
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 1px solid #e6e9ef;
   cursor: pointer;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
-.dateActive { background: #0071eb; color: #fff; }
-.dateMain { font-size: 14px; }
-.datePrice { color: var(--color-primary); font-weight: 600; margin-top: 4px; }
+.dateActive { background: #0071eb; color: #fff; border-color: #0071eb; }
+.dateTop { display: inline-flex; align-items: center; gap: 6px; }
+.dateMd { font-size: 13px; font-weight: 700; }
+.dateWk { font-size: 12px; color: #667085; }
+.tripTag {
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 18px;
+  border: 1px solid transparent;
+}
+.tripTagGo { background: #eef5ff; color: #1f8ef1; border-color: #cfe3ff; }
+.tripTagBack { background: #fff7ed; color: #ff7a1a; border-color: #ffd7b5; }
+.datePrice { color: #ff7a1a; font-weight: 700; margin-top: 4px; }
+.dateActive .dateWk { color: rgba(255,255,255,0.85); }
 .dateActive .datePrice { color: #fff; }
+.dateActive .tripTagGo,
+.dateActive .tripTagBack { background: rgba(255,255,255,0.16); color: #fff; border-color: rgba(255,255,255,0.24); }
 
 .segmentBar {
-  max-width: var(--container-width);
-  margin: 12px auto 0;
+  margin: 12px 0 0;
   background: #fff;
   border-radius: 12px 12px 0 0;
   box-shadow: var(--shadow-md);
@@ -154,6 +204,21 @@
   align-items: center;
   gap: 12px;
 }
+.summaryLeft {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.tripPrefix { color: #111; font-size: 14px; font-weight: 500; white-space: nowrap; }
+.routeText {
+  color: #111;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+.summaryDate { color: #111; font-size: 16px; font-weight: 500; white-space: nowrap; }
 .stepActive, .stepDisabled {
   display: flex; align-items: center; gap: 8px;
   background: #eef5ff; border-radius: 8px; padding: 8px 12px;
@@ -161,11 +226,11 @@
 .stepDisabled { opacity: 0.5; }
 .stepNum { width: 22px; height: 22px; background: var(--color-primary); color: #fff; border-radius: 11px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; }
 .stepText { color: #333; }
-.updateAt { margin-left: auto; color: #666; font-size: 12px; }
+.updateAt { margin-left: auto; color: #111; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.updateIcon { color: #667085; font-size: 14px; line-height: 1; }
 
 .filterBar {
-  max-width: var(--container-width);
-  margin: 0 auto;
+  margin: 0;
   background: #fff;
   border-top: 1px solid #e6e9ef;
   border-radius: 0 0 12px 12px;
@@ -175,9 +240,21 @@
   align-items: center;
   justify-content: space-between;
 }
-.leftFilters { display: flex; align-items: center; gap: 12px; }
-.check { color: #666; }
-.filter { color: #333; cursor: pointer; }
+.leftFilters { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.check { color: #667085; display: inline-flex; align-items: center; gap: 6px; }
+.filter {
+  color: #333;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e6e9ef;
+  user-select: none;
+}
+.filter:hover { background: #f2f4f7; }
 .filterWrap { position: relative; }
 .filterDropdown {
   position: absolute;
@@ -202,18 +279,29 @@
 }
 .filterItem:hover { background: #f5f7fa; }
 .filterItemActive { background: #eef5ff; color: var(--color-primary); font-weight: 600; }
-.rightSorts { display: flex; align-items: center; gap: 16px; }
-.sort { color: #666; }
+.rightSorts { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.sort {
+  color: #667085;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
+  cursor: pointer;
+  user-select: none;
+}
+.sort:hover { background: #f8fafc; border-color: #e6e9ef; }
 .active { color: var(--color-primary); font-weight: 600; }
 
 .list {
-  max-width: var(--container-width);
-  margin: 12px auto 0;
+  margin: 12px 0 0;
 }
 .row {
   background: #fff;
   border-radius: 12px;
   box-shadow: var(--shadow-md);
+  border: 1px solid #e6e9ef;
   padding: 12px 16px;
   display: grid;
   grid-template-columns: 1fr 1.2fr 160px;
@@ -221,8 +309,9 @@
   gap: 16px;
   margin-bottom: 12px;
 }
+.row:hover { box-shadow: 0 10px 28px rgba(0,0,0,0.08); }
 .leftCol { display: flex; align-items: center; gap: 12px; }
-.logo { width: 40px; height: 40px; }
+.logo { width: 40px; height: 40px; display: block; border-radius: 10px; object-fit: contain; background: #fff; }
 .airlineInfo { display: flex; align-items: center; gap: 8px; color: #333; }
 .airline { font-weight: 600; }
 .flightNo { color: #1f8ef1; }
@@ -308,5 +397,22 @@
   font-size: 12px;
 }
 
-.loading { max-width: var(--container-width); margin: 0 auto; color: #666; }
-.error { max-width: var(--container-width); margin: 0 auto; color: red; }
+.loading { color: #666; }
+.error { color: red; }
+
+@media (max-width: 860px) {
+  .wrap { padding: 0 16px; }
+
+  .summaryLeft { flex-wrap: wrap; row-gap: 4px; }
+  .routeText { font-size: 22px; }
+
+  .row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .middleCol { justify-content: flex-start; }
+  .rightCol { align-items: flex-start; }
+
+  .dateCell { flex: 0 0 120px; }
+}

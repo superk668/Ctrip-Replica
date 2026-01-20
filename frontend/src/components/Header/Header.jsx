@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import styles from './Header.module.css';
 import logo from '../../assets/images/logo-ctrip.png';
+import avatarSvg from '../../assets/placeholders/user-avatar.svg';
 
 const Header = () => {
   const [authed, setAuthed] = useState(false);
@@ -9,6 +10,7 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const location = useLocation();
+  const isHome = location.pathname === '/' || location.pathname === '/home';
 
   const maskPhone = (p) => {
     const s = String(p || '').replace(/\D/g, '');
@@ -132,82 +134,101 @@ const Header = () => {
   ];
   return (
     <header className={styles.header}>
-      <div className={styles.topRow}>
-        <div className={styles.logo}>
-          <img src={logo} alt="Ctrip Logo" />
-        </div>
-        <div className={styles.progressCenter}>
-          {showBookingProgress && (
-            <div className={styles.progressBar} aria-label="购票进度">
-              {steps.map((s, idx) => {
-                const isDone = s.id < stage;
-                const isActive = s.id === stage;
-                return (
-                  <div key={s.id} className={styles.progressItem}>
-                    <span className={
-                      isDone ? styles.badgeDone : isActive ? styles.badgeActive : styles.badgeIdle
-                    }>
-                      {isDone ? '✓' : s.id}
-                    </span>
-                    <span className={
-                      isDone ? styles.progressTextDone : isActive ? styles.progressTextActive : styles.progressTextIdle
-                    }>{s.label}</span>
-                    {idx !== steps.length - 1 && <span className={styles.divider} />}
-                  </div>
-                );
-              })}
+      <div className={`${styles.inner} ${isHome ? styles.innerHome : ''}`}>
+        <div className={styles.topRow}>
+          <div className={styles.leftGroup}>
+            <div className={styles.logo}>
+              <a className={styles.logoLink} href="/home" aria-label="返回首页">
+                <img src={logo} alt="Ctrip Logo" />
+              </a>
             </div>
+            {!showBookingProgress && (
+              <div className={styles.headerSearch} aria-label="站内搜索">
+                <input className={styles.headerSearchInput} type="search" aria-label="站内搜索" placeholder="搜索任何旅行相关" />
+                <button className={styles.headerSearchBtn} type="button" aria-label="搜索">
+                  <svg className={styles.headerSearchIcon} viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="11" cy="11" r="6" stroke="white" strokeWidth="2" fill="none" />
+                    <line x1="16" y1="16" x2="21" y2="21" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+          <div className={styles.progressCenter}>
+            {showBookingProgress && (
+              <div className={styles.progressBar} aria-label="购票进度">
+                {steps.map((s, idx) => {
+                  const isDone = s.id < stage;
+                  const isActive = s.id === stage;
+                  return (
+                    <div key={s.id} className={styles.progressItem}>
+                      <span className={
+                        isDone ? styles.badgeDone : isActive ? styles.badgeActive : styles.badgeIdle
+                      }>
+                        {isDone ? '✓' : s.id}
+                      </span>
+                      <span className={
+                        isDone ? styles.progressTextDone : isActive ? styles.progressTextActive : styles.progressTextIdle
+                      }>{s.label}</span>
+                      {idx !== steps.length - 1 && <span className={styles.divider} />}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          {!showBookingProgress && (
+            <nav className={styles.navigation}>
+              {!authed ? (
+                <>
+                  <a href="/home">首页</a>
+                  <span className={styles.navDivider}>|</span>
+                  <button className={styles.loginBtn} onClick={() => window.location.href = '/login'}>登录</button>
+                  <a href="/register">注册</a>
+                  <span className={styles.navDivider}>|</span>
+                  <a href="/orders">我的订单</a>
+                  <span className={styles.navDivider}>|</span>
+                  <a href="#">联系客服</a>
+                </>
+              ) : (
+                <>
+                  <a href="/home">首页</a>
+                  <span className={styles.navDivider}>|</span>
+                  <div className={styles.userMenu} ref={menuRef} onMouseEnter={()=>setMenuOpen(true)} onMouseLeave={()=>setMenuOpen(false)} onTouchStart={()=>setMenuOpen(true)}>
+                    <button className={`${styles.userBtn} ${styles.userBadge}`}>
+                      <img className={styles.avatar} src={avatarSvg} alt="avatar" />
+                      <a href="/user-center/my-info" className={styles.idText} onClick={(e)=>e.stopPropagation()}>{displayName || ''}</a>
+                    </button>
+                    {menuOpen && (
+                      <div className={styles.dropdown}>
+                        <div className={styles.dropdownHeader}>
+                          <div className={styles.dropdownHeaderTop}>
+                            <img className={styles.avatar} src={avatarSvg} alt="avatar" />
+                            <a href="/user-center/my-info" className={styles.memberName}>{displayName || ''}</a>
+                            <span className={styles.caret}>›</span>
+                          </div>
+                          <div className={styles.dropdownHeaderBottom}>普通会员</div>
+                        </div>
+                        <a href="#" className={styles.dropdownItem}>我的积分</a>
+                        <a href="#" className={styles.dropdownItem}>我的钱包</a>
+                        <a href="#" className={styles.dropdownItem}>我的收藏</a>
+                        <a href="/user-center/common-info/travelers" className={styles.dropdownItem}>常用信息</a>
+                        <a href="#" className={styles.dropdownItem}>会员商城</a>
+                        <a href="#" className={styles.dropdownItem}>合作卡</a>
+                        <div className={styles.dropdownDivider}></div>
+                        <button className={styles.dropdownItem} onClick={handleLogout}>退出登录</button>
+                      </div>
+                    )}
+                  </div>
+                  <span className={styles.navDivider}>|</span>
+                  <a href="/orders">我的订单</a>
+                  <span className={styles.navDivider}>|</span>
+                  <a href="#">联系客服</a>
+                </>
+              )}
+            </nav>
           )}
         </div>
-        <nav className={styles.navigation}>
-          {!authed ? (
-            <>
-              <a href="/home">首页</a>
-              <span className={styles.navDivider}>|</span>
-              <button className={styles.loginBtn} onClick={() => window.location.href = '/login'}>登录</button>
-              <a href="/register">注册</a>
-              <span className={styles.navDivider}>|</span>
-              <a href="/orders">我的订单</a>
-              <span className={styles.navDivider}>|</span>
-              <a href="#">联系客服</a>
-            </>
-          ) : (
-            <>
-              <a href="/home">首页</a>
-              <span className={styles.navDivider}>|</span>
-              <div className={styles.userMenu} ref={menuRef} onMouseEnter={()=>setMenuOpen(true)} onMouseLeave={()=>setMenuOpen(false)} onTouchStart={()=>setMenuOpen(true)}>
-                <button className={`${styles.userBtn} ${styles.userBadge}`}>
-                  <img className={styles.avatar} src="/dist/assets/user_avatar.jpg" alt="avatar" />
-                  <a href="/user-center/my-info" className={styles.idText} onClick={(e)=>e.stopPropagation()}>{displayName || ''}</a>
-                </button>
-                {menuOpen && (
-                  <div className={styles.dropdown}>
-                    <div className={styles.dropdownHeader}>
-                      <div className={styles.dropdownHeaderTop}>
-                        <img className={styles.avatar} src="/dist/assets/user_avatar.jpg" alt="avatar" />
-                        <a href="/user-center/my-info" className={styles.memberName}>{displayName || ''}</a>
-                        <span className={styles.caret}>›</span>
-                      </div>
-                      <div className={styles.dropdownHeaderBottom}>普通会员</div>
-                    </div>
-                    <a href="#" className={styles.dropdownItem}>我的积分</a>
-                    <a href="#" className={styles.dropdownItem}>我的钱包</a>
-                    <a href="#" className={styles.dropdownItem}>我的收藏</a>
-                    <a href="/user-center/common-info/travelers" className={styles.dropdownItem}>常用信息</a>
-                    <a href="#" className={styles.dropdownItem}>会员商城</a>
-                    <a href="#" className={styles.dropdownItem}>合作卡</a>
-                    <div className={styles.dropdownDivider}></div>
-                    <button className={styles.dropdownItem} onClick={handleLogout}>退出登录</button>
-                  </div>
-                )}
-              </div>
-              <span className={styles.navDivider}>|</span>
-              <a href="/orders">我的订单</a>
-              <span className={styles.navDivider}>|</span>
-              <a href="#">联系客服</a>
-            </>
-          )}
-        </nav>
       </div>
     </header>
   );

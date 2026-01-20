@@ -1,7 +1,7 @@
 .header {
   display: flex;
   flex-direction: column;
-  padding: 16px 40px 12px;
+  padding: 16px 0 12px;
   background-color: #fff;
   border-bottom: 1px solid #eee;
   position: fixed;
@@ -11,10 +11,41 @@
   z-index: 1000;
 }
 
+.inner {
+  width: 100%;
+  max-width: var(--container-width, 1200px);
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.innerHome {
+  max-width: 980px;
+  transform: translateX(128px);
+}
+
 .topRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.logoLink {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
 }
 
 .progressCenter {
@@ -27,6 +58,43 @@
 
 .logo img {
   height: 40px;
+}
+
+.headerSearch {
+  height: 36px;
+  width: 320px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.headerSearchInput {
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #111;
+  min-width: 0;
+}
+
+.headerSearchBtn {
+  width: 44px;
+  height: 100%;
+  border: none;
+  background: #0071eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.headerSearchIcon {
+  width: 18px;
+  height: 18px;
 }
 
 .navigation {
@@ -163,3 +231,14 @@
 .progressTextActive { color: #ff8a1a; font-weight: 600; }
 .progressTextDone { color: #2563eb; font-weight: 600; }
 .divider { width: 120px; height: 1px; background: #e6e9ef; margin: 0 4px; }
+
+@media (max-width: 960px) {
+  .innerHome {
+    transform: none;
+    max-width: var(--container-width, 1200px);
+  }
+
+  .headerSearch {
+    width: 260px;
+  }
+}

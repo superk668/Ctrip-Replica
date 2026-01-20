@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import styles from './PaymentPage.module.css'
 import Header from '../../components/Header/Header'
 import Footer from '../../components/Footer/Footer'
+import alipayLogo from '../../assets/images/payment_logo/alipay.png'
+import chinaBankLogo from '../../assets/images/payment_logo/china_bank.png'
 
 const PaymentPage = () => {
   const navigate = useNavigate()
@@ -198,7 +200,7 @@ const PaymentPage = () => {
           <section className={styles.methodCard}>
             <div className={`${styles.optionRow} ${method==='saved'?styles.optionActive:''}`} onClick={()=>setMethod('saved')}>
               <div className={method==='saved'?styles.radioActive:styles.radio} />
-              <div className={styles.bankIcon}>占位</div>
+              <img className={styles.bankIcon} src={chinaBankLogo} alt="中国银行" />
               <div className={styles.optionText}>中国银行储蓄卡(9532)</div>
             </div>
             <div className={`${styles.optionRow} ${method==='new'?styles.optionActive:''}`} onClick={()=>setMethod('new')}>
@@ -222,7 +224,7 @@ const PaymentPage = () => {
 
           <section className={styles.alipayCard}>
             <div className={styles.alipayHead}>
-              <div className={styles.alipayIcon}>占位</div>
+              <img className={styles.alipayIcon} src={alipayLogo} alt="支付宝" />
               <div className={styles.alipayLabel}>支付宝</div>
               <div className={styles.moreLink}>更多支付方式 ▾</div>
             </div>

@@ -14,7 +14,7 @@
 
 .insLayout { display: grid; grid-template-columns: 280px 1fr; gap: 16px; margin-top: 12px; }
 .insLeft { display: flex; align-items: center; justify-content: center; }
-.illustration { width: 240px; height: 160px; border-radius: 12px; box-shadow: var(--shadow-md); }
+.illustration { width: 240px; height: 160px; border-radius: 12px; box-shadow: var(--shadow-md); object-fit: cover; display: block; }
 
 .insRight { display: grid; gap: 12px; }
 .insCard { background: #fff; border: 1px solid #e6e9ef; border-radius: 12px; padding: 12px; }

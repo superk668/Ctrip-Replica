@@ -40,9 +40,9 @@
 }
 .layout {
   width: 100%;
-  max-width: 1200px;
+  max-width: none;
   margin-left: 0;
-  margin-right: auto;
+  margin-right: 0;
   display: flex;
   gap: 16px;
 }
@@ -52,5 +52,225 @@
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  padding: 0 0 24px;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.searchAdWrap {
+  width: 100%;
+  max-width: 980px;
+  padding: 0 16px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.adBanner {
+  margin-top: 14px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.adBannerImage {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.lowFareSection {
+  margin-top: 18px;
+}
+
+.lowFareHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 4px 12px;
+}
+
+.lowFareTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+}
+
+.lowFareFrom {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 10px;
+}
+
+.lowFareFromLabel {
+  font-size: 13px;
+  color: #667085;
+}
+
+.lowFareFromInput {
+  width: 160px;
+  height: 30px;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  padding: 0 10px;
+  outline: none;
+  font-size: 13px;
+  color: #111;
+  background: #fff;
+}
+
+.lowFareMore {
+  margin-left: auto;
+  font-size: 13px;
+  color: #1677ff;
+  cursor: default;
+  user-select: none;
+}
+
+.lowFareGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.lowFareCard {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+}
+
+.lowFareCardHead {
+  height: 52px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lowFareCardHeadTitle {
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.lowFareCardHeadArrow {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 14px;
+  background: rgba(255,255,255,0.18);
+}
+
+.lowFareCardBody {
+  padding: 8px 12px 12px;
+}
+
+.lowFareRow {
+  display: grid;
+  grid-template-columns: 22px 68px 1fr 62px;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 6px;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.lowFareRow:last-child {
+  border-bottom: none;
+}
+
+.lowFareRank {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: #ff7a1a;
+}
+
+.lowFareRankMuted {
+  background: #d0d5dd;
+  color: #fff;
+}
+
+.lowFareThumb {
+  width: 68px;
+  height: 52px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+}
+
+.lowFareInfo {
+  min-width: 0;
+}
+
+.lowFareRoute {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
+
+.lowFareDate {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #98a2b3;
+}
+
+.lowFarePriceBox {
+  text-align: right;
+}
+
+.lowFarePrice {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1677ff;
+}
+
+.lowFareDiscount {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #98a2b3;
+}
+
+.lowFareCard_teal .lowFareCardHead {
+  background: linear-gradient(90deg, #11c8be, #00b3c8);
+}
+
+.lowFareCard_orange .lowFareCardHead {
+  background: linear-gradient(90deg, #ff7a1a, #ff4d4f);
+}
+
+.lowFareCard_blue .lowFareCardHead {
+  background: linear-gradient(90deg, #4c8dff, #7b61ff);
+}
+
+.lowFareCard_teal .lowFareRank {
+  background: #ff4d4f;
+}
+
+.lowFareCard_orange .lowFareRank {
+  background: #ff7a1a;
+}
+
+.lowFareCard_blue .lowFareRank {
+  background: #ff7a1a;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .lowFareGrid {
+    grid-template-columns: 1fr;
+  }
 }

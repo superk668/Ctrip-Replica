@@ -14,16 +14,18 @@
 }
 
 .formItem label {
-  width: 120px;
+  width: 128px;
+  flex: 0 0 128px;
   margin-right: 16px;
   text-align: right;
   color: #333;
   font-size: 16px;
+  white-space: nowrap;
 }
 
 .step2Grid {
   display: grid;
-  grid-template-columns: 120px 1fr 160px;
+  grid-template-columns: 128px 1fr 160px;
   column-gap: 16px;
   row-gap: 24px;
   align-items: center;
@@ -133,7 +135,7 @@
   align-items: center;
   display: flex;
   font-size: 14px;
-  margin-left: 136px;
+  margin-left: 144px;
   margin-top: 24px;
 }
 
@@ -155,10 +157,10 @@
   font-weight: 700;
   height: 56px;
   line-height: 56px;
-  margin-left: 136px;
+  margin-left: 144px;
   margin-top: 32px;
   text-align: center;
-  width: calc(100% - 136px);
+  width: calc(100% - 144px);
 }
 
 .enterpriseLink {
@@ -176,8 +178,8 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 15px;
-  margin-left: 136px; /* Align with input fields */
-  width: calc(100% - 136px);
+  margin-left: 144px;
+  width: calc(100% - 144px);
 }
 
 .strengthBar {
