@@ -1,8 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { act } from 'react'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import FlightsResultsPage from '../../src/pages/Flights/FlightsResultsPage.jsx'
+
+const LocationDisplay = () => {
+  const location = useLocation()
+  return <div data-testid="location">{location.search}</div>
+}
 
 describe('FlightsResultsPage', () => {
   const originalFetch = global.fetch
@@ -37,13 +42,15 @@ describe('FlightsResultsPage', () => {
   })
 
   it('结果页顶端搜索框应与URL参数同步', async () => {
-    render(
-      <MemoryRouter initialEntries={['/flights/results?trip=oneway&from=CAN&to=BJS&departDate=2026-01-20']}>
-        <Routes>
-          <Route path="/flights/results" element={<FlightsResultsPage />} />
-        </Routes>
-      </MemoryRouter>
-    )
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/flights/results?trip=oneway&from=CAN&to=BJS&departDate=2026-01-20']}>
+          <Routes>
+            <Route path="/flights/results" element={<FlightsResultsPage />} />
+          </Routes>
+        </MemoryRouter>
+      )
+    })
 
     expect(await screen.findByDisplayValue('广州(CAN)')).toBeTruthy()
     expect(await screen.findByDisplayValue('北京(BJS)')).toBeTruthy()
@@ -51,7 +58,6 @@ describe('FlightsResultsPage', () => {
   })
 
   it('往返模式可切换去程/返程并在返程交换出发到达', async () => {
-    const user = userEvent.setup()
     const calls = []
     global.fetch = vi.fn(async (url) => {
       calls.push(String(url))
@@ -77,13 +83,15 @@ describe('FlightsResultsPage', () => {
       }
     })
 
-    render(
-      <MemoryRouter initialEntries={['/flights/results?trip=round&leg=go&from=CAN&to=BJS&departDate=2026-01-20&returnDate=2026-01-22']}>
-        <Routes>
-          <Route path="/flights/results" element={<FlightsResultsPage />} />
-        </Routes>
-      </MemoryRouter>
-    )
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/flights/results?trip=round&leg=go&from=CAN&to=BJS&departDate=2026-01-20&returnDate=2026-01-22']}>
+          <Routes>
+            <Route path="/flights/results" element={<><FlightsResultsPage /><LocationDisplay /></>} />
+          </Routes>
+        </MemoryRouter>
+      )
+    })
 
     expect(await screen.findByDisplayValue('广州(CAN)')).toBeTruthy()
     expect(await screen.findByDisplayValue('北京(BJS)')).toBeTruthy()
@@ -97,11 +105,30 @@ describe('FlightsResultsPage', () => {
       expect(String(btn.className)).toContain('segmentBtnActive')
     })
 
-    await user.click(screen.getByRole('button', { name: /返程/ }))
+    const getActiveClassName = () => {
+      const goBtn = screen.getByRole('button', { name: /去程/ })
+      const backBtn = screen.getByRole('button', { name: /返程/ })
+      const goTokens = new Set(String(goBtn.className).split(/\s+/).filter(Boolean))
+      const backTokens = new Set(String(backBtn.className).split(/\s+/).filter(Boolean))
+      return Array.from(goTokens).find((t) => !backTokens.has(t)) || ''
+    }
+
+    const activeClass = getActiveClassName()
+    expect(activeClass).toBeTruthy()
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /返程/ }))
+    })
 
     await waitFor(() => {
-      const btn = screen.getByRole('button', { name: /返程/ })
-      expect(String(btn.className)).toContain('segmentBtnActive')
+      expect(screen.getByTestId('location').textContent || '').toContain('leg=back')
+    })
+
+    await waitFor(() => {
+      const goBtn = screen.getByRole('button', { name: /去程/ })
+      const backBtn = screen.getByRole('button', { name: /返程/ })
+      expect(String(backBtn.className).split(/\s+/)).toContain(activeClass)
+      expect(String(goBtn.className).split(/\s+/)).not.toContain(activeClass)
     })
 
     await waitFor(() => {
