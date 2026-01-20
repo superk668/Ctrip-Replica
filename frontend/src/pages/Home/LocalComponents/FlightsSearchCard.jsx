@@ -83,6 +83,83 @@ const FlightsSearchCard = ({ onSearch }) => {
   const [selectedFrom, setSelectedFrom] = useState(null)
   const [selectedTo, setSelectedTo] = useState(null)
 
+  const parseCode = (txt) => {
+    const m = /\(([^)]+)\)/.exec(String(txt || ''))
+    return m ? m[1] : ''
+  }
+
+  const codeFor = (item) => item?.cityCode || item?.airportCode || ''
+
+  const mergedCandidates = (list) => {
+    const merged = [...(Array.isArray(list) ? list : []), ...capitals]
+    const seen = new Set()
+    return merged.filter((it) => {
+      const key = `${it?.city || ''}|${it?.cityCode || ''}|${it?.airportCode || ''}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  }
+
+  const matchCity = (raw, list) => {
+    const q = String(raw || '').trim()
+    if (!q) return null
+    const candidates = mergedCandidates(list)
+    const code = parseCode(q)
+    if (code) {
+      const found = candidates.find((it) => it?.cityCode === code || it?.airportCode === code)
+      if (found) return found
+    }
+    const exactCity = candidates.find((it) => it?.city === q)
+    if (exactCity) return exactCity
+    const exactCode = candidates.find((it) => it?.cityCode === q || it?.airportCode === q)
+    if (exactCode) return exactCode
+    const fuzzyCity = candidates.find((it) => it?.city && (it.city.includes(q) || q.includes(it.city)))
+    return fuzzyCity || null
+  }
+
+  const applyFromMatch = (item) => {
+    if (!item) return false
+    const c = codeFor(item)
+    if (!c) return false
+    setSelectedFrom(item)
+    setFromInput(`${item.city}(${c})`)
+    setShowFrom(false)
+    return true
+  }
+
+  const applyToMatch = (item) => {
+    if (!item) return false
+    const c = codeFor(item)
+    if (!c) return false
+    setSelectedTo(item)
+    setToInput(`${item.city}(${c})`)
+    setShowTo(false)
+    return true
+  }
+
+  const resolveFrom = (alertOnFail = true) => {
+    const found = matchCity(fromInput, fromList)
+    if (applyFromMatch(found)) return true
+    if (alertOnFail) alert('未找到匹配项')
+    return false
+  }
+
+  const resolveTo = (alertOnFail = true) => {
+    const found = matchCity(toInput, toList)
+    if (applyToMatch(found)) return true
+    if (alertOnFail) alert('未找到匹配项')
+    return false
+  }
+
+  const addDaysISO = (iso, days) => {
+    const d = new Date(String(iso || today))
+    d.setDate(d.getDate() + Number(days || 0))
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${d.getFullYear()}-${m}-${dd}`
+  }
+
   useEffect(() => {
     const t = setTimeout(async () => {
       const q = fromInput.trim()
@@ -126,14 +203,22 @@ const FlightsSearchCard = ({ onSearch }) => {
 
   const handleSearch = () => {
     if (typeof onSearch === 'function') {
+      const fromObj = selectedFrom || matchCity(fromInput, fromList)
+      const toObj = selectedTo || matchCity(toInput, toList)
+      if (!fromObj) { alert('未找到匹配项'); return }
+      if (!toObj) { alert('未找到匹配项'); return }
+      const nextReturnDate = tripType === 'round' ? (returnDate || addDaysISO(departDate || today, 1)) : ''
+      if (tripType === 'round' && nextReturnDate !== returnDate) setReturnDate(nextReturnDate)
+      applyFromMatch(fromObj)
+      applyToMatch(toObj)
       const payload = {
         tripType,
         fromCity: fromInput,
         toCity: toInput,
         departDate,
-        returnDate,
-        from: selectedFrom,
-        to: selectedTo
+        returnDate: nextReturnDate,
+        from: fromObj,
+        to: toObj
       }
       onSearch(payload)
     }
@@ -151,7 +236,14 @@ const FlightsSearchCard = ({ onSearch }) => {
         <div className={styles.formRow}>
           <div className={styles.field}>
             <div className={styles.label}>出发地</div>
-            <input className={styles.input} value={fromInput} onChange={e=>{setFromInput(e.target.value); setShowFrom(true)}} onFocus={()=>setShowFrom(true)} onBlur={()=>setTimeout(()=>setShowFrom(false),200)} />
+            <input
+              className={styles.input}
+              value={fromInput}
+              onChange={e=>{setFromInput(e.target.value); setShowFrom(true)}}
+              onFocus={()=>setShowFrom(true)}
+              onBlur={()=>setTimeout(()=>{setShowFrom(false); resolveFrom(false)}, 220)}
+              onKeyDown={(e)=>{ if (e.key === 'Enter') { e.preventDefault(); resolveFrom() } }}
+            />
             {showFrom && (
               <div className={styles.dropdown}>
                 {(fromList.length>0 ? fromList : capitals).map(item=> (
@@ -165,7 +257,14 @@ const FlightsSearchCard = ({ onSearch }) => {
           <div onClick={handleSwap}><IconSwap /></div>
           <div className={styles.field}>
             <div className={styles.label}>目的地</div>
-            <input className={styles.input} value={toInput} onChange={e=>{setToInput(e.target.value); setShowTo(true)}} onFocus={()=>setShowTo(true)} onBlur={()=>setTimeout(()=>setShowTo(false),200)} />
+            <input
+              className={styles.input}
+              value={toInput}
+              onChange={e=>{setToInput(e.target.value); setShowTo(true)}}
+              onFocus={()=>setShowTo(true)}
+              onBlur={()=>setTimeout(()=>{setShowTo(false); resolveTo(false)}, 220)}
+              onKeyDown={(e)=>{ if (e.key === 'Enter') { e.preventDefault(); resolveTo() } }}
+            />
             {showTo && (
               <div className={styles.dropdown}>
                 {(toList.length>0 ? toList : capitals).map(item=> (
@@ -187,13 +286,6 @@ const FlightsSearchCard = ({ onSearch }) => {
               <input className={styles.input} type="date" value={returnDate} min={departDate||today} onChange={e=>setReturnDate(e.target.value)} />
             </div>
           )}
-          <div className={styles.passengerType}>
-            <div className={styles.label}>乘客类型</div>
-            <div className={styles.checkboxRow}>
-              <span className={styles.checkbox}>□ 常儿童</span>
-              <span className={styles.checkbox}>□ 带婴儿</span>
-            </div>
-          </div>
         </div>
 
         <button className={styles.searchBtn} onClick={handleSearch}>

@@ -227,6 +227,71 @@ const FlightsResultsPage = () => {
     return m ? m[1] : ''
   }
 
+  const resolveCityInput = (raw, list) => {
+    const q = String(raw || '').trim()
+    if (!q) return null
+    const merged = [...(Array.isArray(list) ? list : []), ...capitals]
+    const seen = new Set()
+    const candidates = merged.filter((it) => {
+      const key = `${it?.city || ''}|${it?.cityCode || ''}|${it?.airportCode || ''}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+
+    const code = parseCode(q)
+    if (code) {
+      const found = candidates.find((it) => it?.cityCode === code || it?.airportCode === code)
+      if (found) return found
+    }
+    const exactCity = candidates.find((it) => it?.city === q)
+    if (exactCity) return exactCity
+    const exactCode = candidates.find((it) => it?.cityCode === q || it?.airportCode === q)
+    if (exactCode) return exactCode
+    const fuzzy = candidates.find((it) => it?.city && (it.city.includes(q) || q.includes(it.city)))
+    return fuzzy || null
+  }
+
+  const handleResolveFrom = () => {
+    const found = resolveCityInput(fromInput, fromList)
+    if (found) {
+      const code = found.cityCode || found.airportCode
+      if (code) {
+        setSelectedFrom(found)
+        setFromInput(`${found.city}(${code})`)
+        applyParamsDebounced(0, { from: code })
+        return true
+      }
+    }
+    alert('未找到匹配项')
+    const back = findCityByCode(fromCity)
+    if (back) {
+      setSelectedFrom(back)
+      setFromInput(`${back.city}(${back.cityCode})`)
+    }
+    return false
+  }
+
+  const handleResolveTo = () => {
+    const found = resolveCityInput(toInput, toList)
+    if (found) {
+      const code = found.cityCode || found.airportCode
+      if (code) {
+        setSelectedTo(found)
+        setToInput(`${found.city}(${code})`)
+        applyParamsDebounced(0, { to: code })
+        return true
+      }
+    }
+    alert('未找到匹配项')
+    const back = findCityByCode(toCity)
+    if (back) {
+      setSelectedTo(back)
+      setToInput(`${back.city}(${back.cityCode})`)
+    }
+    return false
+  }
+
   const applyTimerRef = useRef(null)
   const pendingParamsRef = useRef('')
   useEffect(() => {
@@ -398,7 +463,14 @@ const FlightsResultsPage = () => {
       <div className={styles.formRow}>
         <div className={styles.field}>
           <div className={styles.label}>出发地</div>
-          <input className={styles.input} value={fromInput} onChange={e=>{setFromInput(e.target.value); setShowFrom(true)}} onFocus={()=>setShowFrom(true)} onBlur={()=>setTimeout(()=>setShowFrom(false),200)} />
+          <input
+            className={styles.input}
+            value={fromInput}
+            onChange={e=>{setFromInput(e.target.value); setShowFrom(true)}}
+            onFocus={()=>setShowFrom(true)}
+            onBlur={()=>setTimeout(()=>{setShowFrom(false); handleResolveFrom()}, 220)}
+            onKeyDown={(e)=>{ if (e.key === 'Enter') { e.preventDefault(); handleResolveFrom() } }}
+          />
           {showFrom && (
             <div className={styles.dropdown}>
               {(() => {
@@ -421,7 +493,14 @@ const FlightsResultsPage = () => {
         <div className={styles.swapIcon} onClick={handleSwap}>↔</div>
         <div className={styles.field}>
           <div className={styles.label}>目的地</div>
-          <input className={styles.input} value={toInput} onChange={e=>{setToInput(e.target.value); setShowTo(true)}} onFocus={()=>setShowTo(true)} onBlur={()=>setTimeout(()=>setShowTo(false),200)} />
+          <input
+            className={styles.input}
+            value={toInput}
+            onChange={e=>{setToInput(e.target.value); setShowTo(true)}}
+            onFocus={()=>setShowTo(true)}
+            onBlur={()=>setTimeout(()=>{setShowTo(false); handleResolveTo()}, 220)}
+            onKeyDown={(e)=>{ if (e.key === 'Enter') { e.preventDefault(); handleResolveTo() } }}
+          />
           {showTo && (
             <div className={styles.dropdown}>
               {(() => {
@@ -451,10 +530,6 @@ const FlightsResultsPage = () => {
             <input className={styles.dateInput} type="date" value={ret} min={depart||todayStr} onChange={e=>{setRet(e.target.value); applyParamsDebounced(100, { returnDate: e.target.value })}} />
           </div>
         )}
-        <div className={styles.fieldSmall}>
-          <div className={styles.labelMuted}>乘客类型</div>
-          <div className={styles.checkboxRow}><span className={styles.checkbox}>□ 常儿童</span><span className={styles.checkbox}>□ 带婴儿</span></div>
-        </div>
         <div className={styles.dateMore}>
           <span className={styles.dateMoreText}>更多日期</span>
           <span className={styles.dateMoreIcon}>▸</span>
@@ -861,7 +936,7 @@ const FlightsResultsPage = () => {
         <div className={styles.rightCol}>
           <div className={styles.price}>¥{minPrice}</div>
           <button className={styles.chooseBtn} onClick={()=>setOpen(!open)}>
-            {trip === 'oneway' ? '订票' : '选为去程'}
+            {trip === 'oneway' ? '订票' : (activeLeg === 'back' ? '选为返程' : '选为去程')}
             <span className={styles.chevron}>{open ? '▴' : '▾'}</span>
           </button>
         </div>
@@ -951,11 +1026,11 @@ const FlightsResultsPage = () => {
         <div className={styles.wrap}>
           {loading && <div className={styles.loading}>加载中…</div>}
           {error && <div className={styles.error}>{error}</div>}
-          <Header />
+          {Header()}
           <DateTabs />
-          <OneWayBar />
-          <FilterBar />
-          <List />
+          {OneWayBar()}
+          {FilterBar()}
+          {List()}
         </div>
       </main>
     </div>

@@ -26,6 +26,19 @@ import col3item5 from '../../assets/images/homepage_ad/col3item5.jpg';
 const HomePage = () => {
   const navigate = useNavigate();
 
+  const parseCode = (txt) => {
+    const m = /\(([^)]+)\)/.exec(String(txt || ''))
+    return m ? m[1] : ''
+  }
+
+  const addDaysISO = (iso, days) => {
+    const d = new Date(String(iso || todayString()))
+    d.setDate(d.getDate() + Number(days || 0))
+    const m = String(d.getMonth()+1).padStart(2,'0')
+    const dd = String(d.getDate()).padStart(2,'0')
+    return `${d.getFullYear()}-${m}-${dd}`
+  }
+
   const columnThumbs = {
     weekend: [col1item1, col1item2, col1item3, col1item4, col1item5],
     grassland: [col2item1, col2item2, col2item3, col2item4, col2item5],
@@ -72,21 +85,29 @@ const HomePage = () => {
   ];
 
   const handleSearch = (payload) => {
-    const fromCode = payload?.from?.cityCode || payload?.from?.airportCode || 'SHA'
-    const toCode = payload?.to?.cityCode || payload?.to?.airportCode || 'BJS'
+    const trip = payload?.tripType || 'oneway'
+    const fromCode = payload?.from?.cityCode || payload?.from?.airportCode || parseCode(payload?.fromCity) || 'SHA'
+    const toCode = payload?.to?.cityCode || payload?.to?.airportCode || parseCode(payload?.toCity) || 'BJS'
+    const departDate = payload?.departDate || todayString()
     const params = new URLSearchParams({
-      trip: payload.tripType || 'oneway',
+      trip,
       from: fromCode,
       to: toCode,
-      departDate: payload.departDate || todayString(),
+      departDate,
       adults: '1',
       children: '0',
       infants: '0',
       cabin: 'economy',
-      directOnly: 'false',
-      returnDate: payload.returnDate || ''
-    });
-    navigate(`/flights/results?${params.toString()}`);
+      directOnly: 'false'
+    })
+
+    if (trip === 'round') {
+      const ret = payload?.returnDate || addDaysISO(departDate, 1)
+      params.set('returnDate', ret)
+      params.set('leg', 'go')
+    }
+
+    navigate(`/flights/results?${params.toString()}`)
   };
 
   function todayString() {
