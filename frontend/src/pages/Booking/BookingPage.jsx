@@ -19,7 +19,9 @@ const BookingPage = () => {
 
   useEffect(() => {
     // 如果没有缓存且没有必要参数，回到航班列表
-    if (!data || !data.flight || !data.package) {
+    const hasSingle = !!(data && data.flight && data.package)
+    const hasJoint = !!(data && data.joint && data.legs && data.legs.go && data.legs.back && data.legs.go.flight && data.legs.go.package && data.legs.back.flight && data.legs.back.package)
+    if (!data || (!hasSingle && !hasJoint)) {
       // 在带参数的情况下尝试轻量恢复
       if (flightId && pkgId) {
         try {
@@ -36,9 +38,18 @@ const BookingPage = () => {
   }, [flightId, pkgId])
 
   if (!data) return null
-  const { flight, package: pkg } = data
+
+  const isJoint = !!(data && data.joint && data.legs && data.legs.go && data.legs.back)
+  const legs = isJoint
+    ? [
+      { key: 'go', label: '去程', flight: data.legs.go.flight, pkg: data.legs.go.package },
+      { key: 'back', label: '返程', flight: data.legs.back.flight, pkg: data.legs.back.package }
+    ]
+    : [{ key: 'go', label: '去程', flight: data.flight, pkg: data.package }]
+
+  const primaryFlight = legs[0]?.flight
+  const primaryPkg = legs[0]?.pkg
   const surcharges = { service: 48, build: 50, fuel: 20 }
-  const total = (pkg?.price || 0) + surcharges.service + surcharges.build + surcharges.fuel
 
   const [passengerList, setPassengerList] = useState([{
     id: 'p-' + Math.random().toString(36).slice(2),
@@ -261,9 +272,22 @@ const BookingPage = () => {
         if (phone) headers['x-user-phone'] = String(phone)
         
         const dstr = new Date().toISOString().slice(0,10)
-        const departISO = `${dstr}T${(flight?.from?.time||'00:00')}:00`
-        const arriveISO = `${dstr}T${(flight?.to?.time||'00:00')}:00`
-        const productTitle = `单程机票 ${flight?.from?.city||''} → ${flight?.to?.city||''}`
+        const buildLegInfo = (f) => {
+          const departISO = `${dstr}T${(f?.from?.time||'00:00')}:00`
+          const arriveISO = `${dstr}T${(f?.to?.time||'00:00')}:00`
+          return {
+            departCity: f?.from?.city,
+            arriveCity: f?.to?.city,
+            departTime: departISO,
+            arriveTime: arriveISO,
+            seatType: '经济舱',
+            number: f?.flightNo || ''
+          }
+        }
+
+        const productTitle = isJoint
+          ? `往返机票 ${primaryFlight?.from?.city||''} ↔ ${primaryFlight?.to?.city||''}`
+          : `单程机票 ${primaryFlight?.from?.city||''} → ${primaryFlight?.to?.city||''}`
         
         const travelerInfo = newPassengerList.map(p => {
             const idn = String(p.idNumber || '')
@@ -276,16 +300,33 @@ const BookingPage = () => {
         const contactInfo = { phone: `+${code}${contactPhone || ''}` }
         
         const count = newPassengerList.length
-        const currentTotal = (pkg?.price || 0) * count + (surcharges.service + surcharges.build + surcharges.fuel) * count
-        
-        const priceDetails = { items: [
-          { label: '成人套餐', price: Number(pkg?.price || 0), count },
-          { label: '金牌服务包', price: surcharges.service, count },
-          { label: '机建', price: surcharges.build, count },
-          { label: '燃油税', price: surcharges.fuel, count }
-        ], total: Number(currentTotal) }
-        
-        const productInfo = { type: 'flight', title: productTitle, departCity: flight?.from?.city, arriveCity: flight?.to?.city, departTime: departISO, arriveTime: arriveISO, seatType: '经济舱', number: flight?.flightNo || '' }
+        const basePkgTotal = legs.reduce((sum, it) => sum + Number(it?.pkg?.price || 0), 0)
+        const surchargeTotal = (surcharges.service + surcharges.build + surcharges.fuel) * legs.length
+        const currentTotal = basePkgTotal * count + surchargeTotal * count
+
+        const priceItems = []
+        legs.forEach(it => {
+          priceItems.push({ label: isJoint ? `成人套餐（${it.label}）` : '成人套餐', price: Number(it?.pkg?.price || 0), count })
+          priceItems.push({ label: isJoint ? `金牌服务包（${it.label}）` : '金牌服务包', price: surcharges.service, count })
+          priceItems.push({ label: isJoint ? `机建（${it.label}）` : '机建', price: surcharges.build, count })
+          priceItems.push({ label: isJoint ? `燃油税（${it.label}）` : '燃油税', price: surcharges.fuel, count })
+        })
+
+        const priceDetails = { items: priceItems, total: Number(currentTotal) }
+
+        const legInfos = legs.map(it => buildLegInfo(it.flight))
+        const productInfo = {
+          type: 'flight',
+          tripType: isJoint ? 'round' : 'oneway',
+          title: productTitle,
+          departCity: legInfos[0]?.departCity,
+          arriveCity: legInfos[0]?.arriveCity,
+          departTime: legInfos[0]?.departTime,
+          arriveTime: legInfos[0]?.arriveTime,
+          seatType: '经济舱',
+          number: legInfos[0]?.number,
+          legs: isJoint ? legInfos : undefined
+        }
         
         const orderPayload = { 
             productType: 'flight', 
@@ -312,7 +353,9 @@ const BookingPage = () => {
   }
 
   const passengerCount = passengerList.length
-  const currentTotal = (pkg?.price || 0) * passengerCount + (surcharges.service + surcharges.build + surcharges.fuel) * passengerCount
+  const basePkgTotal = legs.reduce((sum, it) => sum + Number(it?.pkg?.price || 0), 0)
+  const surchargeTotal = (surcharges.service + surcharges.build + surcharges.fuel) * legs.length
+  const currentTotal = basePkgTotal * passengerCount + surchargeTotal * passengerCount
 
   return (
     <div>
@@ -442,25 +485,33 @@ const BookingPage = () => {
         <div>
           <div className={styles.card}>
             <div className={styles.summaryHeader}>
-              <div className={styles.flightTitle}>{flight?.from?.code} → {flight?.to?.code}</div>
+              <div className={styles.flightTitle}>{primaryFlight?.from?.code} {isJoint ? '↔' : '→'} {primaryFlight?.to?.code}</div>
               <div>经济舱</div>
             </div>
             <div className={styles.timeBlock}>
               <div>
-                <div style={{fontSize:'24px', fontWeight:700}}>{flight?.from?.time}</div>
-                <div className={styles.airport}>{flight?.from?.airport}国际机场 {flight?.from?.terminal}</div>
+                <div style={{fontSize:'24px', fontWeight:700}}>{primaryFlight?.from?.time}</div>
+                <div className={styles.airport}>{primaryFlight?.from?.airport}国际机场 {primaryFlight?.from?.terminal}</div>
               </div>
               <div>→</div>
               <div>
-                <div style={{fontSize:'24px', fontWeight:700}}>{flight?.to?.time}</div>
-                <div className={styles.airport}>{flight?.to?.airport}国际机场 {flight?.to?.terminal}</div>
+                <div style={{fontSize:'24px', fontWeight:700}}>{primaryFlight?.to?.time}</div>
+                <div className={styles.airport}>{primaryFlight?.to?.airport}国际机场 {primaryFlight?.to?.terminal}</div>
               </div>
             </div>
             <div className={styles.summaryList}>
-              <div className={styles.sumRow}><div className={styles.sumName}>成人</div><div className={styles.sumPrice}>¥{pkg?.price}</div><div className={styles.sumCount}>x {passengerCount}</div></div>
-              <div className={styles.sumRow}><div className={styles.sumName}>金牌服务包</div><div className={styles.sumPrice}>¥{surcharges.service}</div><div className={styles.sumCount}>x {passengerCount}</div></div>
-              <div className={styles.sumRow}><div className={styles.sumName}>机建</div><div className={styles.sumPrice}>¥{surcharges.build}</div><div className={styles.sumCount}>x {passengerCount}</div></div>
-              <div className={styles.sumRow}><div className={styles.sumName}>燃油税</div><div className={styles.sumPrice}>¥{surcharges.fuel}</div><div className={styles.sumCount}>x {passengerCount}</div></div>
+              {legs.map(it => (
+                <div key={it.key} className={styles.sumRow}><div className={styles.sumName}>{`成人套餐（${it.label}）`}</div><div className={styles.sumPrice}>¥{it?.pkg?.price}</div><div className={styles.sumCount}>x {passengerCount}</div></div>
+              ))}
+              {legs.map(it => (
+                <div key={`${it.key}-service`} className={styles.sumRow}><div className={styles.sumName}>{`金牌服务包（${it.label}）`}</div><div className={styles.sumPrice}>¥{surcharges.service}</div><div className={styles.sumCount}>x {passengerCount}</div></div>
+              ))}
+              {legs.map(it => (
+                <div key={`${it.key}-build`} className={styles.sumRow}><div className={styles.sumName}>{`机建（${it.label}）`}</div><div className={styles.sumPrice}>¥{surcharges.build}</div><div className={styles.sumCount}>x {passengerCount}</div></div>
+              ))}
+              {legs.map(it => (
+                <div key={`${it.key}-fuel`} className={styles.sumRow}><div className={styles.sumName}>{`燃油税（${it.label}）`}</div><div className={styles.sumPrice}>¥{surcharges.fuel}</div><div className={styles.sumCount}>x {passengerCount}</div></div>
+              ))}
             </div>
             <div className={styles.giftRow}>赠品 订票即享：租车92折优惠券 / 嫌接送机最高8折券</div>
             <div className={styles.totalRow}><span className={styles.totalText}>合计</span><span className={styles.totalPrice}>¥{currentTotal}</span></div>

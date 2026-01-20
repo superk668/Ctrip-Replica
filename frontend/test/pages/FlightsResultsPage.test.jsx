@@ -14,6 +14,7 @@ describe('FlightsResultsPage', () => {
   const originalFetch = global.fetch
 
   beforeEach(() => {
+    sessionStorage.clear()
     global.fetch = vi.fn(async (url) => {
       const u = String(url)
       if (u.includes('/api/flights/search')) {
@@ -190,5 +191,104 @@ describe('FlightsResultsPage', () => {
       expect(lastSearch).toContain('to=CAN')
       expect(lastSearch).toContain('departDate=2026-01-22')
     })
+  })
+
+  it('往返模式先选单程不跳转，双程都选后跳转订票并写入联合机票', async () => {
+    const calls = []
+    global.fetch = vi.fn(async (url) => {
+      calls.push(String(url))
+      const u = String(url)
+      if (u.includes('/api/flights/search')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            flights: [
+              {
+                id: 'F1',
+                carrier: '测试航司',
+                flightNo: 'CZ0001',
+                model: 'A320',
+                from: { time: '08:00', airport: '广州', terminal: 'T1' },
+                to: { time: '10:00', airport: '北京', terminal: 'T2' },
+                packages: [
+                  {
+                    id: 'PKG1',
+                    cabin: 'Y',
+                    name: '经济舱标准',
+                    refundable: true,
+                    baggage: { carry: 7, checkin: 20 },
+                    price: 999
+                  }
+                ]
+              }
+            ]
+          })
+        }
+      }
+      if (u.includes('/api/airports/suggest')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ suggestions: [] })
+        }
+      }
+      return { ok: true, status: 200, json: async () => ({}) }
+    })
+
+    await act(async () => {
+      render(
+        <MemoryRouter initialEntries={['/flights/results?trip=round&leg=go&from=CAN&to=BJS&departDate=2026-01-20&returnDate=2026-01-22']}>
+          <Routes>
+            <Route path="/flights/results" element={<><FlightsResultsPage /><LocationDisplay /></>} />
+            <Route path="/booking" element={<div>booking</div>} />
+          </Routes>
+        </MemoryRouter>
+      )
+    })
+
+    await waitFor(() => {
+      expect(calls.some(u => u.includes('/api/flights/search?') && u.includes('from=CAN') && u.includes('to=BJS'))).toBe(true)
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /选为去程/ }))
+    })
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: '预订' }))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent || '').toContain('trip=round')
+      expect(screen.getByRole('button', { name: /已设置为去程/ })).toBeTruthy()
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /^返程/ }))
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent || '').toContain('leg=back')
+    })
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /选为返程/ }))
+    })
+
+    await act(async () => {
+      fireEvent.click(await screen.findByRole('button', { name: '预订' }))
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('location')).toBeNull()
+      expect(screen.getByText('booking')).toBeTruthy()
+    })
+
+    const stored = JSON.parse(sessionStorage.getItem('bookingSelection'))
+    expect(stored.joint).toBe(true)
+    expect(stored.legs && stored.legs.go && stored.legs.back).toBeTruthy()
+    expect(stored.legs.go.flight.id).toBe('F1')
+    expect(stored.legs.back.flight.id).toBe('F1')
   })
 })

@@ -80,6 +80,16 @@ const FlightsResultsPage = () => {
   const [showCabin, setShowCabin] = useState(false)
   const [showMore, setShowMore] = useState(false)
   const activeLeg = trip === 'round' ? (qs.get('leg') || 'go') : 'go'
+  const roundDraftKey = 'roundTripBookingDraft'
+  const roundQueryKey = `${qs.get('from') || ''}|${qs.get('to') || ''}|${qs.get('departDate') || ''}|${qs.get('returnDate') || ''}`
+  const [roundDraft, setRoundDraft] = useState(() => {
+    try {
+      const raw = sessionStorage.getItem(roundDraftKey)
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  })
   const airlines = [
     { name: '中国国航', code: 'CA' },
     { name: '东方航空', code: 'MU' },
@@ -177,6 +187,18 @@ const FlightsResultsPage = () => {
     if (nextModel !== filterModel) setFilterModel(nextModel)
     if (nextCabin !== filterCabin) setFilterCabin(nextCabin)
   }, [location.search])
+
+  useEffect(() => {
+    if (trip !== 'round') {
+      try { sessionStorage.removeItem(roundDraftKey) } catch {}
+      if (roundDraft) setRoundDraft(null)
+      return
+    }
+    if (roundDraft && roundDraft.queryKey && roundDraft.queryKey !== roundQueryKey) {
+      try { sessionStorage.removeItem(roundDraftKey) } catch {}
+      setRoundDraft(null)
+    }
+  }, [trip, roundQueryKey])
 
   useEffect(() => {
     const t = setTimeout(async () => {
@@ -916,6 +938,12 @@ const FlightsResultsPage = () => {
     const econ = (packages||[]).filter(p => p.cabin === 'Y').slice(0,5)
     const first = (packages||[]).filter(p => p.cabin === 'F').slice(0,5)
     const nav = useNavigate()
+    const legKey = activeLeg === 'back' ? 'back' : 'go'
+    const legLabel = legKey === 'back' ? '返程' : '去程'
+    const isLegSelected = trip === 'round' && roundDraft && roundDraft[legKey] && roundDraft[legKey]?.flight?.id === flight?.id
+    const chooseText = trip === 'oneway'
+      ? '订票'
+      : (isLegSelected ? `已设置为${legLabel}` : (legKey === 'back' ? '选为返程' : '选为去程'))
     return (
       <div className={styles.row}>
         <div className={styles.leftCol}>
@@ -936,7 +964,7 @@ const FlightsResultsPage = () => {
         <div className={styles.rightCol}>
           <div className={styles.price}>¥{minPrice}</div>
           <button className={styles.chooseBtn} onClick={()=>setOpen(!open)}>
-            {trip === 'oneway' ? '订票' : (activeLeg === 'back' ? '选为返程' : '选为去程')}
+            {chooseText}
             <span className={styles.chevron}>{open ? '▴' : '▾'}</span>
           </button>
         </div>
@@ -958,8 +986,33 @@ const FlightsResultsPage = () => {
                       </div>
                       <div className={styles.pkgPrice}>¥{p.price}</div>
                       <button className={styles.bookBtn} onClick={()=>{
-                        try { sessionStorage.setItem('bookingSelection', JSON.stringify({ flight, package: p })) } catch {}
-                        nav(`/booking?flight=${encodeURIComponent(flight?.id||'')}&pkg=${encodeURIComponent(p.id)}`)
+                        if (trip !== 'round') {
+                          try { sessionStorage.setItem('bookingSelection', JSON.stringify({ flight, package: p })) } catch {}
+                          nav(`/booking?flight=${encodeURIComponent(flight?.id||'')}&pkg=${encodeURIComponent(p.id)}`)
+                          return
+                        }
+                        let current
+                        try {
+                          const raw = sessionStorage.getItem(roundDraftKey)
+                          current = raw ? JSON.parse(raw) : null
+                        } catch {
+                          current = null
+                        }
+                        const next = { ...(current || {}), queryKey: roundQueryKey, [legKey]: { flight, package: p } }
+                        try { sessionStorage.setItem(roundDraftKey, JSON.stringify(next)) } catch {}
+                        setRoundDraft(next)
+                        const otherKey = legKey === 'go' ? 'back' : 'go'
+                        if (next && next[otherKey] && next.go && next.back) {
+                          const joint = { joint: true, queryKey: roundQueryKey, legs: { go: next.go, back: next.back } }
+                          try {
+                            sessionStorage.setItem('bookingSelection', JSON.stringify(joint))
+                            sessionStorage.removeItem(roundDraftKey)
+                          } catch {}
+                          setRoundDraft(null)
+                          nav('/booking?joint=1')
+                        } else {
+                          setOpen(false)
+                        }
                       }}>预订</button>
                     </div>
                   ))}
@@ -978,8 +1031,33 @@ const FlightsResultsPage = () => {
                       </div>
                       <div className={styles.pkgPrice}>¥{p.price}</div>
                       <button className={styles.bookBtn} onClick={()=>{
-                        try { sessionStorage.setItem('bookingSelection', JSON.stringify({ flight, package: p })) } catch {}
-                        nav(`/booking?flight=${encodeURIComponent(flight?.id||'')}&pkg=${encodeURIComponent(p.id)}`)
+                        if (trip !== 'round') {
+                          try { sessionStorage.setItem('bookingSelection', JSON.stringify({ flight, package: p })) } catch {}
+                          nav(`/booking?flight=${encodeURIComponent(flight?.id||'')}&pkg=${encodeURIComponent(p.id)}`)
+                          return
+                        }
+                        let current
+                        try {
+                          const raw = sessionStorage.getItem(roundDraftKey)
+                          current = raw ? JSON.parse(raw) : null
+                        } catch {
+                          current = null
+                        }
+                        const next = { ...(current || {}), queryKey: roundQueryKey, [legKey]: { flight, package: p } }
+                        try { sessionStorage.setItem(roundDraftKey, JSON.stringify(next)) } catch {}
+                        setRoundDraft(next)
+                        const otherKey = legKey === 'go' ? 'back' : 'go'
+                        if (next && next[otherKey] && next.go && next.back) {
+                          const joint = { joint: true, queryKey: roundQueryKey, legs: { go: next.go, back: next.back } }
+                          try {
+                            sessionStorage.setItem('bookingSelection', JSON.stringify(joint))
+                            sessionStorage.removeItem(roundDraftKey)
+                          } catch {}
+                          setRoundDraft(null)
+                          nav('/booking?joint=1')
+                        } else {
+                          setOpen(false)
+                        }
                       }}>预订</button>
                     </div>
                   ))}

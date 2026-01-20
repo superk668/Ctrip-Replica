@@ -209,36 +209,55 @@ const OrderListPage = () => {
   const goToPay = (o: OrderItem, e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      // Reconstruct bookingSelection for Booking/Payment pages
-      // Basic flight info reconstruction
       const p = o.productInfo || {};
-      const flight = {
-        from: {
-          city: cityName(p.departCity) || '',
-          airport: p.departCity ? `${cityName(p.departCity)}机场` : '',
-          time: p.departTime ? new Date(p.departTime).toTimeString().slice(0,5) : '00:00',
-          terminal: 'T1',
-          code: p.departCity || 'SHA'
-        },
-        to: {
-          city: cityName(p.arriveCity) || '',
-          airport: p.arriveCity ? `${cityName(p.arriveCity)}机场` : '',
-          time: p.arriveTime ? new Date(p.arriveTime).toTimeString().slice(0,5) : '00:00',
-          terminal: 'T2',
-          code: p.arriveCity || 'BJS'
-        },
-        flightNo: p.number || '',
-        model: '机型'
-      };
-      // Price reconstruction: total - surcharges
-      // Assuming standard surcharges if details missing
       const surcharges = { service: 48, build: 50, fuel: 20 };
       const totalSurcharges = surcharges.service + surcharges.build + surcharges.fuel;
-      const basePrice = Math.max(0, o.totalAmount - totalSurcharges);
-      
-      const pkg = { price: basePrice };
-      
-      const bookingSelection = { flight, package: pkg };
+      const tripType = p.tripType || (Array.isArray(p.legs) ? 'round' : 'oneway');
+
+      const buildFlight = (departCity: any, arriveCity: any, departTime: any, arriveTime: any, number: any) => ({
+        from: {
+          city: cityName(departCity) || '',
+          airport: departCity ? `${cityName(departCity)}机场` : '',
+          time: departTime ? new Date(departTime).toTimeString().slice(0,5) : '00:00',
+          terminal: 'T1',
+          code: departCity || 'SHA'
+        },
+        to: {
+          city: cityName(arriveCity) || '',
+          airport: arriveCity ? `${cityName(arriveCity)}机场` : '',
+          time: arriveTime ? new Date(arriveTime).toTimeString().slice(0,5) : '00:00',
+          terminal: 'T2',
+          code: arriveCity || 'BJS'
+        },
+        flightNo: number || '',
+        model: '机型'
+      });
+
+      let bookingSelection: any;
+      if (tripType === 'round' && Array.isArray(p.legs) && p.legs.length >= 2) {
+        const go = p.legs[0] || {};
+        const back = p.legs[1] || {};
+        const goFlight = buildFlight(go.departCity, go.arriveCity, go.departTime, go.arriveTime, go.number);
+        const backFlight = buildFlight(back.departCity, back.arriveCity, back.departTime, back.arriveTime, back.number);
+
+        const baseTotal = Math.max(0, o.totalAmount - totalSurcharges * 2);
+        const goPrice = Math.round((baseTotal / 2) * 100) / 100;
+        const backPrice = Math.max(0, Math.round((baseTotal - goPrice) * 100) / 100);
+
+        bookingSelection = {
+          joint: true,
+          legs: {
+            go: { flight: goFlight, package: { price: goPrice } },
+            back: { flight: backFlight, package: { price: backPrice } }
+          }
+        };
+      } else {
+        const flight = buildFlight(p.departCity, p.arriveCity, p.departTime, p.arriveTime, p.number);
+        const basePrice = Math.max(0, o.totalAmount - totalSurcharges);
+        const pkg = { price: basePrice };
+        bookingSelection = { flight, package: pkg };
+      }
+
       sessionStorage.setItem('bookingSelection', JSON.stringify(bookingSelection));
       
       // Passenger info
@@ -394,7 +413,7 @@ const OrderListPage = () => {
                 </span>
               </div>
               <div className={styles.cardBody}>
-                <div className={styles.productTitle}>{(o.productInfo?.departCity && o.productInfo?.arriveCity) ? `${cityName(o.productInfo.departCity)} → ${cityName(o.productInfo.arriveCity)}` : o.productTitle}</div>
+                <div className={styles.productTitle}>{(o.productInfo?.departCity && o.productInfo?.arriveCity) ? `${cityName(o.productInfo.departCity)} ${o.productInfo?.tripType === 'round' ? '↔' : '→'} ${cityName(o.productInfo.arriveCity)}` : o.productTitle}</div>
                 <div className={styles.meta}>出发日期：{formatRange(o.productInfo?.departTime, o.productInfo?.arriveTime)} {o.productInfo?.number || ''}</div>
                 <div className={styles.meta}>出行人：{(Array.isArray(o.travelerInfo) ? o.travelerInfo : []).map((t: any) => t?.name).filter(Boolean).join('、') || ''}</div>
               </div>

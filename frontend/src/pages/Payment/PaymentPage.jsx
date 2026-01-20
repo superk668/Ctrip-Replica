@@ -118,14 +118,18 @@ const PaymentPage = () => {
     passengerList = orderData.travelerInfo || []
   } else {
     // Fallback if order fetch fails or pending
-    const { package: pkg } = data || {}
+    const isJoint = !!(data && data.joint && data.legs && data.legs.go && data.legs.back)
     const surcharges = { service: 48, build: 50, fuel: 20 }
     let count = 1
     try {
         const passengerInfo = JSON.parse(sessionStorage.getItem('passengerInfo'))
         if (passengerInfo?.passengerList) count = passengerInfo.passengerList.length
     } catch(e) {}
-    total = ((pkg?.price || 0) + surcharges.service + surcharges.build + surcharges.fuel) * count
+    const base = isJoint
+      ? (Number(data?.legs?.go?.package?.price || 0) + Number(data?.legs?.back?.package?.price || 0))
+      : Number(data?.package?.price || 0)
+    const legCount = isJoint ? 2 : 1
+    total = (base + (surcharges.service + surcharges.build + surcharges.fuel) * legCount) * count
     
     // Try to get passenger names for fallback display
     try {
@@ -134,13 +138,36 @@ const PaymentPage = () => {
     } catch(e) {}
   }
   
-  const { flight } = data || {}
-  const displayFlight = orderData?.productInfo ? {
-    from: { city: orderData.productInfo.departCity, time: orderData.productInfo.departTime?.slice(11,16) },
-    to: { city: orderData.productInfo.arriveCity },
-    model: '机型',
-    flightNo: orderData.productInfo.number
-  } : flight
+  const tripType = orderData?.productInfo?.tripType || (orderData?.productInfo?.legs ? 'round' : (data?.joint ? 'round' : 'oneway'))
+  const tripLabel = tripType === 'round' ? '往返机票' : '单程机票'
+
+  const displayFlights = (() => {
+    if (orderData?.productInfo?.tripType === 'round' && Array.isArray(orderData.productInfo.legs) && orderData.productInfo.legs.length >= 2) {
+      return orderData.productInfo.legs.map((it) => ({
+        from: { city: it.departCity, time: it.departTime?.slice(11,16) },
+        to: { city: it.arriveCity },
+        model: '机型',
+        flightNo: it.number
+      }))
+    }
+    if (orderData?.productInfo) {
+      return [{
+        from: { city: orderData.productInfo.departCity, time: orderData.productInfo.departTime?.slice(11,16) },
+        to: { city: orderData.productInfo.arriveCity },
+        model: '机型',
+        flightNo: orderData.productInfo.number
+      }]
+    }
+    if (data?.joint && data.legs?.go?.flight && data.legs?.back?.flight) {
+      const go = data.legs.go.flight
+      const back = data.legs.back.flight
+      return [
+        { from: { city: go?.from?.city, time: go?.from?.time }, to: { city: go?.to?.city }, model: go?.model, flightNo: go?.flightNo },
+        { from: { city: back?.from?.city, time: back?.from?.time }, to: { city: back?.to?.city }, model: back?.model, flightNo: back?.flightNo }
+      ]
+    }
+    return data?.flight ? [{ ...data.flight, from: { city: data.flight.from?.city, time: data.flight.from?.time }, to: { city: data.flight.to?.city } }] : []
+  })()
 
 
   const [method, setMethod] = useState('saved')
@@ -184,9 +211,12 @@ const PaymentPage = () => {
               <div className={styles.countdown}>剩余时间: <span className={styles.countdownNum}>{fmt(remainMs)}</span>，超时订单可能会被取消</div>
             </div>
             <div className={styles.orderText}>
-              单程机票 {displayFlight?.from?.city} → {displayFlight?.to?.city}
+              {tripLabel} {displayFlights?.[0]?.from?.city} {tripType === 'round' ? '↔' : '→'} {displayFlights?.[0]?.to?.city}
             </div>
-            <div className={styles.orderSub}>飞机 {displayFlight?.model || '波音737'} · 出发时间: {new Date().toISOString().slice(0,10)} {displayFlight?.from?.time}</div>
+            <div className={styles.orderSub}>{tripType === 'round'
+              ? `去程 ${new Date().toISOString().slice(0,10)} ${displayFlights?.[0]?.from?.time || ''} · 返程 ${new Date().toISOString().slice(0,10)} ${displayFlights?.[1]?.from?.time || ''}`
+              : `飞机 ${displayFlights?.[0]?.model || '波音737'} · 出发时间: ${new Date().toISOString().slice(0,10)} ${displayFlights?.[0]?.from?.time || ''}`
+            }</div>
             
             {passengerList.map((p, i) => (
                 <div key={i} className={styles.orderSub}>
